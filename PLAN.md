@@ -1,52 +1,32 @@
-# Time Portal: v1 plan
+# Time Portal v2 plan
 
-Built from the project goal and `work_management_portal_detailed_requirement.docx`. v1 covers the parts Deep asked for first: manual time logging against projects and sub-projects, analytics by project and employee, and the project roadmap, with configurable role-based access. The rest of the requirement doc (emailed invites, attendance, leave, billing, Gantt dependencies, AI) is left for later phases.
+Source: `work_management_portal_detailed_requirement.docx` (Work Management & Time Intelligence Platform).
 
-## Stack
-- Frontend: React 19 + Vite + TypeScript, React Router, Recharts, plain CSS.
-- Backend: Node + Express + TypeScript (tsx), Prisma 6 ORM.
-- Database: SQLite for local dev. Switching to Postgres is a one-line `provider` change in `schema.prisma` plus a `DATABASE_URL`.
-- Auth: email + password (bcrypt), JWT in an HTTP-only cookie. All permission checks happen on the server.
+## Hierarchy
+Company → Client → Project → Sub-project → Milestone → Task → Sub-task → Time entry. Every record carries `companyId`, and every query is scoped to the session's current company.
 
-## Data model
-| Model | Key fields | Notes |
-|---|---|---|
-| User | name, email, passwordHash, role, teamId, title, weeklyCapacity, allProjects, active | role is ADMIN, MANAGER or EMPLOYEE |
-| Team | name | users belong to one team |
-| Client | name | optional owner of projects |
-| Project | name, code, clientId, parentId, managerId, status, health, startDate, endDate, estimatedHours, color, description | `parentId` set means it is a sub-project |
-| ProjectMember | projectId, userId | which employees may log time on a project when `allProjects` is off |
-| Milestone | projectId, name, dueDate, done | shown on the roadmap |
-| Task | projectId, title, assigneeId, status, estimatedHours, dueDate | optional on a time entry |
-| TimeEntry | userId, projectId, taskId, date, startTime, endTime, minutes, description, billable | `projectId` is the project or sub-project the work was done on |
-| RolePermission | role, feature, level | the editable access matrix |
-| AuditLog | userId, action, entity, entityId, details | written on every change |
+## Roles and access
+Admin, Manager and Employee per company. Seventeen features each have ordered levels (for example `analytics: none/own/all`, `financials: none/view`). Role defaults live in `server/src/permissions.ts`. Admins change them per company under Roles & permissions, and can override them per person. The server enforces every check; the client only hides what a user can't use.
 
-## Access model (editable by admins in Settings → Access)
-| Feature | Levels | Default Admin / Manager / Employee |
-|---|---|---|
-| Analytics | none / own / all | all / all / all |
-| Roadmap | none / view | view / view / view |
-| Export reports | none / own / all | all / all / own |
-| Manage projects | no / yes | yes / yes / no |
-| Edit others' time | no / yes | yes / yes / no |
-| Manage people | no / yes | yes / no / no |
+## Screens (client/src/pages)
+| Area | Screens |
+|---|---|
+| Sign-in | login, MFA, forced set-password, forgot/reset, public client status |
+| Everyday | home, inbox, my tasks, time tracker, timesheet, calendar, leave |
+| Work | tasks (list/board + side panel), projects, project detail, roadmap |
+| Insights | analytics (drill-down, health, financials), reports + exports, workload, team timesheets, approvals |
+| Admin | users & invites, roles & permissions, companies, company settings, integrations, automations, audit log, email log, account |
 
-Admins always keep full access so nobody can lock themselves out. Project access per user is "all projects" or a chosen list.
+## Acceptance scenarios (requirements §12)
+All 12 (AT-01 … AT-12) were run in a real browser with Playwright against seeded data:
+invites and forced password change (01, 02), manual time and weekly totals (03), task timer linked through to analytics (04), monthly Excel with descriptions and project totals (05), kanban, comments and linked time (06), manager drill-down to entries (07), dependency impact and shifting dependents (08), AI client email with explicit send logged in the outbox (09), company isolation (10), audited time edits with old/new values (11), financial data denied to employees (12).
 
-## Screens
-1. Login
-2. Dashboard: today and this week, recent entries, project mix
-3. Time: running timer plus manual entry (Project → Sub-project → Task cascade, date, start/end or duration, description, billable), entries grouped by day with edit/delete
-4. Timesheet: week grid of project/sub-project rows by day with totals
-5. Projects: project tree with sub-projects, create/edit, members, milestones, tasks, hours vs estimate
-6. Roadmap: timeline of projects, sub-projects and milestones by month/quarter/year with progress, status and today marker
-7. Analytics: cascading filters (date, client, project, sub-project, team, employee, billable), KPIs, hours by project, by employee, over time, and a drill-down list of entries with descriptions; CSV export
-8. People: users and teams, add user with role, team and project access
-9. Settings: access matrix and audit log
+## Not verified without external services
+- Google/Microsoft SSO (needs OAuth credentials).
+- Real email delivery (needs `SMTP_URL`); emails are logged in the outbox instead.
+- Claude-drafted emails (needs `ANTHROPIC_API_KEY`); a template draft is used instead.
+- MFA login was built and its TOTP code checked against the RFC 6238 test vector, but no seeded user has MFA turned on.
 
-## v1 additions
-
-- **Timesheet approval**: `TimesheetPeriod` (per user per week: SUBMITTED, APPROVED, REJECTED). Submitted/approved weeks block edits and timer starts; reject requires a note and reopens the week.
-- **Invitations**: `Invitation` with a one-time token link, 7-day expiry, resend and revoke. Accepting creates the account with the role, team and projects the admin picked.
-- **New permission**: `approveTimesheets` (Admin and Manager by default).
+## Next
+- Replace the Arc look-alike components with the published uiarc.dev components once the environment can reach uiarc.dev.
+- Saved views (shared filters) and a per-project timeline tab.

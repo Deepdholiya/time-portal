@@ -172,7 +172,12 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
                 {r.kind === "sub" && bar(`s${r.sub.id}`, { kind: "sub", id: r.sub.id, start: r.sub.startDate, end: r.sub.endDate }, s.subBar,
                   { borderColor: r.parent.color, ["--c" as string]: r.parent.color }, <span className={s.barText}>{r.sub.name}</span>,
                   `${r.sub.name} · ${fmtDate(r.sub.startDate, true)} → ${fmtDate(r.sub.endDate, true)}`)}
-                {r.kind === "milestones" && r.project.milestones.map((m) => <MilestoneMark key={m.id} left={x(m.date)} ppd={ppd} color={r.project.color} m={m} label />)}
+                {r.kind === "milestones" && r.project.milestones.map((m, i, all) => {
+                  // Label only when it fits before the next marker.
+                  const next = all[i + 1];
+                  const room = next ? x(next.date) - x(m.date) : Infinity;
+                  return <MilestoneMark key={m.id} left={x(m.date)} ppd={ppd} color={r.project.color} m={m} label={room > m.name.length * 6.2 + 18} />;
+                })}
                 {r.kind === "task" && (() => {
                   const t = r.task;
                   const ex = extent(`t${t.id}`, t.startDate, t.dueDate);

@@ -15,7 +15,8 @@ const LOCK_MINUTES = 15;
 
 // Simple in-memory rate limit per IP for credential endpoints.
 const hits = new Map<string, number[]>();
-function rateLimit(req: Request, key: string, max = 10, windowMs = 60_000) {
+// AUTH_RATE_LIMIT raises the per-minute cap for automated test runs.
+function rateLimit(req: Request, key: string, max = Number(process.env.AUTH_RATE_LIMIT) || 10, windowMs = 60_000) {
   const k = `${key}:${req.ip}`;
   const now = Date.now();
   const list = (hits.get(k) ?? []).filter((t) => now - t < windowMs);

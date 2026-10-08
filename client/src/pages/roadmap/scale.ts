@@ -10,7 +10,7 @@ export const ZOOMS: { value: Zoom; label: string; title: string }[] = [
   { value: "half", label: "6M", title: "Six months" },
   { value: "year", label: "Year", title: "Months grouped by year" },
 ];
-export const PX_PER_DAY: Record<Zoom, number> = { day: 36, week: 16, "2week": 9, month: 5, quarter: 2.4, half: 1.6, year: 0.9 };
+export const PX_PER_DAY: Record<Zoom, number> = { day: 44, week: 16, "2week": 9, month: 5, quarter: 2.4, half: 1.6, year: 0.9 };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
