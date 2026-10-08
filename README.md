@@ -29,6 +29,10 @@ Two companies are seeded: **Bridge UX** (INR, about 4 months of time, 5 projects
 
 To run as a single server: `npm run build && npm start`, then open http://localhost:4000. Reset the demo data with `npm --prefix server run db:reset`.
 
+### Demo on Vercel
+
+Import the repository at vercel.com/new and keep the defaults; `vercel.json` builds the web app, seeds a demo database and serves the API from `api/index.mjs`. Every branch gets its own preview link. Set `JWT_SECRET` in the Vercel project's environment variables. The demo database lives in the function's temporary storage, so changes reset whenever Vercel starts a fresh instance; use Postgres (see `server/prisma/schema.prisma`) for anything that must persist.
+
 ### Optional settings (`server/.env`)
 
 | Variable | Effect when set | Without it |
