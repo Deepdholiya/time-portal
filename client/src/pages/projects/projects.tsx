@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Archive, Building2, CircleDot, FolderKanban, Lock, Plus, Receipt, Search, Tag, UserRound, X } from "lucide-react";
-import { Avatar, AvatarGroup, Badge, Button, Combobox, EmptyState, ErrorState, Input, Select, SkeletonRows, Tooltip } from "@/components/arc";
-import { HEALTH_META, ProjectDot } from "@/components/app/icons";
+import { Avatar, AvatarGroup, Button, Combobox, EmptyState, ErrorState, Input, Select, SkeletonRows } from "@/components/arc";
+import { ProjectDot } from "@/components/app/icons";
+import { HealthBadge } from "./health-badge";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
 import { fmtDate, hours, pct } from "@/lib/format";
 import { useMe } from "@/lib/session";
@@ -17,13 +18,6 @@ const EMPTY: Filters = { status: [], clientId: null, managerId: null, archived: 
 
 function Chip({ active, icon, children }: { active: boolean; icon: ReactNode; children: ReactNode }) {
   return <button type="button" className={`${t.filterChip} ${active ? t.active : ""}`}>{icon}{children}</button>;
-}
-
-export function HealthBadge({ p }: { p: Project }) {
-  if (!p.stats) return null;
-  if (p.status === "COMPLETED") return <Badge tone="gray" size="sm">Completed</Badge>;
-  const h = HEALTH_META[p.stats.health] ?? HEALTH_META.NONE;
-  return <Tooltip content={p.stats.reasons.length ? p.stats.reasons.join(" · ") : "No issues"}><span><Badge tone={h.tone} dot size="sm">{h.label}</Badge></span></Tooltip>;
 }
 
 /** Linear-style projects list with health, progress and tracked-vs-estimate. */

@@ -43,7 +43,7 @@ export function useOptions() {
 }
 
 /** Compact chip trigger: "Project  Website Redesign +1". */
-function ChipTrigger({ icon, label, value, active, ...rest }: { icon: ReactNode; label: string; value?: ReactNode; active: boolean } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+export function ChipTrigger({ icon, label, value, active, ...rest }: { icon: ReactNode; label: string; value?: ReactNode; active: boolean } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button type="button" className={`${s.chip} ${active ? s.chipOn : ""}`} {...rest}>
       {icon}
@@ -53,7 +53,7 @@ function ChipTrigger({ icon, label, value, active, ...rest }: { icon: ReactNode;
   );
 }
 
-function MultiChip({ icon, label, options, value, onChange }: { icon: ReactNode; label: string; options: ComboboxOption[]; value: string[]; onChange: (v: string[]) => void }) {
+export function MultiChip({ icon, label, options, value, onChange }: { icon: ReactNode; label: string; options: ComboboxOption[]; value: string[]; onChange: (v: string[]) => void }) {
   const first = options.find((o) => String(o.value) === value[0]);
   const shown = value.length === 0 ? undefined : value.length === 1 ? first?.label ?? "1 selected" : `${first?.label ?? ""} +${value.length - 1}`;
   return (
@@ -64,7 +64,7 @@ function MultiChip({ icon, label, options, value, onChange }: { icon: ReactNode;
   );
 }
 
-function SingleChip({ icon, label, options, value, onChange }: { icon: ReactNode; label: string; options: ComboboxOption[]; value: string; onChange: (v: string) => void }) {
+export function SingleChip({ icon, label, options, value, onChange }: { icon: ReactNode; label: string; options: ComboboxOption[]; value: string; onChange: (v: string) => void }) {
   const cur = options.find((o) => String(o.value) === value);
   return (
     <Combobox

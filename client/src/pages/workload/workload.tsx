@@ -139,7 +139,7 @@ export default function Workload() {
                       return (
                         <td key={b.from} className={`center ${s.bucket}`}>
                           <Tooltip content={`${b.label}: ${h1(hrs)}h ${metric} of ${h1(c.capacityHours)}h capacity${onLeave ? ` · ${c.leaveDays}d leave` : ""}`}>
-                            <span className={s.heat} style={{ background: c.capacityHours === 0 ? "transparent" : ck ? `color-mix(in srgb, ${STATUS[ck].color} ${Math.min(55, 12 + (cu ?? 0) * 30)}%, transparent)` : "transparent" }}>
+                            <span className={s.heat} style={{ background: c.capacityHours === 0 || !cu ? "transparent" : ck ? `color-mix(in srgb, ${STATUS[ck].color} ${Math.min(55, 12 + (cu ?? 0) * 30)}%, transparent)` : "transparent" }}>
                               {c.capacityHours === 0 ? (onLeave ? <Plane size={12} className="faint" /> : <span className="faint">–</span>) : <>{cu == null ? "—" : `${Math.round(cu * 100)}%`}{onLeave && <Plane size={10} className={s.leaveIcon} />}</>}
                             </span>
                           </Tooltip>
