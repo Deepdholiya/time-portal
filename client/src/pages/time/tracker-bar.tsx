@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ArrowLeftRight, DollarSign, MoreHorizontal, Pause, Play, Square, Trash2 } from "lucide-react";
-import { Button, ConfirmDialog, IconButton, Input, Menu, Popover, Tooltip, toast } from "@/components/arc";
+import { Button, ConfirmDialog, IconButton, Input, Menu, Popover, Tooltip, toast } from "@/components/ui";
 import { elapsedOf, timerActions, timerChanged, useTick } from "@/components/app/timer-widget";
 import { del, patch, post } from "@/lib/api";
 import { clock, nowTime, today } from "@/lib/format";

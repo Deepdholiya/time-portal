@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Mail, MailCheck } from "lucide-react";
-import { Button, Input } from "@/components/arc";
+import { Button, Input } from "@/components/ui";
 import { post } from "@/lib/api";
 import { AuthError, AuthLayout, AuthNotice, authStyles as s } from "./auth-layout";
 

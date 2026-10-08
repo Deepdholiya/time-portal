@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AlarmClock, CalendarClock, ListChecks, MoreHorizontal, Pencil, Plus, Timer, Trash2, Workflow } from "lucide-react";
 import { Page } from "@/components/app/page";
 import { STATUSES, STATUS_META } from "@/components/app/icons";
-import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, Select, SkeletonRows, Switch, toast } from "@/components/arc";
+import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, Select, SkeletonRows, Switch, toast } from "@/components/ui";
 import { del, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { relTime } from "@/lib/format";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Lock, Mail } from "lucide-react";
-import { Button, Input } from "@/components/arc";
+import { Button, Input } from "@/components/ui";
 import { post, ApiError } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { useSession } from "@/lib/session";

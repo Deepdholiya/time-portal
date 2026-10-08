@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Copy, Lock, Send, Sheet as SheetIcon, Undo2 } from "lucide-react";
-import { Avatar, Badge, Button, Combobox, ConfirmDialog, DatePicker, ErrorState, IconButton, Input, SkeletonRows, toast, type BadgeTone } from "@/components/arc";
+import { Avatar, Badge, Button, Combobox, ConfirmDialog, DatePicker, ErrorState, IconButton, Input, SkeletonRows, toast, type BadgeTone } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useRunningTimer } from "@/components/app/timer-widget";
 import { post } from "@/lib/api";

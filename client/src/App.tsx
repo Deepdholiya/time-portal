@@ -1,6 +1,6 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Loading } from "./components/arc";
+import { Loading } from "./components/ui";
 import { AppLayout } from "./components/app/app-layout";
 import { Guard } from "./components/app/page";
 import { useSession } from "./lib/session";

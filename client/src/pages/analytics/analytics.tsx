@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { BarChart3, FileSpreadsheet, Info, X } from "lucide-react";
-import { Button, SegmentedControl, SkeletonRows, Tabs } from "@/components/arc";
+import { Button, SegmentedControl, SkeletonRows, Tabs } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { ProjectDot } from "@/components/app/icons";
 import { useApi, useLocal } from "@/lib/hooks";

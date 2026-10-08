@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Plus, X } from "lucide-react";
-import { Combobox, DatePicker, Input, Popover, Select, Switch } from "@/components/arc";
+import { Combobox, DatePicker, Input, Popover, Select, Switch } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { AssigneePicker, PriorityPicker, StatusPicker } from "@/components/app/properties";
 import { fmtDate } from "@/lib/format";

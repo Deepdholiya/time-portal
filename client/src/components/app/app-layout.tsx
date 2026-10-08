@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useMemo, useState, lazy } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, Search } from "lucide-react";
-import { IconButton, Loading } from "@/components/arc";
+import { IconButton, Loading } from "@/components/ui";
 import { useHotkey } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
 import { toggleTheme } from "@/lib/theme";

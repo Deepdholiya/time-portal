@@ -1,4 +1,4 @@
-import { Badge, EmptyState, Sheet } from "@/components/arc";
+import { Badge, EmptyState, Sheet } from "@/components/ui";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { dueLabel, fmtDate } from "@/lib/format";

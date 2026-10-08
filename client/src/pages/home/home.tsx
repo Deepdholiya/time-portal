@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarDays, Diamond, Home as HomeIcon, Palmtree, PartyPopper } from "lucide-react";
-import { Avatar, DateRangePicker, EmptyState, ErrorState, SegmentedControl, Skeleton, presetRange, type DateRange } from "@/components/arc";
+import { Avatar, DateRangePicker, EmptyState, ErrorState, SegmentedControl, Skeleton, presetRange, type DateRange } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";

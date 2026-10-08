@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
-import { Avatar, Button, Combobox, ConfirmDialog, DatePicker, Dialog, Field, Input, Loading, SegmentedControl, Switch, Textarea, toast, type ComboboxOption } from "@/components/arc";
+import { Avatar, Button, Combobox, ConfirmDialog, DatePicker, Dialog, Field, Input, Loading, SegmentedControl, Switch, Textarea, toast, type ComboboxOption } from "@/components/ui";
 import type { NewEntryDefaults } from "@/components/app/shell-context";
 import { ProjectDot } from "@/components/app/icons";
 import { del, get, post, put } from "@/lib/api";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { LogOut, Monitor, Moon, Sun, UserCircle } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Avatar, Button, ConfirmDialog, ErrorState, Field, Input, SegmentedControl, SkeletonRows, toast } from "@/components/arc";
+import { Avatar, Button, ConfirmDialog, ErrorState, Field, Input, SegmentedControl, SkeletonRows, toast } from "@/components/ui";
 import { del, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useSession } from "@/lib/session";

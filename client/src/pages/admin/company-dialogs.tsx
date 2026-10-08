@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { UserMinus, UserPlus } from "lucide-react";
-import { Avatar, Button, Combobox, ConfirmDialog, Dialog, ErrorState, Field, Input, Select, Sheet, SkeletonRows, Textarea, toast } from "@/components/arc";
+import { Avatar, Button, Combobox, ConfirmDialog, Dialog, ErrorState, Field, Input, Select, Sheet, SkeletonRows, Textarea, toast } from "@/components/ui";
 import { del, get, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useSession } from "@/lib/session";

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { AlertTriangle, Download, FileText, Image as ImageIcon, Link2, Play, Plus, Timer, Trash2, Upload, X } from "lucide-react";
-import { Avatar, Button, Combobox, ConfirmDialog, IconButton, Spinner, toast } from "@/components/arc";
+import { Avatar, Button, Combobox, ConfirmDialog, IconButton, Spinner, toast } from "@/components/ui";
 import { StatusIcon } from "@/components/app/icons";
 import { StatusPicker } from "@/components/app/properties";
 import { useShell } from "@/components/app/shell-context";

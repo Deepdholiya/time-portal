@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MoreHorizontal, Pencil, Plus, Trash2, UsersRound } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Avatar, AvatarGroup, Button, Combobox, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, SkeletonRows, toast } from "@/components/arc";
+import { Avatar, AvatarGroup, Button, Combobox, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, SkeletonRows, toast } from "@/components/ui";
 import { del, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

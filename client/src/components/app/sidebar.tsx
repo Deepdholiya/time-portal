@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Search, SquarePen, ChevronDown, LogOut, Moon, Sun, Settings, Check, Plus, UserRound, Keyboard } from "lucide-react";
-import { Avatar, IconButton, Kbd, Menu, Tooltip } from "@/components/arc";
+import { Avatar, IconButton, Kbd, Menu, Tooltip } from "@/components/ui";
 import { get } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { toggleTheme } from "@/lib/theme";

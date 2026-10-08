@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { Button, Combobox, Dialog, Field, Input, Select, Switch, Textarea, toast } from "@/components/arc";
+import { Button, Combobox, Dialog, Field, Input, Select, Switch, Textarea, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

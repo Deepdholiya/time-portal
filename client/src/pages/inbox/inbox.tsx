@@ -4,7 +4,7 @@ import {
   AlarmClock, AtSign, BellRing, CalendarCheck, CalendarX, CheckCheck, CircleAlert, CircleCheck, CircleDot, Clock, FileBarChart, Flag, FolderKanban, Inbox as InboxIcon,
   KeyRound, Link2Off, Link2, MessageSquare, MailOpen, Mail, Send, Trash2, UserPlus, UserCheck, Workflow, XCircle, Zap,
 } from "lucide-react";
-import { Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/arc";
+import { Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { refreshCounts } from "@/components/app/sidebar";

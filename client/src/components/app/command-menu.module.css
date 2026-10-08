@@ -1,11 +1,6 @@
-.overlay { position: fixed; inset: 0; z-index: 80; background: rgba(10, 10, 14, 0.3); display: flex; justify-content: center; padding-top: 14vh; }
-.panel { width: min(640px, calc(100vw - 32px)); max-height: 60vh; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; overflow: hidden; align-self: flex-start; }
-.input { border: 0; border-bottom: 1px solid var(--border); background: none; height: 52px; padding: 0 18px; font-size: 15px; outline: none; color: var(--text); }
-.input::placeholder { color: var(--text-3); }
-.list { overflow: auto; padding: 6px; }
-.group { font-size: 11.5px; color: var(--text-3); padding: 8px 12px 4px; font-weight: 500; }
-.item { display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 12px; border-radius: 8px; cursor: pointer; color: var(--text); }
-.item svg { color: var(--text-2); flex-shrink: 0; }
-.hi { background: var(--bg-hover); }
-.hint { margin-left: auto; color: var(--text-3); font-size: 12px; }
+/* ⌘K: Arc's CommandPalette in a Radix dialog, placed high on the screen like Linear's. */
+.panel { position: fixed; z-index: 81; top: 14vh; left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 32px)); display: flex; flex-direction: column; overflow: hidden; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-floating); }
+.panel:focus { outline: none; }
+.panel > :first-child { width: 100%; max-width: none; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.srOnly { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .footer { border-top: 1px solid var(--border); padding: 8px 14px; display: flex; gap: 14px; color: var(--text-3); font-size: 12px; align-items: center; }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Settings as SettingsIcon } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Button, ErrorState, Field, Input, Select, SkeletonRows, Switch, Tabs, Textarea, toast } from "@/components/arc";
+import { Button, ErrorState, Field, Input, Select, SkeletonRows, Switch, Tabs, Textarea, toast } from "@/components/ui";
 import { put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
@@ -127,7 +127,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
         <div className="medium">{label}</div>
         {hint && <div className="small faint">{hint}</div>}
       </div>
-      <div className={s.control}><Field>{children}</Field></div>
+      <div className={s.control}><Field label={label} labelHidden>{children}</Field></div>
     </div>
   );
 }

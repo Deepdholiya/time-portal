@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { RefreshCw, Send, Sparkles, FileText } from "lucide-react";
-import { Badge, Button, Checkbox, ConfirmDialog, Dialog, Field, Input, Select, Skeleton, Textarea, toast } from "@/components/arc";
+import { Badge, Button, Checkbox, ConfirmDialog, Dialog, Field, Input, Select, Skeleton, Textarea, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { useSession } from "@/lib/session";
 

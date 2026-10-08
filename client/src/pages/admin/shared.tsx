@@ -1,7 +1,7 @@
 // Small pieces shared by the people, teams, clients and admin pages.
 import { useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
-import { Badge, IconButton, toast, type BadgeTone } from "@/components/arc";
+import { Badge, IconButton, toast, type BadgeTone } from "@/components/ui";
 import { titleCase } from "@/lib/format";
 import s from "./shared.module.css";
 

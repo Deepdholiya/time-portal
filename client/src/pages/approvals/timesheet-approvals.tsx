@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import { Check, ChevronDown, ChevronRight, LockOpen, Undo2 } from "lucide-react";
-import { Avatar, Badge, Button, Checkbox, Dialog, EmptyState, Field, SegmentedControl, SkeletonRows, Textarea, Tooltip, toast } from "@/components/arc";
+import { Avatar, Badge, Button, Checkbox, Dialog, EmptyState, Field, SegmentedControl, SkeletonRows, Textarea, Tooltip, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { refreshCounts } from "@/components/app/sidebar";
 import { post } from "@/lib/api";

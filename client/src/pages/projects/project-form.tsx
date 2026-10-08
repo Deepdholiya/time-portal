@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FileStack, Plus, X } from "lucide-react";
-import { Avatar, Button, Combobox, DatePicker, Dialog, Field, IconButton, Input, SegmentedControl, Select, Textarea, toast } from "@/components/arc";
+import { Avatar, Button, Combobox, DatePicker, Dialog, Field, IconButton, Input, SegmentedControl, Select, Textarea, toast } from "@/components/ui";
 import { PRIORITIES, PRIORITY_META, PriorityIcon } from "@/components/app/icons";
 import { post, put } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";

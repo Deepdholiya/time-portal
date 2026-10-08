@@ -1,30 +1,39 @@
-.button {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; border-radius: var(--radius);
-  font-weight: 500; white-space: nowrap; cursor: pointer; user-select: none; transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
-  position: relative; line-height: 1;
+/* Press scale is driven by Motion (whileTap) alone, so transform never gets a CSS transition here. */
+.button { position: relative; display: inline-flex; min-height: var(--control-height-md); align-items: center; justify-content: center; gap: var(--space-2); border: 1px solid transparent; border-radius: var(--radius-control); padding: 0 var(--space-4); font: inherit; font-size: var(--text-sm); font-weight: 500; line-height: var(--leading-body); white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard); }
+.button:disabled { cursor: not-allowed; opacity: .52; }
+.button[aria-busy="true"] { cursor: progress; }
+/* Anchors of floating layers never scale: Radix opens on pointerdown and would measure a shrunken trigger. */
+.button:is([aria-haspopup]:not([aria-haspopup="false"]), [data-state], [role="combobox"]) { transform: none !important; }
+/* The slot's width follows the incoming label on a spring. The label stays centered and may overflow evenly while the slot catches up;
+   the outgoing label pops out of flow against the slot itself, so it keeps its place instead of following the new content box. */
+.labelSlot { position: relative; display: inline-flex; min-width: 0; align-items: center; justify-content: center; transition: opacity var(--duration-fast) var(--ease-standard); }
+.labelSlot[data-morphing] { clip-path: inset(-50% calc(var(--space-3) * -1)); }
+.labelContent { display: inline-flex; flex: none; align-items: center; }
+.labelPhase { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); white-space: nowrap; }
+.labelPhase svg { flex: none; }
+.primary { color: var(--background); background: var(--foreground); border-color: var(--foreground); }
+.secondary { color: var(--foreground); background: var(--surface); border-color: var(--border); }
+.ghost { color: var(--text-secondary); background: transparent; border-color: transparent; }
+.danger { color: var(--danger); background: var(--surface); border-color: var(--border); }
+/* A disabled outlined button keeps its shape and fades only its label, so it still reads as a button that is off, not as plain text. */
+.secondary:disabled, .danger:disabled { opacity: 1; color: var(--text-muted); background: var(--surface-muted); border-color: var(--border); }
+.danger:disabled { color: color-mix(in oklab, var(--danger) 55%, var(--surface-muted)); }
+.ghost:disabled { opacity: 1; color: var(--text-muted); }
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover:not(:disabled) { opacity: .91; box-shadow: var(--shadow-resting); }
+  .secondary:hover:not(:disabled) { background: var(--surface-muted); box-shadow: var(--shadow-resting); }
+  .ghost:hover:not(:disabled) { color: var(--foreground); background: var(--surface-muted); }
+  .danger:hover:not(:disabled) { border-color: var(--danger); background: var(--surface-muted); }
 }
-.button:disabled { opacity: 0.5; cursor: not-allowed; }
-.sm { height: 24px; padding: 0 8px; font-size: 12px; gap: 4px; }
-.md { height: 28px; padding: 0 12px; font-size: 13px; }
-.lg { height: 36px; padding: 0 16px; font-size: 14px; }
-.iconOnly.sm { width: 24px; padding: 0; }
-.iconOnly.md { width: 28px; padding: 0; }
-.iconOnly.lg { width: 36px; padding: 0; }
-.primary { background: var(--accent); color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.12); }
-.primary:hover:not(:disabled) { background: var(--accent-hover); }
-.secondary { background: var(--bg-elevated); border-color: var(--border); color: var(--text); box-shadow: var(--shadow-sm); }
-.secondary:hover:not(:disabled) { background: var(--bg-hover); border-color: var(--border-strong); }
-.ghost { background: transparent; color: var(--text-2); }
-.ghost:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); }
-.danger { background: var(--red); color: #fff; }
-.danger:hover:not(:disabled) { filter: brightness(1.06); }
-.dangerGhost { background: transparent; color: var(--red); }
-.dangerGhost:hover:not(:disabled) { background: var(--red-soft); }
-.link { background: none; border: 0; padding: 0; height: auto; color: var(--accent-text); }
-.link:hover { text-decoration: underline; }
-.active { background: var(--bg-active); color: var(--text); }
-.full { width: 100%; }
-.spinner { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid currentColor; border-right-color: transparent; animation: tp-spin 0.7s linear infinite; }
-.hidden { visibility: hidden; }
-.loadingLayer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-.shortcut { font-size: 11px; opacity: 0.6; margin-left: 4px; font-weight: 400; }
+/* Color feedback on press, so touch and menu triggers (which never scale) still answer the finger. */
+.primary:active:not(:disabled) { opacity: .84; }
+.secondary:active:not(:disabled), .ghost:active:not(:disabled) { color: var(--foreground); background: var(--surface-muted); }
+.danger:active:not(:disabled) { border-color: var(--danger); background: var(--surface-muted); }
+.sm { min-height: var(--control-height-sm); padding-inline: var(--space-3); font-size: var(--text-sm); }
+.md { min-height: var(--control-height-md); }
+.lg { min-height: var(--control-height-lg); padding-inline: var(--space-5); font-size: var(--text-sm); }
+.loader { position: absolute; left: 50%; top: 50%; display: grid; width: var(--space-4); height: var(--space-4); margin: calc(var(--space-4) / -2); }
+.spinner { border: 1.5px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+.loadingLabel { opacity: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .button { transition: none; } .labelSlot { transition: opacity var(--duration-instant) linear; } .spinner { animation-duration: .01ms; animation-iteration-count: 1; } }

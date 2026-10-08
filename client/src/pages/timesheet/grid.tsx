@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { DollarSign, Pencil, Plus, Trash2 } from "lucide-react";
-import { Button, ConfirmDialog, IconButton, Popover, Tooltip, toast } from "@/components/arc";
+import { Button, ConfirmDialog, IconButton, Popover, Tooltip, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { del, post, put } from "@/lib/api";

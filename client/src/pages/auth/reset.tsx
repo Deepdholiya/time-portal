@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Lock } from "lucide-react";
-import { Button, Input, Loading, toast } from "@/components/arc";
+import { Button, Input, Loading, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { useSession } from "@/lib/session";

@@ -28,5 +28,4 @@ invites and forced password change (01, 02), manual time and weekly totals (03),
 - MFA login was built and its TOTP code checked against the RFC 6238 test vector, but no seeded user has MFA turned on.
 
 ## Next
-- Replace the Arc look-alike components with the published uiarc.dev components once the environment can reach uiarc.dev.
 - Saved views (shared filters) and a per-project timeline tab.

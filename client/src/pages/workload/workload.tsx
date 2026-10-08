@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Gauge, Plane } from "lucide-react";
-import { Avatar, Badge, Button, EmptyState, IconButton, SegmentedControl, Select, SkeletonRows, Tooltip } from "@/components/arc";
+import { Avatar, Badge, Button, EmptyState, IconButton, SegmentedControl, Select, SkeletonRows, Tooltip } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { get } from "@/lib/api";
 import { useApi, useLocal } from "@/lib/hooks";

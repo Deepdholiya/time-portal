@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { CheckCircle2, Columns3, LayoutList, Plus, UserRound } from "lucide-react";
-import { Button, EmptyState, ErrorState, Select, SegmentedControl, SkeletonRows, Switch, Tabs, toast } from "@/components/arc";
+import { Button, EmptyState, ErrorState, Select, SegmentedControl, SkeletonRows, Switch, Tabs, toast } from "@/components/ui";
 import { STATUSES, STATUS_META } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { useApi, useLocal } from "@/lib/hooks";

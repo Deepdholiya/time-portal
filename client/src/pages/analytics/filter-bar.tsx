@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from "react";
 import { Briefcase, Building2, CheckCircle2, CircleDollarSign, FolderTree, ListTodo, Tag, User, Users, X } from "lucide-react";
-import { Button, Combobox, DateRangePicker, presetRange, type ComboboxOption, type DateRange } from "@/components/arc";
+import { Button, Combobox, DateRangePicker, presetRange, type ComboboxOption, type DateRange } from "@/components/ui";
 import { ProjectDot, STATUS_META, STATUSES } from "@/components/app/icons";
 import { useApi } from "@/lib/hooks";
 import type { Options } from "@/lib/types";

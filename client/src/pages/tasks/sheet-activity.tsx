@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { AtSign, MoreHorizontal } from "lucide-react";
-import { Avatar, Button, ConfirmDialog, Menu, IconButton, toast } from "@/components/arc";
+import { Avatar, Button, ConfirmDialog, Menu, IconButton, toast } from "@/components/ui";
 import { PRIORITY_META, STATUS_META } from "@/components/app/icons";
 import { del, patch, post } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";

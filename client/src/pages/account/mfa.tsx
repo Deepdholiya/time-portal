@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { Badge, Button, Dialog, Field, Input, toast } from "@/components/arc";
+import { Badge, Button, Dialog, Field, Input, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { Block } from "./block";

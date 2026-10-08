@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Activity, Briefcase, CalendarDays, CheckCircle2, ChevronsDownUp, ChevronsUpDown, Eye, Map as MapIcon, Target, User, Users } from "lucide-react";
-import { Badge, Button, EmptyState, SegmentedControl, SkeletonRows, Switch, Tooltip, toast } from "@/components/arc";
+import { Badge, Button, EmptyState, SegmentedControl, SkeletonRows, Switch, Tooltip, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { HEALTH_META, ProjectDot } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";

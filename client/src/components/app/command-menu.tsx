@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { AnimatePresence, motion } from "motion/react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowRight, Moon, Plus, Timer, Clock, Building, FolderKanban } from "lucide-react";
-import { Kbd, toast } from "@/components/arc";
+import { Kbd, toast } from "@/components/ui";
+import { CommandPalette, type CommandItem } from "@/components/arc/command-palette/command-palette";
+import dialogStyles from "@/components/arc/dialog/dialog.module.css";
 import { get } from "@/lib/api";
 import { useDebounced } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
@@ -21,13 +22,11 @@ export function CommandMenu({ open, onClose }: { open: boolean; onClose: () => v
   const { can, me, switchCompany } = useSession();
   const shell = useShell();
   const [q, setQ] = useState("");
-  const [hi, setHi] = useState(0);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<{ id: number; name: string; color: string; parentId?: number | null }[]>([]);
   const dq = useDebounced(q, 150);
-  const listRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { if (open) { setQ(""); setHi(0); get<{ projects: typeof projects }>("/options").then((o) => setProjects(o.projects.filter((p) => !p.parentId))).catch(() => {}); } }, [open]);
+  useEffect(() => { if (open) { setQ(""); get<{ projects: typeof projects }>("/options").then((o) => setProjects(o.projects.filter((p) => !p.parentId))).catch(() => {}); } }, [open]);
   useEffect(() => {
     if (!open || dq.trim().length < 2) { setTasks([]); return; }
     let alive = true;
@@ -50,52 +49,24 @@ export function CommandMenu({ open, onClose }: { open: boolean; onClose: () => v
     return list;
   }, [can, me, nav, projects, shell, switchCompany]);
 
-  const filtered = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    const base = t ? cmds.filter((c) => `${c.label} ${c.keywords ?? ""} ${c.group}`.toLowerCase().includes(t)) : cmds.filter((c) => c.group !== "Projects");
-    const taskCmds: Cmd[] = tasks.map((tk) => ({ id: "t" + tk.id, group: "Tasks", label: tk.title, hint: tk.key, icon: <StatusIcon status={tk.status} />, run: () => shell.openTask(tk.id) }));
-    return [...taskCmds, ...base].slice(0, 60);
-  }, [cmds, q, tasks, shell]);
+  // Tasks come from a server search on what the person types, so they are added as items that always pass the palette's own filter.
+  const items = useMemo<(CommandItem & { run: () => void })[]>(() => {
+    const visible = q.trim() ? cmds : cmds.filter((c) => c.group !== "Projects");
+    const taskCmds: Cmd[] = tasks.map((tk) => ({ id: "t" + tk.id, group: "Tasks", label: tk.title, hint: tk.key, keywords: dq, icon: <StatusIcon status={tk.status} />, run: () => shell.openTask(tk.id) }));
+    return [...taskCmds, ...visible].map((c) => ({ id: c.id, group: c.group, label: c.label, icon: c.icon, shortcut: c.hint, keywords: c.keywords ? [c.keywords] : undefined, run: c.run }));
+  }, [cmds, q, dq, tasks, shell]);
 
-  useEffect(() => { setHi(0); }, [q]);
-  useEffect(() => { listRef.current?.querySelector(`[data-i="${hi}"]`)?.scrollIntoView({ block: "nearest" }); }, [hi]);
-
-  const run = (c?: Cmd) => { if (!c) return; onClose(); setTimeout(c.run, 0); };
-  let last = "";
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div className={s.overlay} data-layer={9999} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-          <motion.div className={s.panel} role="dialog" aria-label="Command menu" initial={{ scale: 0.98, y: -6 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0 }} transition={{ duration: 0.14 }}>
-            <input
-              autoFocus className={s.input} placeholder="Type a command or search tasks…" value={q} onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowDown") { e.preventDefault(); setHi((h) => Math.min(filtered.length - 1, h + 1)); }
-                else if (e.key === "ArrowUp") { e.preventDefault(); setHi((h) => Math.max(0, h - 1)); }
-                else if (e.key === "Enter") { e.preventDefault(); run(filtered[hi]); }
-                else if (e.key === "Escape") { e.preventDefault(); onClose(); }
-              }}
-            />
-            <div className={s.list} ref={listRef} role="listbox">
-              {filtered.map((c, i) => {
-                const header = c.group !== last ? <div className={s.group}>{c.group}</div> : null;
-                last = c.group;
-                return (
-                  <div key={c.id}>
-                    {header}
-                    <div data-i={i} role="option" aria-selected={i === hi} className={`${s.item} ${i === hi ? s.hi : ""}`} onMouseMove={() => setHi(i)} onClick={() => run(c)}>
-                      {c.icon}<span className="ellipsis">{c.label}</span>{c.hint && <span className={s.hint}>{c.hint}</span>}
-                    </div>
-                  </div>
-                );
-              })}
-              {!filtered.length && <div className="faint center" style={{ padding: 24 }}>No results for “{q}”</div>}
-            </div>
-            <div className={s.footer}><span className="row gap-4"><Kbd>↑</Kbd><Kbd>↓</Kbd> navigate</span><span className="row gap-4"><Kbd>↵</Kbd> open</span><span className="row gap-4"><Kbd>esc</Kbd> close</span><span style={{ marginLeft: "auto" }} className="row gap-4"><ProjectDot color="var(--accent)" />{me?.company.name}</span></div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    document.body,
+  const run = (c: CommandItem) => { const item = items.find((i) => i.id === c.id); if (!item) return; onClose(); setTimeout(item.run, 0); };
+  return (
+    <Dialog.Root open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className={dialogStyles.overlay} />
+        <Dialog.Content className={s.panel} aria-describedby={undefined} onInput={(e) => { const t = e.target as HTMLInputElement; if (t.getAttribute("role") === "combobox") setQ(t.value); }}>
+          <Dialog.Title className={s.srOnly}>Command menu</Dialog.Title>
+          <CommandPalette items={items} placeholder="Type a command or search tasks…" label="Command menu" autoFocus onSelect={run} onClose={onClose} />
+          <div className={s.footer}><span className="row gap-4"><Kbd>↑</Kbd><Kbd>↓</Kbd> navigate</span><span className="row gap-4"><Kbd>↵</Kbd> open</span><span className="row gap-4"><Kbd>esc</Kbd> close</span><span style={{ marginLeft: "auto" }} className="row gap-4"><ProjectDot color="var(--accent)" />{me?.company.name}</span></div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

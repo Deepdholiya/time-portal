@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Archive, ArchiveRestore, ArrowRightLeft, Building, MoreHorizontal, Pencil, Plus, Users } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, IconButton, Menu, SkeletonRows, toast } from "@/components/arc";
+import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, IconButton, Menu, SkeletonRows, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useSession } from "@/lib/session";

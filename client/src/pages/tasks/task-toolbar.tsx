@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { forwardRef, useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { CalendarDays, CircleDashed, Flag, FolderKanban, LayoutList, Milestone, Search, SlidersHorizontal, Tag, UserRound, X, Columns3 } from "lucide-react";
-import { Avatar, Button, Combobox, Input, Menu, Popover, SegmentedControl, Select, Switch } from "@/components/arc";
+import { Avatar, Button, Combobox, Input, Menu, Popover, SegmentedControl, Select, Switch } from "@/components/ui";
 import { PRIORITIES, PRIORITY_META, PriorityIcon, ProjectDot, STATUSES, STATUS_META, StatusIcon } from "@/components/app/icons";
 import { useDebounced } from "@/lib/hooks";
 import type { Options } from "@/lib/types";
@@ -10,9 +10,10 @@ import s from "./tasks.module.css";
 export interface Display { view: "list" | "board"; groupBy: GroupBy; orderBy: OrderBy; showDone: boolean; showSubtasks: boolean }
 export const DEFAULT_DISPLAY: Display = { view: "list", groupBy: "status", orderBy: "priority", showDone: true, showSubtasks: false };
 
-function Chip({ active, icon, children }: { active: boolean; icon: ReactNode; children: ReactNode }) {
-  return <button type="button" className={`${s.filterChip} ${active ? s.active : ""}`}>{icon}{children}</button>;
-}
+/** Filter chip; forwards the popover trigger's ref and handlers so it can open a picker. */
+const Chip = forwardRef<HTMLButtonElement, { active: boolean; icon: ReactNode; children: ReactNode } & ButtonHTMLAttributes<HTMLButtonElement>>(function Chip({ active, icon, children, ...rest }, ref) {
+  return <button ref={ref} type="button" {...rest} className={`${s.filterChip} ${active ? s.active : ""}`}>{icon}{children}</button>;
+});
 
 const summary = (labels: string[], none: string) => (labels.length === 0 ? none : labels.length === 1 ? labels[0] : `${labels[0]} +${labels.length - 1}`);
 

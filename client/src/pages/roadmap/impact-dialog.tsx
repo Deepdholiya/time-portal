@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle, ArrowRightLeft } from "lucide-react";
-import { Button, Dialog, toast } from "@/components/arc";
+import { Button, Dialog, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { fmtDate } from "@/lib/format";
 import type { Impact, RTask } from "./types";

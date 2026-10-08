@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail } from "lucide-react";
-import { Badge, Button, EmptyState } from "@/components/arc";
+import { Badge, Button, EmptyState } from "@/components/ui";
 import { HEALTH_META, ProjectDot } from "@/components/app/icons";
 import { useSession } from "@/lib/session";
 import { fmtDate, pct } from "@/lib/format";

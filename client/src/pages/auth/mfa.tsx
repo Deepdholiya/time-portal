@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button, Input } from "@/components/arc";
+import { Button, Input } from "@/components/ui";
 import { post } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { AuthError, AuthLayout, authStyles as s, safeNext } from "./auth-layout";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Pause, Play, Square } from "lucide-react";
 import { Link } from "react-router-dom";
-import { IconButton, Input, Popover, Button, toast } from "@/components/arc";
+import { IconButton, Input, Popover, Button, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { clock, nowTime } from "@/lib/format";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Copy, DollarSign, MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react";
-import { ConfirmDialog, IconButton, Menu, Tooltip, toast } from "@/components/arc";
+import { ConfirmDialog, IconButton, Menu, Tooltip, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { timerChanged } from "@/components/app/timer-widget";

@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle2, ExternalLink, FileText, PenTool, HardDrive, Link2 } from "lucide-react";
-import { Avatar, AvatarGroup, Badge } from "@/components/arc";
+import { Avatar, AvatarGroup, Badge } from "@/components/ui";
 import { HEALTH_META, PRIORITY_META, PriorityIcon, ProjectDot } from "@/components/app/icons";
 import { daysBetween, fmtDate, hm, hours, money, pct, today } from "@/lib/format";
 import { useMe } from "@/lib/session";

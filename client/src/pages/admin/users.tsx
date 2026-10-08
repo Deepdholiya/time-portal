@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Upload, UserCog } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Button, Input, Select, Tabs } from "@/components/arc";
+import { Button, Input, Select, Tabs } from "@/components/ui";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { Members, type AdminUser } from "./users-members";

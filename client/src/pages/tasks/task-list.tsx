@@ -1,5 +1,5 @@
 import { ChevronDown, Plus } from "lucide-react";
-import { Avatar, Checkbox, IconButton } from "@/components/arc";
+import { Avatar, Checkbox, IconButton } from "@/components/ui";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { useLocal } from "@/lib/hooks";
 import type { UserLite } from "@/lib/types";

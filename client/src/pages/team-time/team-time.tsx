@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, FileSpreadsheet, Users } from "lucide-react";
-import { Badge, Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip } from "@/components/arc";
+import { Badge, Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { ProjectDot } from "@/components/app/icons";
 import { download } from "@/lib/api";

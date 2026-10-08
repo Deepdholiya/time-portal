@@ -52,14 +52,17 @@ server/   Express 5 + Prisma (SQLite) API in TypeScript, run with tsx
   src/routes/            auth, time, timesheets, tasks, projects, people, clients, companies, analytics,
                          reports, roadmap/calendar/leave, settings, notifications, ai, public
 client/   React 19 + Vite
-  src/components/arc/    Arc-style component kit (button, combobox, dialog, menu, date pickers, toast…)
+  src/components/arc/    official Arc components from uiarc.dev, vendored unchanged from its shadcn registry
+  src/components/ui/     the app's component API, built on the Arc components (pages import from here)
   src/components/app/    app shell: sidebar, ⌘K, running timer, status/priority icons
   src/pages/             one folder per screen
 ```
 
 ## About the component library
 
-The UI kit in `client/src/components/arc/` follows the structure of [uiarc.dev](https://uiarc.dev/components) (one folder per component, CSS modules, `motion` for animation). The build environment could not reach uiarc.dev, so these are look-alike implementations rather than the published Arc source. Their props were written for this app and may differ from Arc's. With network access to uiarc.dev, each component can be replaced via its shadcn registry (`npx shadcn add https://uiarc.dev/r/<name>.json`) and call sites adjusted where props differ.
+Every control comes from [Arc](https://uiarc.dev/components). `client/src/components/arc/` holds the published Arc source, installed from its shadcn registry (`https://uiarc.dev/r/<name>.json`) and left unchanged so it can be refreshed the same way. `client/src/styles/arc-theme.css` sets Arc's design tokens to a Linear look: indigo accent, neutral greys, compact 28 to 36px controls, small radii and Inter.
+
+Pages import from `client/src/components/ui/`, a thin layer that keeps the app's props and renders the Arc components: Button, Input, Textarea, Select, Combobox, MultiSelect, Checkbox, Switch, Badge, Avatar, Dialog, Drawer (the task peek panel), Popover, Tooltip, Tabs, SegmentedControl, Calendar, DatePicker, DateRangePicker, ToastStack, Skeleton, EmptyState, Alert and the ⌘K CommandPalette. A `Field` hands its label, hint and error to the Arc control inside it. Three pieces are composed rather than taken whole, because Arc's version draws its own trigger: menus use Arc's dropdown-menu styles on the same Radix primitive behind any icon button; Linear-style property chips and toolbar filters open a searchable list inside Arc's Popover; and chip date pickers open Arc's Calendar in that Popover. Kbd and the inline spinner are small app pieces, since Arc has none.
 
 ## Switching to Postgres
 

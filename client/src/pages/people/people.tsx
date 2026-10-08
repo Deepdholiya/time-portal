@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Users } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Avatar, EmptyState, ErrorState, Input, Select, SkeletonRows, Tooltip } from "@/components/arc";
+import { Avatar, EmptyState, ErrorState, Input, Select, SkeletonRows, Tooltip } from "@/components/ui";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { addDays, hours, money, today, weekStart } from "@/lib/format";

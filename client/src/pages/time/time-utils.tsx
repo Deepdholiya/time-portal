@@ -1,5 +1,5 @@
 // Helpers shared by the Time tracker, entry dialog, Timesheet and Calendar pages.
-import type { ComboboxOption } from "@/components/arc";
+import type { ComboboxOption } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useApi } from "@/lib/hooks";
 import type { Options, ProjectOption, TimeEntry } from "@/lib/types";

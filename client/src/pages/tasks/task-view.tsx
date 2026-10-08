@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { CheckCircle2, Plus } from "lucide-react";
-import { Button, EmptyState, ErrorState, SkeletonRows, toast } from "@/components/arc";
+import { Button, EmptyState, ErrorState, SkeletonRows, toast } from "@/components/ui";
 import { useShell, type NewTaskDefaults } from "@/components/app/shell-context";
 import { useApi, useHotkey, useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

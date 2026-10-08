@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronDown, Clock, Plus, Timer } from "lucide-react";
-import { Button, EmptyState, ErrorState, SkeletonRows } from "@/components/arc";
+import { Button, EmptyState, ErrorState, SkeletonRows } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { useRunningTimer } from "@/components/app/timer-widget";

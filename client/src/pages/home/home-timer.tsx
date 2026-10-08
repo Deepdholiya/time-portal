@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Pause, Play, Plus, Square } from "lucide-react";
-import { Button, IconButton, Input, toast } from "@/components/arc";
+import { Button, IconButton, Input, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { elapsedOf, timerActions, useRunningTimer, useTick } from "@/components/app/timer-widget";

@@ -1,5 +1,12 @@
-.label { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
-.track { width: 28px; height: 16px; border-radius: 16px; background: var(--border-strong); position: relative; flex-shrink: 0; transition: background 0.15s; border: 0; padding: 0; cursor: pointer; }
-.track.on { background: var(--accent); }
-.track:disabled { opacity: 0.5; cursor: not-allowed; }
-.thumb { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.switch { display: inline-flex; min-height: var(--control-height-md); align-items: center; gap: var(--space-3); padding: 0; border: 0; color: var(--foreground); background: transparent; font: inherit; font-size: var(--text-sm); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.switch:disabled { cursor: not-allowed; opacity: .5; }
+/* Fixed box: the thumb moves inside it with transforms, so nothing around the switch shifts. The track crossfades between the two fills. */
+.track { position: relative; box-sizing: border-box; display: flex; flex: 0 0 auto; width: 42px; height: 24px; align-items: center; padding: 3px; border-radius: var(--radius-pill); background: var(--control-track); isolation: isolate; transition: background-color var(--duration-fast) var(--ease-standard); }
+.track::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--control-on); opacity: 0; transition: opacity var(--duration-standard) var(--ease-standard); }
+.switch[data-state="checked"] .track::before { opacity: 1; }
+.thumb { flex: 0 0 auto; width: 18px; height: 18px; border-radius: var(--radius-pill); background: var(--control-thumb); box-shadow: var(--control-thumb-shadow); will-change: transform; transition: background-color var(--duration-standard) var(--ease-standard); }
+.switch[data-state="checked"] .thumb { background: var(--control-thumb-on); }
+@media (hover: hover) and (pointer: fine) { .switch[data-state="unchecked"]:hover:not(:disabled) .track { background: var(--control-track-hover); } }
+.switch:focus-visible { outline: none; }
+.label { line-height: var(--leading-body); }
+@media (prefers-reduced-motion: reduce) { .track, .track::before, .thumb { transition: none; } }
