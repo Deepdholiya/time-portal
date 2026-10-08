@@ -1,0 +1,179 @@
+// SQLite for local development. For Postgres, set provider = "postgresql"
+// and point DATABASE_URL at your database.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  passwordHash   String
+  role           String          @default("EMPLOYEE") // ADMIN | MANAGER | EMPLOYEE
+  title          String?
+  weeklyCapacity Float           @default(40)
+  allProjects    Boolean         @default(false)
+  active         Boolean         @default(true)
+  teamId         Int?
+  team           Team?           @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  memberships    ProjectMember[]
+  managed        Project[]       @relation("ProjectManager")
+  timeEntries    TimeEntry[]
+  tasks          Task[]
+  auditLogs      AuditLog[]
+  periods        TimesheetPeriod[] @relation("PeriodOwner")
+  reviewed       TimesheetPeriod[] @relation("PeriodReviewer")
+  invitesSent    Invitation[]
+  createdAt      DateTime        @default(now())
+}
+
+model Team {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model Client {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  projects Project[]
+}
+
+model Project {
+  id             Int             @id @default(autoincrement())
+  name           String
+  code           String?
+  description    String?
+  color          String          @default("#2a78d6")
+  status         String          @default("ACTIVE") // PLANNING | ACTIVE | ON_HOLD | COMPLETED | ARCHIVED
+  health         String          @default("ON_TRACK") // ON_TRACK | AT_RISK | DELAYED
+  startDate      DateTime?
+  endDate        DateTime?
+  estimatedHours Float?
+  clientId       Int?
+  client         Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  parentId       Int?
+  parent         Project?        @relation("SubProjects", fields: [parentId], references: [id], onDelete: Cascade)
+  children       Project[]       @relation("SubProjects")
+  managerId      Int?
+  manager        User?           @relation("ProjectManager", fields: [managerId], references: [id], onDelete: SetNull)
+  members        ProjectMember[]
+  milestones     Milestone[]
+  tasks          Task[]
+  timeEntries    TimeEntry[]
+  createdAt      DateTime        @default(now())
+}
+
+model ProjectMember {
+  projectId Int
+  userId    Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+}
+
+model Milestone {
+  id        Int      @id @default(autoincrement())
+  name      String
+  dueDate   DateTime
+  done      Boolean  @default(false)
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id             Int         @id @default(autoincrement())
+  title          String
+  status         String      @default("TODO") // TODO | IN_PROGRESS | DONE
+  estimatedHours Float?
+  dueDate        DateTime?
+  projectId      Int
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneeId     Int?
+  assignee       User?       @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  timeEntries    TimeEntry[]
+}
+
+model TimeEntry {
+  id          Int       @id @default(autoincrement())
+  date        String // YYYY-MM-DD in the organization timezone
+  startTime   String? // HH:MM
+  endTime     String? // HH:MM
+  minutes     Int
+  description String
+  billable    Boolean   @default(true)
+  running     Boolean   @default(false)
+  startedAt   DateTime?
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId   Int
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId      Int?
+  task        Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([date])
+  @@index([userId, date])
+  @@index([projectId])
+}
+
+model RolePermission {
+  role    String
+  feature String
+  level   String
+
+  @@id([role, feature])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  entity    String
+  entityId  Int?
+  details   String?
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
+
+model Invitation {
+  id             Int       @id @default(autoincrement())
+  email          String
+  name           String
+  role           String    @default("EMPLOYEE")
+  title          String?
+  teamId         Int?
+  weeklyCapacity Float     @default(40)
+  allProjects    Boolean   @default(false)
+  projectIds     String    @default("[]") // JSON array of project ids
+  token          String    @unique
+  status         String    @default("PENDING") // PENDING | ACCEPTED | REVOKED (expiry is computed)
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  invitedById    Int?
+  invitedBy      User?     @relation(fields: [invitedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime  @default(now())
+}
+
+// A user's week of time, submitted for approval. Weeks start on Monday.
+model TimesheetPeriod {
+  id           Int       @id @default(autoincrement())
+  weekStart    String // YYYY-MM-DD (Monday)
+  status       String    @default("SUBMITTED") // SUBMITTED | APPROVED | REJECTED
+  note         String?
+  submittedAt  DateTime  @default(now())
+  reviewedAt   DateTime?
+  userId       Int
+  user         User      @relation("PeriodOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedById Int?
+  reviewedBy   User?     @relation("PeriodReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([userId, weekStart])
+}
