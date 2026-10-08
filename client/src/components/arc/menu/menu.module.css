@@ -1,0 +1,15 @@
+.menu { padding: 4px; min-width: 180px; }
+.item {
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 30px; padding: 0 8px; border: 0; background: none; border-radius: var(--radius-sm);
+  text-align: left; cursor: pointer; color: var(--text); font-size: 13px;
+}
+.item:disabled { opacity: 0.45; cursor: not-allowed; }
+.item.highlight { background: var(--bg-hover); }
+.item svg { color: var(--text-2); flex-shrink: 0; }
+.danger { color: var(--red); }
+.danger svg { color: var(--red); }
+.label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shortcut { color: var(--text-3); font-size: 12px; }
+.check { color: var(--accent); }
+.sep { height: 1px; background: var(--border); margin: 4px -4px; }
+.heading { padding: 6px 8px 4px; font-size: 11px; font-weight: 500; color: var(--text-3); }

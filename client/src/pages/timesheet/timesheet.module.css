@@ -1,0 +1,57 @@
+.wrap { margin: 16px 20px 32px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); overflow-x: auto; }
+.grid { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; min-width: 980px; table-layout: fixed; }
+.grid th { height: 44px; font-weight: 500; font-size: 12px; color: var(--text-2); text-align: left; padding: 0 10px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); white-space: nowrap; }
+.grid td { height: 38px; padding: 0 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.grid tbody tr:hover td { background: var(--bg-hover); }
+.grid tbody tr:hover td.dayCell input { background: var(--bg); }
+.grid tfoot td { height: 40px; background: var(--bg-subtle); font-weight: 600; border-bottom: 0; }
+.colProject { width: 28%; }
+.colDesc { width: 22%; }
+.colDay { width: 72px; text-align: center !important; }
+.colTotal { width: 72px; text-align: right !important; }
+.colAct { width: 64px; }
+.dayHead { display: flex; flex-direction: column; align-items: center; line-height: 1.25; }
+.dayHead .dn { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.03em; }
+.dayHead .dd { font-size: 13px; color: var(--text); font-weight: 500; }
+.dayHead.today .dd { color: var(--accent-text); }
+.dayHead.today .dn { color: var(--accent-text); }
+.offDay { background: color-mix(in srgb, var(--bg-subtle) 60%, transparent); }
+.dayTag { font-size: 10px; color: var(--orange); max-width: 66px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projectCell { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.taskLine { color: var(--text-3); }
+.dayCell { padding: 0 4px !important; text-align: center; }
+.cellInput {
+  width: 100%; height: 28px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; text-align: center;
+  font-variant-numeric: tabular-nums; font-size: 13px; color: var(--text); outline: none; transition: border-color 0.1s, background 0.1s;
+}
+.cellInput::placeholder { color: var(--border-strong); }
+.cellInput:hover:not(:disabled) { border-color: var(--border); background: var(--bg); }
+.cellInput:focus { border-color: var(--accent); background: var(--bg); box-shadow: 0 0 0 3px var(--focus); }
+.cellInput:disabled { cursor: default; color: var(--text-2); }
+.cellInput.saving { color: var(--text-3); }
+.cellMulti { width: 100%; height: 28px; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); background: transparent; font-variant-numeric: tabular-nums; font-size: 13px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; gap: 3px; }
+.cellMulti:hover { background: var(--bg); border-color: var(--accent); }
+.cellMulti sup { font-size: 9px; color: var(--text-3); }
+.descInput { width: 100%; height: 28px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; padding: 0 6px; font-size: 13px; color: var(--text); outline: none; }
+.descInput::placeholder { color: var(--text-3); }
+.descInput:hover:not(:disabled) { border-color: var(--border); }
+.descInput:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); background: var(--bg); }
+.descInput.missing { border-color: color-mix(in srgb, var(--orange) 50%, transparent); }
+.rowTotal { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rowActions { display: flex; gap: 2px; justify-content: flex-end; opacity: 0; }
+tr:hover .rowActions, tr:focus-within .rowActions { opacity: 1; }
+.addRow td { border-bottom: 1px solid var(--border); }
+.footNum { text-align: center; font-variant-numeric: tabular-nums; }
+.over { color: var(--orange); }
+.banner { display: flex; align-items: flex-start; gap: 10px; margin: 16px 20px 0; padding: 10px 12px; border-radius: var(--radius); font-size: 13px; }
+.banner.red { background: var(--red-soft); color: var(--red); }
+.banner.blue { background: var(--blue-soft); color: var(--blue); }
+.banner.green { background: var(--green-soft); color: var(--green); }
+.banner.yellow { background: var(--yellow-soft); color: var(--text); }
+.weekLabel { font-weight: 500; min-width: 150px; text-align: center; font-variant-numeric: tabular-nums; }
+.capacity { display: flex; align-items: center; gap: 10px; }
+.capBar { width: 120px; height: 4px; border-radius: 4px; background: var(--bg-active); overflow: hidden; }
+.capBar > span { display: block; height: 100%; background: var(--accent); }
+.popList { display: flex; flex-direction: column; min-width: 300px; }
+.popRow { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 4px; border-bottom: 1px solid var(--border); }
+.popRow:last-child { border-bottom: 0; }

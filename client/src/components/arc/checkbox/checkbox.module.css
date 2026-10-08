@@ -1,0 +1,9 @@
+.label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; font-size: 13px; }
+.label.disabled { opacity: 0.5; cursor: not-allowed; }
+.box {
+  width: 14px; height: 14px; border: 1px solid var(--border-strong); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-input); flex-shrink: 0; transition: background 0.1s, border-color 0.1s; color: #fff;
+}
+.on { background: var(--accent); border-color: var(--accent); }
+.input { position: absolute; opacity: 0; width: 0; height: 0; }
+.input:focus-visible + .box { box-shadow: 0 0 0 3px var(--focus); }

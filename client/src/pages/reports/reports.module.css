@@ -1,0 +1,14 @@
+.configWrap { padding: 8px 16px 8px 20px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); }
+.config { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+.cfgLabel { color: var(--text-3); font-size: 12px; margin-right: 2px; }
+.sep { width: 1px; height: 18px; background: var(--border); margin: 0 6px; }
+.period { min-width: 150px; text-align: center; font-weight: 500; font-variant-numeric: tabular-nums; }
+.subtotal td { background: var(--bg-subtle); }
+
+.savedList { display: flex; flex-direction: column; max-height: 360px; overflow: auto; padding: 4px; }
+.savedRow { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; min-height: 40px; }
+.savedRow:hover { background: var(--bg-hover); }
+
+@media print {
+  .configWrap { display: none; }
+}

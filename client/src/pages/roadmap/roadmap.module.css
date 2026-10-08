@@ -1,0 +1,70 @@
+.vsep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+
+.scroller { height: 100%; overflow: auto; position: relative; }
+.canvas { position: relative; min-height: 100%; }
+
+/* Header: sticky to the top; the left corner also sticks to the left. */
+.head { position: sticky; top: 0; z-index: 6; display: flex; height: 52px; background: var(--bg); border-bottom: 1px solid var(--border); }
+.corner { position: sticky; left: 0; z-index: 7; width: 320px; flex-shrink: 0; background: var(--bg); border-right: 1px solid var(--border); display: flex; align-items: flex-end; gap: 6px; padding: 0 12px 8px 20px; color: var(--text-3); font-size: 12px; }
+.ticks { position: relative; flex-shrink: 0; }
+.tierTop, .tierBottom { position: relative; height: 26px; }
+.tierBottom { border-top: 1px solid var(--border); }
+.tickTop { position: absolute; top: 0; height: 26px; border-left: 1px solid var(--border); font-size: 12px; font-weight: 500; color: var(--text-2); white-space: nowrap; overflow: hidden; }
+.tickTop > span { position: sticky; left: 328px; padding: 0 8px; line-height: 26px; }
+.tick { position: absolute; top: 0; height: 25px; line-height: 25px; padding-left: 5px; border-left: 1px solid var(--border); font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; font-variant-numeric: tabular-nums; }
+.tickStrong { color: var(--text-2); }
+.weekend { background: var(--bg-subtle); }
+
+.body { position: relative; }
+.grid { position: absolute; top: 0; bottom: 0; pointer-events: none; }
+.gridLine { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--border); opacity: 0.55; }
+.weekendCol { background: var(--bg-subtle); opacity: 1; border-left-color: transparent; }
+.today { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1.5px solid var(--accent); z-index: 3; pointer-events: none; }
+.today > span { position: sticky; top: 56px; display: inline-block; transform: translateX(-50%); margin-top: 2px; background: var(--accent); color: var(--text-inv); font-size: 10px; font-weight: 500; padding: 0 5px; border-radius: 3px; line-height: 16px; }
+.deps { position: absolute; top: 0; z-index: 2; pointer-events: none; overflow: visible; }
+
+.row { display: flex; position: relative; border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+.row:hover .left, .row:hover .lane { background-color: color-mix(in srgb, var(--bg-hover) 70%, transparent); }
+.rowInit .left { background: var(--bg-subtle); }
+.rowInit { background: color-mix(in srgb, var(--bg-subtle) 60%, transparent); }
+.left { position: sticky; left: 0; z-index: 4; flex-shrink: 0; background: var(--bg); border-right: 1px solid var(--border); display: flex; align-items: center; min-width: 0; }
+.lane { position: relative; flex-shrink: 0; }
+.cell { display: flex; align-items: center; gap: 6px; width: 100%; padding: 0 12px 0 6px; min-width: 0; height: 100%; }
+.taskCell { cursor: pointer; }
+.linky { cursor: pointer; }
+.linky:hover { text-decoration: underline; }
+.chev { display: grid; place-items: center; width: 18px; height: 18px; border: 0; background: none; color: var(--text-3); border-radius: var(--radius-sm); cursor: pointer; padding: 0; flex-shrink: 0; }
+.chev:hover { background: var(--bg-active); color: var(--text); }
+.subDot { width: 8px; height: 8px; border-radius: 2px; border: 1.5px solid; flex-shrink: 0; }
+
+/* Bars */
+.barWrap { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; z-index: 3; }
+.barWrap:hover .handle { opacity: 1; }
+.projectBar, .subBar, .taskBar { position: relative; width: 100%; border-radius: 4px; overflow: clip; display: flex; align-items: center; user-select: none; touch-action: none; }
+.projectBar { height: 20px; border: 1px solid; background: color-mix(in srgb, var(--c) 16%, var(--bg)); }
+.progress { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--c) 34%, var(--bg)); }
+.subBar { height: 14px; border: 1px solid; background: color-mix(in srgb, var(--c) 10%, var(--bg)); border-style: solid; }
+.barText { position: sticky; left: 320px; padding: 0 6px; font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.subBar .barText { font-size: 11px; font-weight: 400; color: var(--text-2); }
+.taskBar { height: 10px; background: var(--c); border-radius: 5px; }
+.taskBar.done { opacity: 0.4; }
+.taskBar.conflict { box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 3px var(--red); }
+.editable { cursor: grab; }
+.dragging .editable { cursor: grabbing; }
+.dragging { z-index: 5; }
+.dragging .projectBar, .dragging .subBar, .dragging .taskBar { box-shadow: 0 0 0 2px var(--focus); }
+.handle { position: absolute; top: 50%; width: 7px; height: 18px; margin-top: -9px; cursor: ew-resize; opacity: 0; z-index: 2; touch-action: none; }
+.handle::after { content: ""; position: absolute; left: 2px; top: 3px; bottom: 3px; width: 3px; border-radius: 2px; background: var(--text-2); }
+.handleL { left: -4px; }
+.handleR { right: -4px; }
+.dragLabel { position: absolute; top: -2px; left: 50%; transform: translate(-50%, -100%); white-space: nowrap; font-size: 11px; background: var(--text); color: var(--bg); padding: 1px 6px; border-radius: 4px; pointer-events: none; z-index: 8; }
+.taskLabel { position: absolute; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-2); white-space: nowrap; pointer-events: none; z-index: 2; }
+.initLine { position: absolute; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px; opacity: 0.55; }
+
+.milestone { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; z-index: 3; }
+.diamond { width: 10px; height: 10px; border: 1.5px solid; transform: translateX(-50%) rotate(45deg); border-radius: 2px; flex-shrink: 0; }
+.msLabel { font-size: 11px; color: var(--text-2); white-space: nowrap; margin-left: 2px; }
+
+.impactList { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius); }
+.impactRow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.impactRow:last-child { border-bottom: 0; }
