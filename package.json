@@ -2,10 +2,12 @@
   "name": "time-portal",
   "private": true,
   "scripts": {
-    "setup": "npm --prefix server install && npm --prefix client install && npm --prefix server run db:reset",
+    "setup": "node -e \"const f=require('fs');if(!f.existsSync('server/.env'))f.copyFileSync('server/.env.example','server/.env')\" && npm --prefix server install && npm --prefix client install && npm --prefix server run db:reset",
     "dev": "concurrently -n api,web -c blue,green \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
     "build": "npm --prefix client run build",
     "start": "npm --prefix server start"
   },
-  "devDependencies": { "concurrently": "^9.1.0" }
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
 }
