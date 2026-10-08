@@ -93,7 +93,7 @@ export function ImpactCallout({ impact, task, onShifted, onDismiss }: { impact: 
     <div className={s.callout} role="status">
       <div className={s.calloutHead}>
         <AlertTriangle size={15} />
-        <span className="grow">{impact.length} dependent task{impact.length > 1 ? "s" : ""} now start before {task.key} is due</span>
+        <span className="grow">{impact.length > 1 ? `${impact.length} dependent tasks now start` : "1 dependent task now starts"} before {task.key} is due</span>
         <IconButton size="sm" label="Dismiss" icon={<X size={14} />} onClick={onDismiss} />
       </div>
       <ul className={s.calloutList}>

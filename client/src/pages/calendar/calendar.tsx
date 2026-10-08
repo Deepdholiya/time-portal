@@ -49,7 +49,10 @@ export default function CalendarPage() {
   const workDays = useMemo(() => new Set(me.company.workWeek.split(",").map(Number)), [me.company.workWeek]);
   const canReschedule = !!q.data?.canReschedule;
   const showUser = who === "all";
-  const canLog = isMe;
+  const editOthers = can("editOthersTime", "yes");
+  const canLog = isMe || (editOthers && who !== "all");
+  const canEdit = isMe || editOthers;
+  const logFor = isMe ? undefined : Number(who);
 
   const set = (patchQ: Record<string, string | null>) => {
     const p = new URLSearchParams(params);
@@ -84,7 +87,7 @@ export default function CalendarPage() {
     <Page
       title="Calendar"
       icon={<CalendarDays size={15} className="faint" />}
-      actions={canLog ? <Button size="sm" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: view === "day" ? date : today() }, reload)}>Log time</Button> : undefined}
+      actions={canLog ? <Button size="sm" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: view === "day" ? date : today(), userId: logFor }, reload)}>Log time</Button> : undefined}
       toolbar={
         <>
           <IconButton size="sm" variant="secondary" label="Previous" icon={<ChevronLeft size={14} />} onClick={() => step(-1)} />
@@ -109,7 +112,7 @@ export default function CalendarPage() {
         : !q.data ? <Loading />
         : view === "day" ? (
           <div className={s.dayList}>
-            <DayDetail date={date} bucket={buckets[date]} canReschedule={canReschedule} showUser={showUser} canLog={canLog} onChanged={reload} />
+            <DayDetail date={date} bucket={buckets[date]} canReschedule={canReschedule} showUser={showUser} canLog={canLog} canEdit={canEdit} logFor={logFor} onChanged={reload} />
           </div>
         ) : (
           <CalendarGrid
@@ -124,7 +127,7 @@ export default function CalendarPage() {
       >
         {openDay && buckets[openDay] && (
           <div style={{ padding: "4px 0" }}>
-            <DayDetail date={openDay} bucket={buckets[openDay]} canReschedule={canReschedule} showUser={showUser} canLog={canLog} onChanged={reload} />
+            <DayDetail date={openDay} bucket={buckets[openDay]} canReschedule={canReschedule} showUser={showUser} canLog={canLog} canEdit={canEdit} logFor={logFor} onChanged={reload} />
           </div>
         )}
       </Sheet>

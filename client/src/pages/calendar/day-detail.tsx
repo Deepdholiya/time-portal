@@ -9,8 +9,8 @@ import { LEAVE_LABEL, type DayBucket } from "./calendar-data";
 import s from "./calendar.module.css";
 
 /** Everything on one day: time entries, tasks due, milestones, leave and holidays. */
-export function DayDetail({ date, bucket, canReschedule, showUser, canLog, onChanged }: {
-  date: string; bucket: DayBucket; canReschedule: boolean; showUser: boolean; canLog: boolean; onChanged: () => void;
+export function DayDetail({ date, bucket, canReschedule, showUser, canLog, canEdit, logFor, onChanged }: {
+  date: string; bucket: DayBucket; canReschedule: boolean; showUser: boolean; canLog: boolean; canEdit: boolean; logFor?: number; onChanged: () => void;
 }) {
   const shell = useShell();
   const reschedule = async (id: number, dueDate: string | null) => {
@@ -36,10 +36,10 @@ export function DayDetail({ date, bucket, canReschedule, showUser, canLog, onCha
         <div className={s.sectionHead}>
           Time <span className="faint num">{bucket.minutes ? hm(bucket.minutes) : ""}</span>
           <span className="grow" />
-          {canLog && <Button size="sm" variant="ghost" icon={<Plus size={13} />} onClick={() => shell.logTime({ date }, onChanged)}>Log time</Button>}
+          {canLog && <Button size="sm" variant="ghost" icon={<Plus size={13} />} onClick={() => shell.logTime({ date, userId: logFor }, onChanged)}>Log time</Button>}
         </div>
         {bucket.entries.length === 0 ? <div className="small faint" style={{ padding: "6px 8px" }}>No time logged.</div> : bucket.entries.map((e) => (
-          <div key={e.id} className={`${s.itemRow} ${canLog ? s.click : ""}`} onClick={() => canLog && shell.editEntry(e.id, onChanged)}>
+          <div key={e.id} className={`${s.itemRow} ${canEdit ? s.click : ""}`} onClick={() => canEdit && shell.editEntry(e.id, onChanged)}>
             <span className={s.timeCol}>{e.startTime && e.endTime ? `${e.startTime}–${e.endTime}` : "—"}</span>
             <ProjectDot color={e.project?.color} />
             <span className="grow" style={{ minWidth: 0 }}>

@@ -94,7 +94,7 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
     return (
       <div className={`${s.barWrap} ${editing ? s.dragging : ""}`} style={{ left, width }}>
         <Tooltip content={editing ? `${fmtDate(ex[0], true)} → ${fmtDate(ex[1], true)}` : tip} delay={editing ? 0 : 400}>
-          <div className={`${cls} ${canEdit ? s.editable : ""}`} style={style} onPointerDown={(e) => down(e, key, target, "move")} {...handlers}>
+          <div data-bar={key} className={`${cls} ${canEdit ? s.editable : ""}`} style={style} onPointerDown={(e) => down(e, key, target, "move")} {...handlers}>
             {content}
           </div>
         </Tooltip>

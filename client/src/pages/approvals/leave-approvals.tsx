@@ -49,7 +49,7 @@ export function LeaveApprovals() {
                 <tr key={l.id}>
                   <td><div className="row"><Avatar name={l.user.name} size={20} /><span className="medium">{l.user.name}</span></div></td>
                   <td><Badge size="sm" tone={TYPE_TONE[l.type] ?? "gray"}>{titleCase(l.type)}</Badge></td>
-                  <td className="num">{l.from === l.to ? fmtDate(l.from, true) : `${fmtDate(l.from)} – ${fmtDate(l.to, true)}`}{l.halfDay && <span className="faint"> · half day</span>}</td>
+                  <td style={{ fontVariantNumeric: "tabular-nums" }}>{l.from === l.to ? fmtDate(l.from, true) : `${fmtDate(l.from)} – ${fmtDate(l.to, true)}`}{l.halfDay && <span className="faint"> · half day</span>}</td>
                   <td className="num">{l.days}</td>
                   <td className="wrap-cell muted" style={{ maxWidth: 320 }}>{l.reason || <span className="faint">—</span>}{l.reviewNote && <div className="small faint">Note: {l.reviewNote}</div>}</td>
                   <td className="muted small">{status === "PENDING" ? relTime(l.createdAt) : l.reviewedBy?.name ?? "—"}</td>

@@ -84,7 +84,7 @@ export function TimesheetApprovals() {
                       )}
                       <td>{isOpen ? <ChevronDown size={14} className="faint" /> : <ChevronRight size={14} className="faint" />}</td>
                       <td><div className="row"><Avatar name={p.user.name} size={20} /><span className="medium">{p.user.name}</span><span className="faint small">{p.user.team?.name}</span></div></td>
-                      <td className="num">{fmtDate(p.weekStart)} – {fmtDate(addDays(p.weekStart, 6))}</td>
+                      <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtDate(p.weekStart)} – {fmtDate(addDays(p.weekStart, 6))}</td>
                       <td className="num"><span className={p.minutes < cap * 0.9 ? "warn" : ""}>{hm(p.minutes)}</span><span className="faint"> / {p.user.weeklyCapacity}h</span></td>
                       <td className="num muted">{hm(p.billableMinutes)}</td>
                       <td>

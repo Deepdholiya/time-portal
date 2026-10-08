@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { BarChart3, FileSpreadsheet, Info, X } from "lucide-react";
 import { Button, SegmentedControl, SkeletonRows, Tabs } from "@/components/arc";
@@ -13,9 +13,11 @@ import { BarList, ChartCard, Kpi, SERIES, TimeChart, UtilBar } from "./chart-kit
 import { EntriesSheet, LoadError } from "./entries";
 import { Explore } from "./explore";
 import { HealthTable } from "./health";
-import { Financials } from "./financials";
 import type { AnalyticsData } from "./types";
 import s from "./analytics.module.css";
+
+// Loaded only for people who can view financials.
+const Financials = lazy(() => import("./financials").then((m) => ({ default: m.Financials })));
 
 type Drill = { title: string; query: Record<string, string> } | null;
 
@@ -56,7 +58,7 @@ export default function Analytics() {
       </div>
       <div className="page-pad">
         {tab === "financials" && showFin ? (
-          <Financials query={q} />
+          <Suspense fallback={<SkeletonRows rows={8} />}><Financials query={q} /></Suspense>
         ) : tab === "explore" ? (
           <Explore base={q} ownOnly={own} />
         ) : error ? (
