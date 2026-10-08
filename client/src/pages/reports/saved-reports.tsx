@@ -5,7 +5,7 @@ import { del, post, put } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { fmtDateTime } from "@/lib/format";
 import type { ReportConfig } from "./report-config";
-import type { Preset } from "./period";
+import { PRESET_LABEL, type Preset } from "./period";
 import s from "./reports.module.css";
 
 export interface SavedReport {
@@ -31,10 +31,10 @@ export function SavedMenu({ list, current, onLoad, onChanged }: { list: SavedRep
               <div key={r.id} className={s.savedRow} onClick={() => { onLoad(r); close(); }} role="button" tabIndex={0}>
                 <div className="grow">
                   <div className="medium ellipsis">{r.name}</div>
-                  <div className="faint tiny">{r.config.preset ? `${r.config.preset} · ` : ""}{r.schedule ? `${r.schedule.toLowerCase()}, next ${fmtDateTime(r.nextRunAt)}` : "not scheduled"}</div>
+                  <div className="faint tiny">{r.config.preset ? `${PRESET_LABEL[r.config.preset as Preset] ?? r.config.preset} · ` : ""}{r.schedule ? `${r.schedule.toLowerCase()}, next ${fmtDateTime(r.nextRunAt)}` : "not scheduled"}</div>
                 </div>
                 {r.schedule && <Badge size="sm" tone="accent" icon={<CalendarClock size={11} />}>{r.schedule.toLowerCase()}</Badge>}
-                <IconButton size="sm" label="Delete report" icon={<Trash2 size={13} />} onClick={(e) => { e.stopPropagation(); close(); setRemove(r); }} />
+                <IconButton size="sm" label="Delete report" icon={<Trash2 size={13} />} onClick={(e) => { e.stopPropagation(); close(); setTimeout(() => setRemove(r), 0); }} />
               </div>
             ))}
           </div>

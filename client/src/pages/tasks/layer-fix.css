@@ -1,4 +1,0 @@
-/* Workaround (report to kit owner): Arc popovers use z-index 60, below Dialog (70) and Sheet (66),
-   so pickers opened inside a dialog or the task panel render underneath it. Popover roots are the only
-   [data-layer][role=dialog] elements without aria-modal. Move this into popover.module.css and delete. */
-[data-layer][role="dialog"]:not([aria-modal]) { z-index: 80 !important; }
