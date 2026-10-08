@@ -46,7 +46,7 @@ export function SubTasks({ task, onOpenTask, reload }: { task: TaskDetail; onOpe
         title="Sub-tasks"
         action={<>
           {task.subtasks.length > 0 && <span className="small faint num">{done}/{task.subtasks.length} done</span>}
-          {canAdd && <IconButton size="sm" label="Add sub-task" icon={<Plus size={14} />} onClick={() => setAdding(true)} />}
+          {canAdd && task.subtasks.length > 0 && <IconButton size="sm" label="Add sub-task" icon={<Plus size={14} />} onClick={() => setAdding(true)} />}
         </>}
       />
       {task.subtasks.map((t) => (

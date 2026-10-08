@@ -9,6 +9,7 @@ import { useMe } from "@/lib/session";
 import { useOptions } from "../tasks/lib";
 import { BILLING, BILLING_TYPES, PROJECT_STATUS, PROJECT_STATUSES, cleanLinks, type BillingType, type Links, type Project, type ProjectStatus } from "./lib";
 import s from "./projects.module.css";
+import "../tasks/layer-fix.css";
 
 const COLORS = ["#5e6ad2", "#26b5ce", "#4cb782", "#f2c94c", "#f2994a", "#eb5757", "#bb87fc", "#95a2b3"];
 

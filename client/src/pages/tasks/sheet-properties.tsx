@@ -29,7 +29,10 @@ export function InlineInput({ value, onSave, placeholder, disabled, type = "text
 
 function TagEditor({ tags, all, onChange, disabled }: { tags: string[]; all: string[]; onChange: (t: string[]) => void; disabled: boolean }) {
   const [draft, setDraft] = useState("");
-  const options = [...new Set([...all, ...tags])].sort().map((t) => ({ value: t, label: t }));
+  const options = [...new Set([...all, ...tags])].sort();
+  const shown = options.filter((t) => t.toLowerCase().includes(draft.trim().toLowerCase()));
+  const exact = options.some((t) => t.toLowerCase() === draft.trim().toLowerCase());
+  const toggle = (t: string) => onChange(tags.includes(t) ? tags.filter((x) => x !== t) : [...tags, t]);
   return (
     <>
       {tags.map((t) => (
@@ -37,20 +40,23 @@ function TagEditor({ tags, all, onChange, disabled }: { tags: string[]; all: str
       ))}
       {!tags.length && disabled && <span className="faint" style={{ padding: "0 5px" }}>None</span>}
       {!disabled && (
-        <>
-          {options.length > 0 && (
-            <Combobox multiple value={tags} options={options} onChange={onChange} width={220} searchPlaceholder="Tags…"
-              trigger={<button type="button" className="prop-chip faint">{tags.length ? "Edit" : "Add tags"}</button>} />
-          )}
-          <Popover trigger={<button type="button" className="prop-chip faint" aria-label="New tag"><Plus size={12} />{options.length ? "" : "New tag"}</button>}>
-            {(close) => (
-              <form className="col" style={{ width: 200 }} onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t && !tags.includes(t)) onChange([...tags, t]); setDraft(""); close(); }}>
-                <span className="small muted">New tag</span>
-                <Input size="sm" autoFocus value={draft} maxLength={40} onChange={(e) => setDraft(e.target.value)} placeholder="e.g. frontend" />
-              </form>
-            )}
-          </Popover>
-        </>
+        <Popover padded={false} onOpenChange={(o) => !o && setDraft("")} trigger={<button type="button" className="prop-chip faint" aria-label="Edit tags"><Plus size={12} />{tags.length ? "" : "Add tag"}</button>}>
+          <div style={{ width: 220 }}>
+            <div style={{ padding: 6, borderBottom: "1px solid var(--border)" }}>
+              <Input size="sm" autoFocus value={draft} maxLength={40} placeholder="Find or create tag…" onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const t = draft.trim(); if (t) { if (!tags.includes(t)) onChange([...tags, exact ? options.find((o) => o.toLowerCase() === t.toLowerCase())! : t]); setDraft(""); } } }} />
+            </div>
+            <div style={{ maxHeight: 220, overflow: "auto", padding: 4 }}>
+              {shown.map((t) => (
+                <label key={t} className="row prop-chip" style={{ width: "100%", height: 28 }}>
+                  <input type="checkbox" checked={tags.includes(t)} onChange={() => toggle(t)} />{t}
+                </label>
+              ))}
+              {draft.trim() && !exact && <button type="button" className="prop-chip" style={{ width: "100%", height: 28 }} onClick={() => { onChange([...tags, draft.trim()]); setDraft(""); }}><Plus size={12} />Create “{draft.trim()}”</button>}
+              {!shown.length && !draft.trim() && <div className="small faint" style={{ padding: 8 }}>Type to create a tag</div>}
+            </div>
+          </div>
+        </Popover>
       )}
     </>
   );

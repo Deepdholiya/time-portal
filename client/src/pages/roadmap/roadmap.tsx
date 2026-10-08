@@ -82,7 +82,6 @@ export default function Roadmap() {
     return { start: addDays(lo.slice(0, 8) + "01", -pad), end: addDays(hi, pad + 30) };
   }, [projects, data, zoom]);
 
-  const allKeys = rows.filter((r) => r.kind !== "task" && r.kind !== "milestones").map((r) => r.key);
   const collapseAll = () => setCollapsed(projects.map((p) => `p${p.id}`));
   const expandAll = () => setCollapsed([]);
 
@@ -115,7 +114,7 @@ export default function Roadmap() {
   const conflicts = data?.dependencies.filter((d) => d.conflict).length ?? 0;
   const canEdit = !!data?.canEdit;
   const healthOpts = Object.entries(HEALTH_META).filter(([k]) => k !== "NONE").map(([k, v]) => ({ value: k, label: v.label }));
-  const statusOpts = ["PLANNED", "ACTIVE", "ON_HOLD", "COMPLETED"].map((v) => ({ value: v, label: v.charAt(0) + v.slice(1).toLowerCase().replace("_", " ") }));
+  const statusOpts = ["PLANNING", "ACTIVE", "ON_HOLD", "COMPLETED"].map((v) => ({ value: v, label: v.charAt(0) + v.slice(1).toLowerCase().replace("_", " ") }));
   const active = filters.projectId.length + filters.health.length + filters.status.length + (filters.userId ? 1 : 0) + (filters.teamId ? 1 : 0) + (filters.initiativeId ? 1 : 0);
 
   return (
@@ -158,7 +157,6 @@ export default function Roadmap() {
         <Gantt rows={rows} zoom={zoom} start={start} end={end} canEdit={canEdit} deps={data?.dependencies ?? []} scrollToToday={todayTick}
           onToggle={toggle} onCommit={commit} onOpenTask={(id) => shell.openTask(id)} />
       )}
-      {allKeys.length === 0 && null}
       <ImpactDialog value={impact} onClose={() => setImpact(null)} onShifted={() => { reload(); invalidate("/tasks"); }} />
     </Page>
   );

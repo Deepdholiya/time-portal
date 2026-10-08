@@ -10,6 +10,7 @@ import { useMe } from "@/lib/session";
 import type { Priority, TaskStatus } from "@/lib/types";
 import { useOptions } from "./lib";
 import s from "./new-task.module.css";
+import "./layer-fix.css";
 
 type Draft = {
   title: string; description: string; projectId: number | null; status: TaskStatus; priority: Priority; assigneeId: number | null;

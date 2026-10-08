@@ -61,10 +61,10 @@ export function EntriesTable({ query, showUser = true, onChanged }: { query: Rec
           <tbody>
             {data.rows.map((r) => (
               <tr key={r.id}>
-                <td className="num">{fmtDate(r.date)}{r.startTime && <div className="faint tiny">{r.startTime}–{r.endTime}</div>}</td>
+                <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtDate(r.date)}{r.startTime && <div className="faint tiny">{r.startTime}–{r.endTime}</div>}</td>
                 {showUser && <td>{r.user.name}</td>}
-                <td className="wrap-cell" style={{ minWidth: 180 }}>
-                  <div className="row gap-4"><ProjectDot color={r.projectColor} /><span className="medium">{r.project}</span>{r.subProject && <span className="faint">› {r.subProject}</span>}</div>
+                <td className="wrap-cell" style={{ minWidth: 200 }}>
+                  <div className="row gap-4" style={{ whiteSpace: "nowrap" }}><ProjectDot color={r.projectColor} /><span className="medium">{r.project}</span>{r.subProject && <span className="faint">› {r.subProject}</span>}</div>
                   {r.task && <div className="muted small">{r.task}</div>}
                 </td>
                 <td className="wrap-cell">{r.description || <span className="faint">No description</span>}</td>

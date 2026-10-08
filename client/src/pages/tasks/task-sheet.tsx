@@ -12,6 +12,7 @@ import { SheetProperties } from "./sheet-properties";
 import { Attachments, Dependencies, ImpactCallout, SubTasks, TimeSection } from "./sheet-sections";
 import { ActivityFeed } from "./sheet-activity";
 import s from "./task-sheet.module.css";
+import "./layer-fix.css";
 
 function AutoText({ value, onSave, className, placeholder, disabled, label }: { value: string; onSave: (v: string) => void; className: string; placeholder?: string; disabled?: boolean; label: string }) {
   const [v, setV] = useState(value);

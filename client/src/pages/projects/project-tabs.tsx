@@ -12,6 +12,7 @@ import { fmtSize, useOptions } from "../tasks/lib";
 import { PROJECT_STATUS, type ChildProject, type Links, type MilestoneRow, type ProjectDetail } from "./lib";
 import { ProjectFormDialog } from "./project-form";
 import s from "./projects.module.css";
+import "../tasks/layer-fix.css";
 
 const refresh = () => { invalidate("/projects"); invalidate("/options"); };
 

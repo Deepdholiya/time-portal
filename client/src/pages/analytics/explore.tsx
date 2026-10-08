@@ -43,7 +43,7 @@ export function Explore({ base, ownOnly }: { base: Record<string, string>; ownOn
       <div className={s.panelHead}>
         <ListTree size={14} className="faint" />
         <nav className={s.crumbs} aria-label="Drill-down path">
-          <button className={level ? s.crumb : s.crumbCurrent} onClick={() => setPath([])}>All time</button>
+          <button className={level ? s.crumb : s.crumbCurrent} onClick={() => setPath([])}>Total time</button>
           {path.map((st, i) => (
             <span key={i} className="row gap-4">
               <ChevronRight size={13} className="faint" />
