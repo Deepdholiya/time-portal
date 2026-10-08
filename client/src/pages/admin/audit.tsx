@@ -68,8 +68,8 @@ export default function Audit() {
                         <td><span className={s.action}>{titleCase(r.action)}</span></td>
                         <td className="muted">{entityLabel(r.entity)}{r.entityId != null && <span className="faint"> #{r.entityId}</span>}</td>
                         <td className={s.changeCell}>{summary(diff)}</td>
-                        <td className="ellipsis" style={{ maxWidth: 200 }}>{r.reason ?? <span className="faint">—</span>}</td>
-                        <td className="small faint"><Tooltip content={r.userAgent ?? "Unknown"}><span>{r.ip ?? "—"} · {describeAgent(r.userAgent)}</span></Tooltip></td>
+                        <td className="ellipsis" style={{ maxWidth: 180 }} title={r.reason ?? undefined}>{r.reason ?? <span className="faint">—</span>}</td>
+                        <td className="small faint ellipsis" style={{ maxWidth: 200 }}><Tooltip content={r.userAgent ?? "Unknown"}><span>{r.ip ?? "—"} · {describeAgent(r.userAgent)}</span></Tooltip></td>
                       </tr>
                       {expanded && (
                         <tr className={s.detail}>

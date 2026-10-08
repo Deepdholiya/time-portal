@@ -98,7 +98,7 @@ export default function Projects() {
                   <td><HealthBadge p={p} /></td>
                   <td><span className="muted">{PROJECT_STATUS[p.status]?.label}</span></td>
                   <td>{p.manager ? <span className="row gap-4"><Avatar name={p.manager.name} size={18} /><span className="ellipsis" style={{ maxWidth: 110 }}>{p.manager.name}</span></span> : <span className="faint">—</span>}</td>
-                  <td className="hide-sm"><span className="ellipsis muted" style={{ maxWidth: 160, display: "inline-block" }}>{p.client?.name ?? "—"}</span></td>
+                  <td className="hide-sm"><span className="ellipsis muted" style={{ maxWidth: 160, display: "block" }}>{p.client?.name ?? "—"}</span></td>
                   <td><div className={s.progressCell}><div className="progress"><span style={{ width: pct(p.stats?.progress) }} /></div><span className="small muted num">{pct(p.stats?.progress)}</span></div></td>
                   <td className="hide-sm"><span className={p.endDate && p.endDate < new Date().toISOString().slice(0, 10) && p.status !== "COMPLETED" ? "danger" : "muted"}>{p.endDate ? fmtDate(p.endDate) : "—"}</span></td>
                   <td className="num"><span className={over ? "danger" : ""}>{hours(tracked, 0)}h</span><span className="faint"> / {p.estimatedHours != null ? `${p.estimatedHours}h` : "—"}</span></td>

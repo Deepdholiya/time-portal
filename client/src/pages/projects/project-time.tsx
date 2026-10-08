@@ -11,7 +11,8 @@ import s from "./projects.module.css";
 type Group = { key: string; id: number | string | null; name: string; sub?: string; minutes: number; billableMinutes: number; entries: number; estimateHours?: number | null };
 type Entry = { id: number; date: string; minutes: number; description: string; billable: boolean; user: { id: number; name: string }; task: string | null; taskId: number | null; subProject: string | null };
 
-function GroupTable({ title, rows, total, onRow }: { title: string; rows: Group[]; total: number; onRow?: (g: Group) => void }) {
+function GroupTable({ title, rows, onRow }: { title: string; rows: Group[]; onRow?: (g: Group) => void }) {
+  const max = Math.max(1, ...rows.map((r) => r.minutes));
   return (
     <section>
       <div className="section-title">{title}</div>
@@ -21,7 +22,7 @@ function GroupTable({ title, rows, total, onRow }: { title: string; rows: Group[
             {rows.slice(0, 12).map((g) => (
               <tr key={g.key} className={onRow && g.id ? "clickable" : ""} onClick={() => onRow && g.id && onRow(g)}>
                 <td style={{ maxWidth: 260 }}><span className="row" style={{ minWidth: 0 }}>{title.includes("person") && <Avatar name={g.name} size={18} />}<span className="ellipsis">{g.name}</span></span></td>
-                <td style={{ width: "35%" }}><div className={s.bar} style={{ width: `${total ? (g.minutes / total) * 100 : 0}%` }} /></td>
+                <td style={{ width: "35%" }}><div className={s.bar} style={{ width: `${(g.minutes / max) * 100}%` }} /></td>
                 <td className="num">{hm(g.minutes)}{g.estimateHours ? <span className="faint"> / {g.estimateHours}h</span> : null}</td>
               </tr>
             ))}
@@ -59,8 +60,8 @@ export function ProjectTime({ p }: { p: ProjectDetail }) {
       ) : (
         <div className="page-pad col" style={{ gap: 24 }}>
           <div className={s.split}>
-            <GroupTable title="By person" rows={people.data} total={total} />
-            <GroupTable title="By task" rows={tasks.data} total={total} onRow={(g) => shell.openTask(Number(g.id))} />
+            <GroupTable title="By person" rows={people.data} />
+            <GroupTable title="By task" rows={tasks.data} onRow={(g) => shell.openTask(Number(g.id))} />
           </div>
           <section>
             <div className="section-title">Entries</div>

@@ -1,4 +1,4 @@
-.table td { height: 40px; }
+.table td { height: 40px; vertical-align: middle; }
 .nameCell { display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 340px; }
 .name { font-weight: 500; color: var(--text); }
 .code { color: var(--text-3); font-size: 12px; font-variant-numeric: tabular-nums; }

@@ -103,7 +103,7 @@ export function Overview({ p }: { p: ProjectDetail }) {
           <div className={s.kpis}>
             <Stat label="Progress" value={pct(st.progress)} sub={`${st.tasks.done} of ${st.tasks.total} tasks done`} />
             <Stat label="Tracked" value={`${hours(tracked, 0)}h`} sub={`${hm(st.billableMinutes)} billable`} />
-            <Stat label="Estimate" value={est != null ? `${est}h` : "—"} sub={variance != null ? `${variance > 0 ? "+" : ""}${variance.toFixed(0)}h ${variance > 0 ? "over" : "remaining"}` : `${st.tasks.estimateHours}h in task estimates`} tone={variance != null && variance > 0 ? "danger" : undefined} />
+            <Stat label="Estimate" value={est != null ? `${est}h` : "—"} sub={variance != null ? `${Math.abs(variance).toFixed(0)}h ${variance > 0 ? "over estimate" : "remaining"}` : `${st.tasks.estimateHours}h in task estimates`} tone={variance != null && variance > 0 ? "danger" : undefined} />
             {showMoney
               ? <Stat label="Revenue" value={money(st.revenue, me.company.currency)} sub={st.budgetRemaining != null ? `${money(st.budgetRemaining, me.company.currency)} of budget left` : `Cost ${money(st.cost, me.company.currency)}`} tone={st.budgetRemaining != null && st.budgetRemaining < 0 ? "danger" : undefined} />
               : <Stat label="Open issues" value={String(st.tasks.overdue + st.tasks.blocked)} sub={`${st.tasks.overdue} overdue · ${st.tasks.blocked} blocked`} tone={st.tasks.overdue ? "danger" : undefined} />}

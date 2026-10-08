@@ -22,7 +22,7 @@ export default function People() {
   const { me, can, currency } = useMe();
   const nav = useNavigate();
   const [q, setQ] = useState("");
-  const [team, setTeam] = useLocal("people:team", "");
+  const [team, setTeam] = useLocal(`people:team:${me.company.id}`, "");
   const [role, setRole] = useLocal("people:role", "");
   const full = can("directory", "full");
   const [status, setStatus] = useLocal("people:status", "ACTIVE");

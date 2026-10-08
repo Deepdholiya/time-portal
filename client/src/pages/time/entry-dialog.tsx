@@ -86,7 +86,7 @@ export default function EntryDialog({ id, defaults, onClose, onSaved }: { id?: n
     .filter((p) => !p.parentId && (p.canLog || projects.some((c) => c.parentId === p.id && c.canLog) || p.id === topId))
     .map((p) => ({ value: p.id, label: p.name, icon: <ProjectDot color={p.color} />, group: (p.clientId && clients.get(p.clientId)) || "No client", keywords: p.code ?? "" }))
     .sort((a, b) => a.group!.localeCompare(b.group!) || a.label.localeCompare(b.label));
-  const children = projects.filter((p) => p.parentId === topId && (p.canLog || p.id === subId));
+  const children = topId ? projects.filter((p) => p.parentId === topId && (p.canLog || p.id === subId)) : [];
   const subOptions: ComboboxOption[] = children.map((p) => ({ value: p.id, label: p.name, icon: <ProjectDot color={p.color} /> }));
   const projectId = subId ?? topId;
   const project = projectId ? byId.get(projectId) : undefined;

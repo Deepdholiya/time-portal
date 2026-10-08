@@ -59,3 +59,7 @@
 .timeRow { display: grid; grid-template-columns: 1fr 1fr 110px; gap: 10px; align-items: end; }
 .reason { padding: 10px 12px; border-radius: var(--radius); background: var(--yellow-soft); display: flex; flex-direction: column; gap: 8px; }
 .serverError { padding: 8px 10px; border-radius: var(--radius); background: var(--red-soft); color: var(--red); font-size: 12.5px; }
+
+/* Workaround: the Arc popover (z-index 60) renders under the Arc dialog overlay (70), so comboboxes inside the
+   entry dialog would open behind it. Lift popover layers above dialogs; remove once the kit fixes its z-order. */
+:global(body > [role="dialog"][data-layer]) { z-index: 75 !important; }
