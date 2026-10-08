@@ -8,7 +8,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push && tsx prisma/seed.ts",
-    "build:vercel": "prisma generate && DATABASE_URL=file:./demo.db prisma db push --skip-generate && DATABASE_URL=file:./demo.db tsx prisma/seed.ts && esbuild src/app.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/app.mjs"
+    "build:vercel": "sh scripts/vercel-build.sh"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

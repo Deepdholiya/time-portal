@@ -31,7 +31,7 @@ To run as a single server: `npm run build && npm start`, then open http://localh
 
 ### Demo on Vercel
 
-Import the repository at vercel.com/new and keep the defaults; `vercel.json` builds the web app, seeds a demo database and serves the API from `api/index.mjs`. Every branch gets its own preview link. Set `JWT_SECRET` in the Vercel project's environment variables. The demo database lives in the function's temporary storage, so changes reset whenever Vercel starts a fresh instance; use Postgres (see `server/prisma/schema.prisma`) for anything that must persist.
+Import the repository at vercel.com/new and keep the defaults; `vercel.json` builds the web app, loads the demo data and serves the API from `api/index.mjs`. Set `JWT_SECRET` in the project's environment variables, and connect a Postgres database (for example Neon from the Storage tab) so `DATABASE_URL` points at it: the build then creates the tables and loads the demo data there on every deploy. Without Postgres each serverless instance gets its own SQLite copy, so sign-ins and changes are not shared between instances.
 
 ### Optional settings (`server/.env`)
 
