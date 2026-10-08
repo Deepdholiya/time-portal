@@ -8,8 +8,9 @@ case "$DATABASE_URL" in
   postgres://*|postgresql://*)
     sed 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma > prisma/schema.vercel.prisma
     npx prisma generate --schema prisma/schema.vercel.prisma
-    npx prisma db push --schema prisma/schema.vercel.prisma --skip-generate
-    npx tsx prisma/seed.ts
+    # Schema changes and the seed go through the direct (unpooled) connection when there is one.
+    DATABASE_URL="${DATABASE_URL_UNPOOLED:-$DATABASE_URL}" npx prisma db push --schema prisma/schema.vercel.prisma --skip-generate
+    DATABASE_URL="${DATABASE_URL_UNPOOLED:-$DATABASE_URL}" npx tsx prisma/seed.ts
     ;;
   *)
     npx prisma generate
