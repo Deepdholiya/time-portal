@@ -1,14 +1,18 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { AppProvider } from "./state";
+import "./styles/global.css";
+import { SessionProvider } from "./lib/session";
+import { Toaster } from "./components/arc";
 import { App } from "./App";
-import "./styles.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <AppProvider><App /></AppProvider>
+      <SessionProvider>
+        <App />
+        <Toaster />
+      </SessionProvider>
     </BrowserRouter>
   </StrictMode>,
 );

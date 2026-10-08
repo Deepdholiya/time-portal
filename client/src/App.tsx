@@ -1,135 +1,141 @@
-import { Fragment, useEffect, useState, type FormEvent } from "react";
-import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { api } from "./api";
-import { useApp } from "./state";
-import { TimerBar } from "./components/TimerBar";
-import { Icon } from "./components/Icons";
-import { Modal } from "./components/Modal";
-import { Login } from "./pages/Login";
-import { AcceptInvite } from "./pages/AcceptInvite";
-import { Dashboard } from "./pages/Dashboard";
-import { TimePage } from "./pages/TimePage";
-import { Timesheet } from "./pages/Timesheet";
-import { Projects } from "./pages/Projects";
-import { Roadmap } from "./pages/Roadmap";
-import { Analytics } from "./pages/Analytics";
-import { Approvals } from "./pages/Approvals";
-import { People } from "./pages/People";
-import { Settings } from "./pages/Settings";
+import { lazy, Suspense, type ReactNode } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Loading } from "./components/arc";
+import { AppLayout } from "./components/app/app-layout";
+import { Guard } from "./components/app/page";
+import { useSession } from "./lib/session";
 
-export const ROLE_LABEL: Record<string, string> = { ADMIN: "Admin", MANAGER: "Manager", EMPLOYEE: "Employee" };
-export const initials = (name: string) => name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const p = <P extends Record<string, any> = object>(f: () => Promise<{ default: React.ComponentType<P> }>) => lazy(f);
+// Auth & public
+const Login = p(() => import("./pages/auth/login"));
+const Mfa = p(() => import("./pages/auth/mfa"));
+const SetPassword = p(() => import("./pages/auth/set-password"));
+const Forgot = p(() => import("./pages/auth/forgot"));
+const Reset = p(() => import("./pages/auth/reset"));
+const ClientStatus = p(() => import("./pages/client-status"));
+// Time
+const Home = p(() => import("./pages/home/home"));
+const TimeTracker = p(() => import("./pages/time/time-tracker"));
+const Timesheet = p(() => import("./pages/timesheet/timesheet"));
+const CalendarPage = p(() => import("./pages/calendar/calendar"));
+const Leave = p(() => import("./pages/leave/leave"));
+// Work
+const MyTasks = p(() => import("./pages/my-tasks/my-tasks"));
+const Tasks = p(() => import("./pages/tasks/tasks"));
+const Projects = p(() => import("./pages/projects/projects"));
+const Project = p(() => import("./pages/projects/project"));
+// Insights
+const Inbox = p(() => import("./pages/inbox/inbox"));
+const Roadmap = p(() => import("./pages/roadmap/roadmap"));
+const Workload = p(() => import("./pages/workload/workload"));
+const Analytics = p(() => import("./pages/analytics/analytics"));
+const Reports = p(() => import("./pages/reports/reports"));
+const Approvals = p(() => import("./pages/approvals/approvals"));
+const TeamTime = p(() => import("./pages/team-time/team-time"));
+// People & admin
+const People = p(() => import("./pages/people/people"));
+const Person = p(() => import("./pages/people/person"));
+const Teams = p(() => import("./pages/teams/teams"));
+const Clients = p(() => import("./pages/clients/clients"));
+const Users = p(() => import("./pages/admin/users"));
+const Roles = p(() => import("./pages/admin/roles"));
+const Companies = p(() => import("./pages/admin/companies"));
+const Settings = p(() => import("./pages/admin/settings"));
+const Integrations = p(() => import("./pages/admin/integrations"));
+const Automations = p(() => import("./pages/admin/automations"));
+const Audit = p(() => import("./pages/admin/audit"));
+const Outbox = p(() => import("./pages/admin/outbox"));
+const Account = p<{ mfaSetupRequired?: boolean }>(() => import("./pages/account/account"));
+
+const g = (perm: [string, string?], el: ReactNode) => <Guard perm={perm}>{el}</Guard>;
 
 export function App() {
-  const { me, perms, loading, timeVersion } = useApp();
+  const { status, me } = useSession();
   const loc = useLocation();
-  const [profile, setProfile] = useState(false);
-  const [pending, setPending] = useState(0);
+  if (status === "loading") return <Loading label="Loading Time Portal…" />;
 
-  useEffect(() => {
-    if (perms?.approveTimesheets === "yes") api<unknown[]>("/timesheets/approvals").then((r) => setPending(r.length)).catch(() => {});
-  }, [perms?.approveTimesheets, timeVersion, loc.pathname]);
-
-  if (loc.pathname.startsWith("/invite/")) return <AcceptInvite token={loc.pathname.split("/")[2]} />;
-  if (loading) return <div className="center muted">Loading…</div>;
-  if (!me || !perms) return <Login />;
-
-  const sections = [
-    { title: "Track", items: [
-      { to: "/", label: "Dashboard", icon: "dashboard", show: true },
-      { to: "/time", label: "Time tracker", icon: "clock", show: true },
-      { to: "/timesheet", label: "Timesheet", icon: "grid", show: true },
-    ] },
-    { title: "Analyze", items: [
-      { to: "/analytics", label: "Analytics", icon: "chart", show: perms.analytics !== "none" },
-      { to: "/roadmap", label: "Roadmap", icon: "roadmap", show: perms.roadmap === "view" },
-      { to: "/approvals", label: "Approvals", icon: "check", show: perms.approveTimesheets === "yes", count: pending },
-    ] },
-    { title: "Manage", items: [
-      { to: "/projects", label: "Projects", icon: "folder", show: true },
-      { to: "/people", label: "People", icon: "users", show: perms.managePeople === "yes" },
-    ] },
-    { title: "Admin", items: [{ to: "/settings", label: "Access & audit", icon: "shield", show: perms.managePeople === "yes" }] },
-  ];
-
-  return (
-    <div className="shell">
-      <aside className="sidebar">
-        <div className="brand"><span className="logo">B</span><div><strong>Bridge UX</strong><small>Time Portal</small></div></div>
-        <nav aria-label="Main">
-          {sections.map((s) => {
-            const items = s.items.filter((i) => i.show);
-            if (!items.length) return null;
-            return (
-              <div key={s.title}>
-                <div className="nav-section">{s.title}</div>
-                {items.map((n) => (
-                  <NavLink key={n.to} to={n.to} end={n.to === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
-                    <span className="nav-icon"><Icon name={n.icon} /></span>{n.label}
-                    {"count" in n && !!n.count && <span className="count">{n.count}</span>}
-                  </NavLink>
-                ))}
-              </div>
-            );
-          })}
-        </nav>
-        <button className="me" onClick={() => setProfile(true)} title="Profile and settings">
-          <span className="avatar">{initials(me.name)}</span>
-          <span className="grow"><strong>{me.name}</strong><small>{ROLE_LABEL[me.role] ?? me.role}{me.team ? ` · ${me.team.name}` : ""}</small></span>
-        </button>
-      </aside>
-      <main>
-        <TimerBar />
-        <div className="page">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/time" element={<TimePage />} />
-            <Route path="/timesheet" element={<Timesheet />} />
-            <Route path="/projects" element={<Projects />} />
-            {perms.roadmap === "view" && <Route path="/roadmap" element={<Roadmap />} />}
-            {perms.analytics !== "none" && <Route path="/analytics" element={<Analytics />} />}
-            {perms.approveTimesheets === "yes" && <Route path="/approvals" element={<Approvals />} />}
-            {perms.managePeople === "yes" && <Route path="/people" element={<People />} />}
-            {perms.managePeople === "yes" && <Route path="/settings" element={<Settings />} />}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </main>
-      {profile && <Profile onClose={() => setProfile(false)} />}
-    </div>
+  const publicRoutes = (
+    <>
+      <Route path="/client/:token" element={<ClientStatus />} />
+      <Route path="/forgot" element={<Forgot />} />
+      <Route path="/reset/:token" element={<Reset />} />
+    </>
   );
-}
 
-function Profile({ onClose }: { onClose: () => void }) {
-  const { me, perms, logout, toast } = useApp();
-  const [current, setCurrent] = useState("");
-  const [next, setNext] = useState("");
-  const [error, setError] = useState("");
-  async function change(e: FormEvent) {
-    e.preventDefault(); setError("");
-    try { await api("/auth/change-password", { body: { current, next } }); toast("Password changed"); setCurrent(""); setNext(""); }
-    catch (err) { setError((err as Error).message); }
+  if (status === "anon" || status === "mfa") {
+    const next = loc.pathname.startsWith("/login") || loc.pathname.startsWith("/mfa") ? "" : `?next=${encodeURIComponent(loc.pathname + loc.search)}`;
+    return (
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {publicRoutes}
+          <Route path="/login" element={<Login />} />
+          <Route path="/mfa" element={status === "mfa" ? <Mfa /> : <Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to={status === "mfa" ? "/mfa" : `/login${next}`} replace />} />
+        </Routes>
+      </Suspense>
+    );
   }
-  const LEVEL: Record<string, string> = { none: "No access", own: "Own data", all: "Everyone", view: "Can view", no: "No", yes: "Yes" };
-  const LABEL: Record<string, string> = { analytics: "Analytics", roadmap: "Roadmap", export: "Export reports", manageProjects: "Manage projects", editOthersTime: "Edit others' time", approveTimesheets: "Approve timesheets", managePeople: "Manage people" };
+
+  // Signed in but must replace a temporary password, or an admin must enrol in MFA first.
+  if (me?.user.mustChangePassword) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {publicRoutes}
+          <Route path="*" element={<SetPassword />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+  if (me?.mfaSetupRequired) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="*" element={<Account mfaSetupRequired />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+
   return (
-    <Modal title="Your profile" onClose={onClose}>
-      <div className="row" style={{ marginBottom: 16 }}>
-        <span className="avatar" style={{ width: 44, height: 44, fontSize: 15 }}>{initials(me!.name)}</span>
-        <div className="grow"><strong>{me!.name}</strong><div className="muted small">{me!.email}</div><div className="muted small">{ROLE_LABEL[me!.role]}{me!.team ? ` · ${me!.team.name}` : ""}</div></div>
-      </div>
-      <h4>Your access</h4>
-      <dl className="props">{Object.entries(perms!).map(([k, v]) => <Fragment key={k}><dt>{LABEL[k] ?? k}</dt><dd>{LEVEL[v] ?? v}</dd></Fragment>)}</dl>
-      <h4>Change password</h4>
-      <form onSubmit={change} className="stack">
-        <label className="field"><span>Current password</span><input type="password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} /></label>
-        <label className="field"><span>New password</span><input type="password" autoComplete="new-password" minLength={8} required value={next} onChange={(e) => setNext(e.target.value)} /></label>
-        {error && <p className="error">{error}</p>}
-        <div className="row between">
-          <button type="button" className="btn ghost" onClick={logout}><Icon name="logout" /> Sign out</button>
-          <button className="btn primary">Update password</button>
-        </div>
-      </form>
-    </Modal>
+    <Routes>
+      {publicRoutes}
+      <Route path="/login" element={<Navigate to={new URLSearchParams(loc.search).get("next") || "/"} replace />} />
+      <Route path="/mfa" element={<Navigate to="/" replace />} />
+      <Route element={<AppLayout />}>
+        <Route index element={<Home />} />
+        <Route path="inbox" element={<Inbox />} />
+        <Route path="my-tasks" element={<MyTasks />} />
+        <Route path="time" element={<TimeTracker />} />
+        <Route path="timesheet" element={<Timesheet />} />
+        <Route path="calendar" element={<CalendarPage />} />
+        <Route path="leave" element={<Leave />} />
+        <Route path="tasks" element={<Tasks />} />
+        <Route path="tasks/:id" element={<Tasks />} />
+        <Route path="projects" element={<Projects />} />
+        <Route path="projects/:id" element={<Project />} />
+        <Route path="roadmap" element={g(["roadmap", "view"], <Roadmap />)} />
+        <Route path="clients" element={<Clients />} />
+        <Route path="people" element={<People />} />
+        <Route path="people/:id" element={<Person />} />
+        <Route path="teams" element={<Teams />} />
+        <Route path="analytics" element={g(["analytics", "own"], <Analytics />)} />
+        <Route path="reports" element={g(["export", "own"], <Reports />)} />
+        <Route path="workload" element={g(["analytics", "all"], <Workload />)} />
+        <Route path="team-time" element={g(["timesheetsView", "all"], <TeamTime />)} />
+        <Route path="approvals" element={<Guard any={[["approveTimesheets", "yes"], ["leaveApprove", "yes"]]}><Approvals /></Guard>} />
+        <Route path="admin/users" element={g(["people", "invite"], <Users />)} />
+        <Route path="admin/roles" element={g(["settings", "yes"], <Roles />)} />
+        <Route path="admin/companies" element={g(["companies", "yes"], <Companies />)} />
+        <Route path="admin/settings" element={g(["settings", "yes"], <Settings />)} />
+        <Route path="admin/integrations" element={g(["settings", "yes"], <Integrations />)} />
+        <Route path="admin/automations" element={g(["settings", "yes"], <Automations />)} />
+        <Route path="admin/audit" element={g(["audit", "yes"], <Audit />)} />
+        <Route path="admin/outbox" element={g(["settings", "yes"], <Outbox />)} />
+        <Route path="settings/account" element={<Account />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
   );
 }

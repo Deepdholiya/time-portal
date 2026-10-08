@@ -6,222 +6,388 @@ const prisma = new PrismaClient();
 // Deterministic random so every seed produces the same demo data.
 let s = 42;
 const rand = () => ((s = (s * 1664525 + 1013904223) % 2 ** 32) / 2 ** 32);
-const pick = <T,>(a: T[]) => a[Math.floor(rand() * a.length)];
-const d = (iso: string) => new Date(iso + "T00:00:00Z");
-const fmt = (dt: Date) => dt.toISOString().slice(0, 10);
+const pick = <T,>(a: readonly T[]) => a[Math.floor(rand() * a.length)];
+const iso = (dt: Date) => dt.toISOString().slice(0, 10);
+const D = (s: string) => new Date(s + "T00:00:00Z");
+const addDays = (s: string, n: number) => { const x = D(s); x.setUTCDate(x.getUTCDate() + n); return iso(x); };
 const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+const now = new Date();
+const TODAY = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+const weekStart = (s: string) => { const wd = (D(s).getUTCDay() + 6) % 7; return addDays(s, -wd); };
+const DEMO_TEMP = "Kite-4821-Moss"; // temporary password for the seeded pending invitation
+
+async function wipe() {
+  // Children first; companies cascade the rest.
+  await prisma.notification.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.passwordReset.deleteMany();
+  await prisma.auditLog.deleteMany();
+  await prisma.emailMessage.deleteMany();
+  await prisma.company.deleteMany();
+  await prisma.user.deleteMany();
+}
+
+type U = { id: number; name: string; key: string };
 
 async function main() {
-  await prisma.auditLog.deleteMany();
-  await prisma.invitation.deleteMany();
-  await prisma.timesheetPeriod.deleteMany();
-  await prisma.timeEntry.deleteMany();
-  await prisma.task.deleteMany();
-  await prisma.milestone.deleteMany();
-  await prisma.projectMember.deleteMany();
-  await prisma.project.deleteMany();
-  await prisma.client.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.team.deleteMany();
-  await prisma.rolePermission.deleteMany();
-
+  await wipe();
   const pw = await bcrypt.hash("password123", 10);
-  const teams = Object.fromEntries(
-    await Promise.all(["Design", "Engineering", "QA", "Marketing"].map(async (name) => [name, await prisma.team.create({ data: { name } })])),
-  );
+
+  // ---------------- Company A: Bridge UX ----------------
+  const bux = await prisma.company.create({
+    data: {
+      name: "Bridge UX", slug: "bridge-ux", color: "#5e6ad2", country: "India", timezone: "Asia/Kolkata", currency: "INR",
+      settings: JSON.stringify({ taskKey: "BUX", overloadPct: 100, healthyPct: 80, underPct: 60, tempPasswordHours: 72, sessionTimeoutMinutes: 480, enforceAdminMfa: false, aiEnabled: true, allowOverlappingTimers: false, lockApprovedWeeks: true, invitationDays: 7 }),
+    },
+  });
+  const teamDefs = [["Design", "#bb87fc"], ["Engineering", "#26b5ce"], ["QA", "#4cb782"], ["Marketing", "#f2994a"]] as const;
+  const teams: Record<string, number> = {};
+  for (const [name, color] of teamDefs) teams[name] = (await prisma.team.create({ data: { companyId: bux.id, name, color } })).id;
 
   const people = [
-    ["Aarav Mehta", "admin@example.com", "ADMIN", "Operations Head", "Engineering", true],
-    ["Priya Shah", "priya@example.com", "MANAGER", "Project Manager", "Design", true],
-    ["Rohan Iyer", "rohan@example.com", "MANAGER", "Engineering Manager", "Engineering", true],
-    ["Neha Kapoor", "neha@example.com", "EMPLOYEE", "UI Designer", "Design", false],
-    ["Karan Patel", "karan@example.com", "EMPLOYEE", "UX Researcher", "Design", false],
-    ["Sneha Rao", "sneha@example.com", "EMPLOYEE", "Frontend Developer", "Engineering", false],
-    ["Vikram Singh", "vikram@example.com", "EMPLOYEE", "Backend Developer", "Engineering", false],
-    ["Ananya Das", "ananya@example.com", "EMPLOYEE", "Mobile Developer", "Engineering", false],
-    ["Arjun Nair", "arjun@example.com", "EMPLOYEE", "QA Engineer", "QA", false],
-    ["Meera Joshi", "meera@example.com", "EMPLOYEE", "Content Strategist", "Marketing", false],
+    ["Aarav Mehta", "admin", "ADMIN", "Operations Head", "Engineering", true, 2400, 4000, "+91 98200 11111"],
+    ["Priya Shah", "priya", "MANAGER", "Project Manager", "Design", true, 1800, 3200, "+91 98200 22222"],
+    ["Rohan Iyer", "rohan", "MANAGER", "Engineering Manager", "Engineering", true, 2000, 3500, "+91 98200 33333"],
+    ["Neha Kapoor", "neha", "EMPLOYEE", "UI Designer", "Design", false, 1100, 2400, "+91 98200 44444"],
+    ["Karan Patel", "karan", "EMPLOYEE", "UX Researcher", "Design", false, 1000, 2200, "+91 98200 55555"],
+    ["Sneha Rao", "sneha", "EMPLOYEE", "Frontend Developer", "Engineering", false, 1200, 2600, "+91 98200 66666"],
+    ["Vikram Singh", "vikram", "EMPLOYEE", "Backend Developer", "Engineering", false, 1300, 2800, "+91 98200 77777"],
+    ["Ananya Das", "ananya", "EMPLOYEE", "Mobile Developer", "Engineering", false, 1250, 2700, "+91 98200 88888"],
+    ["Arjun Nair", "arjun", "EMPLOYEE", "QA Engineer", "QA", false, 900, 2000, "+91 98200 99999"],
+    ["Meera Joshi", "meera", "EMPLOYEE", "Content Strategist", "Marketing", false, 850, 1800, "+91 98200 12345"],
   ] as const;
-  const users: Record<string, { id: number; name: string }> = {};
-  for (const [name, email, role, title, team, all] of people) {
-    users[email.split("@")[0]] = await prisma.user.create({
-      data: { name, email, role, title, passwordHash: pw, teamId: teams[team].id, allProjects: all, weeklyCapacity: 40 },
+  const users: Record<string, U> = {};
+  for (const [name, key, role, title, team, all, cost, bill, phone] of people) {
+    const u = await prisma.user.create({
+      data: { name, email: `${key}@example.com`, role, title, passwordHash: pw, weeklyCapacity: 40, costRate: cost, billRate: bill, phone, location: pick(["Mumbai", "Bengaluru", "Pune", "Remote"]), lastLoginAt: new Date(Date.now() - rand() * 5 * 864e5), lastCompanyId: bux.id, emailVerifiedAt: new Date("2026-01-05") },
     });
+    await prisma.membership.create({ data: { companyId: bux.id, userId: u.id, teamId: teams[team], allProjects: all } });
+    users[key] = { id: u.id, name, key };
   }
 
-  const clients = Object.fromEntries(
-    await Promise.all(["Northwind Bank", "Greenleaf Retail", "Bridge UX (Internal)"].map(async (name) => [name, await prisma.client.create({ data: { name } })])),
-  );
+  const clientDefs = [
+    ["Northwind Bank", "it-projects@northwind.example", "Daniel Fernandes", "+91 22 4000 1000", 3800],
+    ["Greenleaf Retail", "digital@greenleaf.example", "Kavya Menon", "+91 80 4100 2000", 3000],
+    ["Bridge UX (Internal)", null, null, null, null],
+  ] as const;
+  const clients: Record<string, number> = {};
+  for (const [name, email, contactName, phone, rate] of clientDefs) clients[name] = (await prisma.client.create({ data: { companyId: bux.id, name, email, contactName, phone, rate } })).id;
 
-  type Sub = { name: string; start: string; end: string; est: number; color: string; work: string[]; tasks: string[]; team: string[] };
-  type Proj = { name: string; code: string; client: string; manager: string; start: string; end: string; est: number; color: string; status?: string; health?: string; description: string; milestones: [string, string, boolean][]; subs: Sub[] };
+  const initiatives: Record<string, number> = {};
+  for (const [name, color] of [["Client delivery", "#5e6ad2"], ["Brand & growth", "#f2994a"], ["Internal tools", "#4cb782"]] as const) initiatives[name] = (await prisma.initiative.create({ data: { companyId: bux.id, name, color } })).id;
 
+  type Sub = { name: string; start: string; end: string; est: number; team: string[]; work: string[]; tasks: string[]; section: string };
+  type Proj = {
+    name: string; code: string; client: string; manager: string; start: string; end: string; est: number; color: string; status?: string; priority: string;
+    initiative: string; billing: string; rate?: number; budget?: number; tags: string[]; team: string; description: string;
+    links: Record<string, unknown>; milestones: [string, string, boolean][]; subs: Sub[];
+  };
   const plan: Proj[] = [
     {
-      name: "Website Redesign", code: "WEB", client: "Greenleaf Retail", manager: "priya", start: "2026-06-01", end: "2026-11-30", est: 1400, color: "#2a78d6",
-      description: "Full redesign of the Greenleaf e-commerce website.", health: "ON_TRACK",
+      name: "Website Redesign", code: "WEB", client: "Greenleaf Retail", manager: "priya", start: "2026-06-01", end: "2026-11-30", est: 1400, color: "#5e6ad2", priority: "HIGH",
+      initiative: "Client delivery", billing: "HOURLY", rate: 3000, budget: 4_200_000, tags: ["ecommerce", "web"], team: "Design",
+      description: "Full redesign of the Greenleaf e-commerce website: research, a new design system and a rebuilt storefront.",
+      links: { figma: "https://www.figma.com/file/greenleaf-redesign", document: "https://docs.example.com/greenleaf-brief", drive: "https://drive.example.com/greenleaf" },
       milestones: [["Research sign-off", "2026-07-10", true], ["Design system v1", "2026-08-28", true], ["Beta launch", "2026-10-30", false], ["Go live", "2026-11-27", false]],
       subs: [
-        { name: "Discovery & Research", start: "2026-06-01", end: "2026-07-15", est: 220, color: "#6366f1", team: ["karan", "neha", "priya"],
+        { name: "Discovery & Research", start: "2026-06-01", end: "2026-07-15", est: 220, team: ["karan", "neha", "priya"], section: "Research",
           work: ["Stakeholder interviews with the merchandising team", "Synthesised survey responses into themes", "Competitor audit of checkout flows", "Wrote research summary deck", "Usability test sessions on current site"],
-          tasks: ["Interview plan", "Survey analysis", "Persona definitions"] },
-        { name: "UI Design", start: "2026-07-01", end: "2026-09-30", est: 480, color: "#8b5cf6", team: ["neha", "karan", "priya"],
+          tasks: ["Interview plan", "Survey analysis", "Persona definitions", "Research readout"] },
+        { name: "UI Design", start: "2026-07-01", end: "2026-09-30", est: 480, team: ["neha", "karan", "priya"], section: "Design",
           work: ["Designed product listing page variants", "Built components in the design system", "Iterated on checkout mockups after feedback", "Prepared responsive layouts for tablet", "Design review with client"],
-          tasks: ["Homepage hi-fi", "PLP and PDP screens", "Checkout flow", "Design system tokens"] },
-        { name: "Frontend Build", start: "2026-08-15", end: "2026-11-20", est: 700, color: "#a855f7", team: ["sneha", "vikram", "arjun", "rohan"],
+          tasks: ["Homepage hi-fi", "PLP and PDP screens", "Checkout flow", "Design system tokens", "Responsive specs"] },
+        { name: "Frontend Build", start: "2026-08-15", end: "2026-11-20", est: 700, team: ["sneha", "vikram", "arjun", "rohan"], section: "Build",
           work: ["Implemented product grid with filters", "Hooked cart to the commerce API", "Fixed layout bugs on Safari", "Wrote unit tests for checkout", "Performance tuning of image loading", "Regression testing on staging"],
-          tasks: ["Header and navigation", "Product listing", "Cart and checkout", "Accessibility pass"] },
+          tasks: ["Header and navigation", "Product listing", "Cart and checkout", "Accessibility pass", "Performance budget", "Beta QA round"] },
       ],
     },
     {
-      name: "Mobile Banking App", code: "NWB", client: "Northwind Bank", manager: "rohan", start: "2026-05-01", end: "2027-02-28", est: 2200, color: "#eb6834",
-      description: "New iOS and Android app for Northwind retail customers.", health: "AT_RISK",
-      milestones: [["Architecture approved", "2026-05-29", true], ["Login and accounts", "2026-08-14", true], ["Payments MVP", "2026-10-23", false], ["Security audit", "2026-12-11", false], ["Store release", "2027-02-19", false]],
+      name: "Mobile Banking App", code: "NWB", client: "Northwind Bank", manager: "rohan", start: "2026-05-01", end: "2027-02-28", est: 2200, color: "#eb5757", priority: "URGENT",
+      initiative: "Client delivery", billing: "HOURLY", rate: 3800, budget: 8_000_000, tags: ["mobile", "fintech"], team: "Engineering",
+      description: "New iOS and Android app for Northwind retail customers with payments and card controls.",
+      links: { figma: "https://www.figma.com/file/northwind-mobile", document: "https://docs.example.com/northwind-sow" },
+      milestones: [["Architecture approved", "2026-05-29", true], ["Login and accounts", "2026-08-14", true], ["Payments MVP", "2026-10-02", false], ["Security audit", "2026-12-11", false], ["Store release", "2027-02-19", false]],
       subs: [
-        { name: "iOS App", start: "2026-06-01", end: "2027-02-15", est: 750, color: "#06b6d4", team: ["ananya", "arjun", "rohan"],
+        { name: "iOS App", start: "2026-06-01", end: "2027-02-15", est: 750, team: ["ananya", "arjun", "rohan"], section: "iOS",
           work: ["Built account summary screen in SwiftUI", "Integrated biometric login", "Fixed crash on transaction history", "Pairing session on payment flow", "Updated push notification handling"],
-          tasks: ["Biometric login", "Accounts dashboard", "Payments flow", "Push notifications"] },
-        { name: "Android App", start: "2026-06-15", end: "2027-02-15", est: 750, color: "#0ea5e9", team: ["ananya", "sneha", "arjun"],
+          tasks: ["Biometric login", "Accounts dashboard", "Payments flow", "Push notifications", "App Store assets"] },
+        { name: "Android App", start: "2026-06-15", end: "2027-02-15", est: 750, team: ["ananya", "sneha", "arjun"], section: "Android",
           work: ["Implemented Compose screens for transfers", "Fixed keyboard overlap on login", "Added offline caching for balances", "Code review for payments module"],
-          tasks: ["Transfers UI", "Offline cache", "Card controls"] },
-        { name: "Banking API", start: "2026-05-01", end: "2026-12-31", est: 600, color: "#0284c7", team: ["vikram", "rohan", "arjun"],
+          tasks: ["Transfers UI", "Offline cache", "Card controls", "Play Store listing"] },
+        { name: "Banking API", start: "2026-05-01", end: "2026-12-31", est: 600, team: ["vikram", "rohan", "arjun"], section: "API",
           work: ["Designed payments endpoints", "Wrote integration tests for accounts API", "Investigated latency on statements endpoint", "Set up rate limiting", "Threat modelling session with security team"],
-          tasks: ["Accounts API", "Payments API", "Rate limiting", "Audit logging"] },
+          tasks: ["Accounts API", "Payments API", "Rate limiting", "Audit logging", "Pen-test fixes"] },
       ],
     },
     {
-      name: "Brand Refresh", code: "BRD", client: "Greenleaf Retail", manager: "priya", start: "2026-08-01", end: "2026-12-15", est: 400, color: "#e87ba4",
-      description: "New visual identity and campaign launch.", health: "ON_TRACK",
-      milestones: [["Moodboards approved", "2026-08-21", true], ["Campaign assets", "2026-11-13", false]],
+      name: "Brand Refresh", code: "BRD", client: "Greenleaf Retail", manager: "priya", start: "2026-08-01", end: "2026-12-15", est: 400, color: "#bb87fc", priority: "MEDIUM",
+      initiative: "Brand & growth", billing: "FIXED", budget: 1_200_000, tags: ["brand", "campaign"], team: "Marketing",
+      description: "New visual identity and the launch campaign for Greenleaf's autumn collection.",
+      links: { figma: "https://www.figma.com/file/greenleaf-brand", drive: "https://drive.example.com/greenleaf-brand" },
+      milestones: [["Moodboards approved", "2026-08-21", true], ["Guidelines delivered", "2026-10-16", false], ["Campaign assets", "2026-11-13", false]],
       subs: [
-        { name: "Visual Identity", start: "2026-08-01", end: "2026-10-15", est: 180, color: "#ec4899", team: ["neha", "meera"],
-          work: ["Logo exploration round two", "Colour palette and typography", "Brand guidelines document"], tasks: ["Logo", "Brand guidelines"] },
-        { name: "Campaign Content", start: "2026-09-15", end: "2026-12-15", est: 220, color: "#f472b6", team: ["meera", "karan"],
-          work: ["Wrote launch blog post", "Social media calendar for November", "Edited product photography captions", "Email campaign copy"], tasks: ["Launch copy", "Social calendar", "Email sequence"] },
+        { name: "Visual Identity", start: "2026-08-01", end: "2026-10-15", est: 180, team: ["neha", "meera"], section: "Identity",
+          work: ["Logo exploration round two", "Colour palette and typography", "Brand guidelines document"], tasks: ["Logo", "Colour and type", "Brand guidelines"] },
+        { name: "Campaign Content", start: "2026-09-15", end: "2026-12-15", est: 220, team: ["meera", "karan"], section: "Campaign",
+          work: ["Wrote launch blog post", "Social media calendar for November", "Edited product photography captions", "Email campaign copy"], tasks: ["Launch copy", "Social calendar", "Email sequence", "Photo captions"] },
       ],
     },
     {
-      name: "Internal Time Portal", code: "ITP", client: "Bridge UX (Internal)", manager: "rohan", start: "2026-09-15", end: "2027-03-31", est: 900, color: "#1baf7a", status: "PLANNING",
-      description: "Employee time tracking, analytics and roadmap portal.", health: "ON_TRACK",
+      name: "Internal Time Portal", code: "ITP", client: "Bridge UX (Internal)", manager: "rohan", start: "2026-09-15", end: "2027-03-31", est: 900, color: "#4cb782", status: "PLANNING", priority: "LOW",
+      initiative: "Internal tools", billing: "NON_BILLABLE", tags: ["internal"], team: "Engineering",
+      description: "Employee time tracking, analytics and roadmap portal.",
+      links: { document: "https://docs.example.com/time-portal-requirements" },
       milestones: [["Requirements signed off", "2026-10-09", false], ["MVP", "2026-12-18", false], ["Analytics and roadmap", "2027-03-26", false]],
       subs: [
-        { name: "Portal Backend", start: "2026-09-20", end: "2027-03-15", est: 450, color: "#22c55e", team: ["vikram"],
-          work: ["Drafted data model for time entries", "Reviewed requirement document"], tasks: ["Data model", "Permissions"] },
-        { name: "Portal Frontend", start: "2026-10-01", end: "2027-03-31", est: 450, color: "#4ade80", team: ["sneha", "neha"],
-          work: ["Wireframes for timesheet view", "Explored chart library options"], tasks: ["Timesheet wireframes"] },
+        { name: "Portal Backend", start: "2026-09-20", end: "2027-03-15", est: 450, team: ["vikram"], section: "Backend", work: ["Drafted data model for time entries", "Reviewed requirement document"], tasks: ["Data model", "Permissions", "Reports API"] },
+        { name: "Portal Frontend", start: "2026-10-01", end: "2027-03-31", est: 450, team: ["sneha", "neha"], section: "Frontend", work: ["Wireframes for timesheet view", "Explored chart library options"], tasks: ["Timesheet wireframes", "Component library"] },
       ],
     },
   ];
 
-  const internalWork = ["Team standup and planning", "Weekly 1:1s", "Hiring interviews", "Internal knowledge sharing session", "Tooling and environment setup"];
   const ops = await prisma.project.create({
-    data: { name: "Internal Operations", code: "OPS", clientId: clients["Bridge UX (Internal)"].id, color: "#898781", status: "ACTIVE", description: "Meetings, hiring, admin and other non-billable work.", startDate: d("2026-01-01"), endDate: d("2026-12-31") },
+    data: { companyId: bux.id, name: "Internal Operations", code: "OPS", clientId: clients["Bridge UX (Internal)"], color: "#95a2b3", status: "ACTIVE", billingType: "NON_BILLABLE", description: "Meetings, hiring, admin and other non-billable work.", startDate: "2026-01-01", endDate: "2026-12-31", tags: JSON.stringify(["internal"]), initiativeId: initiatives["Internal tools"] },
   });
+  const internalWork = ["Team standup and planning", "Weekly 1:1s", "Hiring interviews", "Internal knowledge sharing session", "Tooling and environment setup"];
 
-  type Slot = { projectId: number; taskIds: number[]; work: string[]; start: Date; end: Date; billable: boolean };
+  let number = 1;
+  type Slot = { projectId: number; tasks: { id: number; assigneeId: number | null }[]; work: string[]; start: string; end: string; billable: boolean };
   const slots: Record<string, Slot[]> = {};
+  const allTasks: { id: number; title: string; projectId: number; assigneeId: number | null; dueDate: string | null; status: string; sub: string }[] = [];
+  const projectsByName: Record<string, number> = {};
 
   for (const p of plan) {
     const parent = await prisma.project.create({
       data: {
-        name: p.name, code: p.code, description: p.description, color: p.color, status: p.status ?? "ACTIVE", health: p.health ?? "ON_TRACK",
-        startDate: d(p.start), endDate: d(p.end), estimatedHours: p.est, clientId: clients[p.client].id, managerId: users[p.manager].id,
+        companyId: bux.id, name: p.name, code: p.code, description: p.description, color: p.color, status: p.status ?? "ACTIVE", priority: p.priority,
+        startDate: p.start, endDate: p.end, estimatedHours: p.est, clientId: clients[p.client], managerId: users[p.manager].id, teamId: teams[p.team],
+        initiativeId: initiatives[p.initiative], billingType: p.billing, hourlyRate: p.rate ?? null, budget: p.budget ?? null, tags: JSON.stringify(p.tags), links: JSON.stringify(p.links),
+        notes: `## ${p.name}\n\n${p.description}\n\n### Working agreements\n- Weekly client check-in on Thursdays\n- Log time daily with a clear description\n- Raise blockers in the task comments`,
       },
     });
-    for (const [name, due, done] of p.milestones) await prisma.milestone.create({ data: { name, dueDate: d(due), done, projectId: parent.id } });
+    projectsByName[p.name] = parent.id;
+    const milestoneIds: number[] = [];
+    for (const [name, date, done] of p.milestones) milestoneIds.push((await prisma.milestone.create({ data: { projectId: parent.id, name, date, done } })).id);
+    const members = new Set<number>([users[p.manager].id]);
     for (const sp of p.subs) {
       const sub = await prisma.project.create({
-        data: { name: sp.name, color: p.color, startDate: d(sp.start), endDate: d(sp.end), estimatedHours: sp.est, clientId: clients[p.client].id, parentId: parent.id, managerId: users[p.manager].id, status: p.status ?? "ACTIVE" },
+        data: { companyId: bux.id, name: sp.name, color: p.color, startDate: sp.start, endDate: sp.end, estimatedHours: sp.est, clientId: clients[p.client], parentId: parent.id, managerId: users[p.manager].id, status: p.status ?? "ACTIVE", billingType: p.billing, hourlyRate: p.rate ?? null },
       });
-      const taskIds: number[] = [];
+      sp.team.forEach((k) => members.add(users[k].id));
+      const span = (D(sp.end).getTime() - D(sp.start).getTime()) / 864e5;
+      const created: { id: number; assigneeId: number | null }[] = [];
+      let prev: { id: number; due: string } | null = null;
       for (const [i, title] of sp.tasks.entries()) {
-        const dueOffset = (d(sp.end).getTime() - d(sp.start).getTime()) * ((i + 1) / (sp.tasks.length + 1));
-        const due = new Date(d(sp.start).getTime() + dueOffset);
-        const status = due < new Date("2026-09-20") ? "DONE" : due < new Date("2026-10-31") ? "IN_PROGRESS" : "TODO";
-        const t = await prisma.task.create({ data: { title, projectId: sub.id, assigneeId: users[sp.team[i % sp.team.length]].id, status, estimatedHours: 20 + Math.round(rand() * 60), dueDate: due } });
-        taskIds.push(t.id);
-      }
-      for (const key of sp.team) {
-        await prisma.projectMember.upsert({ where: { projectId_userId: { projectId: parent.id, userId: users[key].id } }, create: { projectId: parent.id, userId: users[key].id }, update: {} });
-        (slots[key] ??= []).push({ projectId: sub.id, taskIds, work: sp.work, start: d(sp.start), end: d(sp.end), billable: p.client !== "Bridge UX (Internal)" });
-      }
-    }
-  }
-  for (const u of Object.values(users)) await prisma.projectMember.create({ data: { projectId: ops.id, userId: u.id } });
-
-  // About four months of weekday time entries up to yesterday.
-  const today = new Date();
-  const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 4, 1));
-  const entries: Prisma.TimeEntryCreateManyInput[] = [];
-  for (const [key, u] of Object.entries(users)) {
-    for (let day = new Date(start); fmt(day) < fmt(today); day.setUTCDate(day.getUTCDate() + 1)) {
-      const wd = day.getUTCDay();
-      if (wd === 0 || wd === 6 || rand() < 0.05) continue;
-      const active = (slots[key] ?? []).filter((sl) => sl.start <= day && sl.end >= day);
-      let clock = 9 * 60 + 30;
-      const target = 7 * 60 + Math.round(rand() * 90);
-      // Morning standup on internal ops.
-      const m = 30;
-      entries.push({ userId: u.id, projectId: ops.id, date: fmt(day), startTime: hhmm(clock), endTime: hhmm(clock + m), minutes: m, description: pick(internalWork), billable: false });
-      clock += m;
-      while (clock < 9 * 60 + 30 + target) {
-        const len = Math.min(30 * (2 + Math.floor(rand() * 5)), 9 * 60 + 30 + target - clock);
-        if (len < 15) break;
-        if (clock >= 13 * 60 && clock < 13 * 60 + 45) { clock = 13 * 60 + 45; continue; }
-        const slot = active.length ? pick(active) : null;
-        if (!slot || rand() < 0.08) {
-          entries.push({ userId: u.id, projectId: ops.id, date: fmt(day), startTime: hhmm(clock), endTime: hhmm(clock + len), minutes: len, description: pick(internalWork), billable: false });
-        } else {
-          entries.push({
-            userId: u.id, projectId: slot.projectId, taskId: rand() < 0.7 && slot.taskIds.length ? pick(slot.taskIds) : null, date: fmt(day),
-            startTime: hhmm(clock), endTime: hhmm(clock + len), minutes: len, description: pick(slot.work), billable: slot.billable,
-          });
+        const startOff = Math.round((span * i) / sp.tasks.length);
+        const dueOff = Math.round((span * (i + 1)) / sp.tasks.length);
+        const startDate = addDays(sp.start, startOff), dueDate = addDays(sp.start, dueOff);
+        const assignee = users[sp.team[i % sp.team.length]].id;
+        const status = dueDate < addDays(TODAY, -10) ? "DONE" : startDate <= TODAY ? pick(["IN_PROGRESS", "IN_PROGRESS", "IN_REVIEW", "TODO"]) : pick(["TODO", "BACKLOG"]);
+        const milestoneId = milestoneIds.find((_m, mi) => p.milestones[mi][1] >= dueDate) ?? null;
+        const t = await prisma.task.create({
+          data: {
+            companyId: bux.id, number: number++, title, projectId: sub.id, assigneeId: assignee, creatorId: users[p.manager].id, status, priority: pick(["URGENT", "HIGH", "MEDIUM", "MEDIUM", "LOW"]),
+            section: sp.section, startDate, dueDate, estimateHours: Math.round(8 + rand() * 32), billable: p.billing !== "NON_BILLABLE", milestoneId,
+            description: `${title} for ${sp.name}.\n\nAcceptance criteria:\n- Reviewed by ${users[p.manager].name}\n- Matches the agreed specs\n- Linked time logged daily`,
+            tags: JSON.stringify(rand() > 0.6 ? [pick(["client-facing", "tech-debt", "quick-win", "needs-review"])] : []),
+            customFields: JSON.stringify({ Sprint: pick(["Sprint 18", "Sprint 19", "Sprint 20"]), "Story points": pick([1, 2, 3, 5, 8]) }),
+            completedAt: status === "DONE" ? new Date(dueDate + "T12:00:00Z") : null, sortOrder: i,
+          },
+        });
+        await prisma.taskFollower.createMany({ data: [{ taskId: t.id, userId: assignee }, ...(assignee !== users[p.manager].id ? [{ taskId: t.id, userId: users[p.manager].id }] : [])] });
+        await prisma.taskActivity.create({ data: { taskId: t.id, actorId: users[p.manager].id, action: "created", createdAt: new Date(startDate + "T09:00:00Z") } });
+        // Sequential tasks in a workstream depend on the previous one.
+        if (prev && i % 2 === 1) await prisma.taskDependency.create({ data: { blockerId: prev.id, blockedId: t.id } });
+        prev = { id: t.id, due: dueDate };
+        created.push({ id: t.id, assigneeId: assignee });
+        allTasks.push({ id: t.id, title, projectId: sub.id, assigneeId: assignee, dueDate, status, sub: sp.name });
+        // A couple of subtasks on in-flight work.
+        if (status !== "DONE" && rand() > 0.5) {
+          for (const [j, st] of ["Draft", "Review with lead", "Final polish"].entries()) {
+            await prisma.task.create({ data: { companyId: bux.id, number: number++, title: `${st}: ${title}`, projectId: sub.id, parentId: t.id, assigneeId: assignee, creatorId: assignee, status: j === 0 ? "DONE" : "TODO", priority: "NONE", estimateHours: 3, completedAt: j === 0 ? new Date() : null, sortOrder: j } });
+          }
         }
-        clock += len;
+      }
+      for (const k of sp.team) {
+        (slots[k] ??= []).push({ projectId: sub.id, tasks: created, work: sp.work, start: sp.start, end: sp.end < TODAY ? sp.end : TODAY, billable: p.billing !== "NON_BILLABLE" });
+      }
+    }
+    for (const userId of members) await prisma.projectMember.create({ data: { projectId: parent.id, userId } });
+  }
+
+  // A deliberate dependency conflict for the roadmap: payments flow scheduled to start before the API is done.
+  const paymentsApi = allTasks.find((t) => t.title === "Payments API")!;
+  const paymentsFlow = allTasks.find((t) => t.title === "Payments flow")!;
+  await prisma.task.update({ where: { id: paymentsApi.id }, data: { dueDate: addDays(TODAY, 12), status: "IN_PROGRESS", completedAt: null } });
+  await prisma.task.update({ where: { id: paymentsFlow.id }, data: { startDate: addDays(TODAY, 5), dueDate: addDays(TODAY, 25), status: "TODO" } });
+  await prisma.taskDependency.create({ data: { blockerId: paymentsApi.id, blockedId: paymentsFlow.id } });
+  // Overdue and blocked examples, plus one due today for the dashboard.
+  const overdue = allTasks.filter((t) => t.status !== "DONE" && t.dueDate && t.dueDate > TODAY).slice(0, 3);
+  for (const [i, t] of overdue.entries()) await prisma.task.update({ where: { id: t.id }, data: { dueDate: addDays(TODAY, -(i + 2)), status: "IN_PROGRESS" } });
+  const blocked = allTasks.find((t) => t.title === "Rate limiting")!;
+  await prisma.task.update({ where: { id: blocked.id }, data: { status: "BLOCKED" } });
+  const nehaToday = allTasks.find((t) => t.title === "Brand guidelines")!;
+  await prisma.task.update({ where: { id: nehaToday.id }, data: { dueDate: TODAY, startDate: addDays(TODAY, -7), status: "IN_PROGRESS", completedAt: null } });
+  // A recurring internal task.
+  await prisma.task.create({ data: { companyId: bux.id, number: number++, title: "Weekly client status report", projectId: projectsByName["Website Redesign"], assigneeId: users.priya.id, creatorId: users.priya.id, status: "TODO", priority: "MEDIUM", recurrence: "WEEKLY", dueDate: addDays(weekStart(TODAY), 4), estimateHours: 1, section: "Research" } });
+
+  for (const k of Object.keys(users)) (slots[k] ??= []).push({ projectId: ops.id, tasks: [], work: internalWork, start: "2026-01-01", end: TODAY, billable: false });
+
+  // Comments with mentions on a few active tasks.
+  const talk = [
+    ["priya", "Can we get this ready for Thursday's client check-in? @neha the latest mocks would help."],
+    ["neha", "Uploading the updated frames today. I changed the spacing on the cards as discussed."],
+    ["rohan", "Blocked on the payments contract from Northwind's side. @vikram can you follow up with their API team?"],
+    ["vikram", "Followed up. They expect to share the sandbox keys by Monday."],
+    ["arjun", "Found two regressions on Safari 17, logged them as subtasks."],
+  ] as const;
+  const active = allTasks.filter((t) => t.status !== "DONE").slice(0, 10);
+  for (const [i, t] of active.entries()) {
+    for (const [who, body] of talk.slice(i % 3, (i % 3) + 2)) {
+      const mentions = [...body.matchAll(/@(\w+)/g)].map((m) => users[m[1]]?.id).filter(Boolean);
+      await prisma.comment.create({ data: { taskId: t.id, userId: users[who].id, body, mentions: JSON.stringify(mentions), createdAt: new Date(Date.now() - (5 - i * 0.3) * 864e5) } });
+    }
+  }
+
+  // ---- Time entries from four months back to yesterday ----
+  const startDate = addDays(TODAY, -125);
+  const entries: Prisma.TimeEntryCreateManyInput[] = [];
+  for (const [k, u] of Object.entries(users)) {
+    for (let day = startDate; day < TODAY; day = addDays(day, 1)) {
+      const wd = D(day).getUTCDay();
+      if (wd === 0 || wd === 6 || rand() < 0.04) continue;
+      const open = slots[k].filter((sl) => sl.start <= day && sl.end >= day);
+      if (!open.length) continue;
+      let cursor = 9 * 60 + 30;
+      const target = 6 * 60 + Math.round(rand() * 150);
+      let logged = 0;
+      while (logged < target) {
+        const sl = rand() < 0.15 ? open.find((o) => o.projectId === ops.id) ?? pick(open) : pick(open.filter((o) => o.projectId !== ops.id).length ? open.filter((o) => o.projectId !== ops.id) : open);
+        const minutes = Math.min(target - logged, 30 + Math.round(rand() * 6) * 30);
+        if (minutes < 15) break;
+        const mine = sl.tasks.filter((t) => t.assigneeId === u.id);
+        const task = mine.length && rand() < 0.85 ? pick(mine) : sl.tasks.length && rand() < 0.4 ? pick(sl.tasks) : null;
+        entries.push({ companyId: bux.id, userId: u.id, projectId: sl.projectId, taskId: task?.id ?? null, date: day, startTime: hhmm(cursor), endTime: hhmm(cursor + minutes), minutes, description: pick(sl.work), billable: sl.billable });
+        cursor += minutes + (rand() < 0.3 ? 30 : 0);
+        if (cursor > 13 * 60 && cursor < 14 * 60) cursor = 14 * 60;
+        logged += minutes;
       }
     }
   }
-  await prisma.timeEntry.createMany({ data: entries });
+  for (let i = 0; i < entries.length; i += 500) await prisma.timeEntry.createMany({ data: entries.slice(i, i + 500) });
 
-  // Size estimates from the generated history so budgets look realistic: most work is on budget, a few run over.
-  const subs = await prisma.project.findMany({ where: { parentId: { not: null } } });
-  const parentEst = new Map<number, number>();
-  for (const sp of subs) {
-    const mins = entries.filter((e) => e.projectId === sp.id).reduce((a, e) => a + e.minutes, 0);
-    const span = sp.endDate!.getTime() - sp.startDate!.getTime();
-    const elapsed = Math.min(1, Math.max(0.05, (today.getTime() - sp.startDate!.getTime()) / span));
-    const factor = sp.name === "Banking API" || sp.name === "Visual Identity" ? 0.9 : 1.05 + rand() * 0.3;
-    const est = Math.max(40, Math.round(((mins / 60) / elapsed) * factor / 10) * 10);
-    await prisma.project.update({ where: { id: sp.id }, data: { estimatedHours: est } });
-    parentEst.set(sp.parentId!, (parentEst.get(sp.parentId!) ?? 0) + est);
+  // Estimates that match the history so health and variance look realistic.
+  for (const p of await prisma.project.findMany({ where: { companyId: bux.id, parentId: null } })) {
+    const ids = (await prisma.project.findMany({ where: { OR: [{ id: p.id }, { parentId: p.id }] }, select: { id: true } })).map((x) => x.id);
+    const minutes = (await prisma.timeEntry.aggregate({ where: { projectId: { in: ids } }, _sum: { minutes: true } }))._sum.minutes ?? 0;
+    const total = Math.max(1, (p.endDate ? D(p.endDate).getTime() : 0) - (p.startDate ? D(p.startDate).getTime() : 0));
+    const elapsed = Math.max(0.05, Math.min(1, (Date.now() - (p.startDate ? D(p.startDate).getTime() : Date.now())) / total));
+    const factor = p.name === "Mobile Banking App" ? 0.92 : 1.12;
+    const est = Math.round((minutes / 60 / elapsed) * factor / 10) * 10 || null;
+    if (p.id !== ops.id) await prisma.project.update({ where: { id: p.id }, data: { estimatedHours: est } });
   }
-  for (const [id, est] of parentEst) await prisma.project.update({ where: { id }, data: { estimatedHours: est } });
-  // Timesheet approvals: older weeks approved, last week submitted by most people (one sent back for changes).
-  const monday = (dt: Date) => { const x = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate())); x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() + 6) % 7)); return x; };
-  const thisWeek = monday(today);
-  const reviewer = (key: string) => (["priya", "rohan", "admin"].includes(key) ? users.admin.id : (["neha", "karan", "meera"].includes(key) ? users.priya.id : users.rohan.id));
-  for (const [key, u] of Object.entries(users)) {
-    for (let w = 1; w <= 6; w++) {
-      const ws = new Date(thisWeek); ws.setUTCDate(ws.getUTCDate() - 7 * w);
-      if (w === 1) {
-        if (key === "arjun" || key === "admin") continue; // not submitted yet
-        const rejected = key === "sneha";
-        await prisma.timesheetPeriod.create({ data: { userId: u.id, weekStart: fmt(ws), status: rejected ? "REJECTED" : "SUBMITTED", submittedAt: new Date(ws.getTime() + 5 * 864e5), ...(rejected ? { note: "Please split the Frontend Build hours by task before resubmitting.", reviewedById: reviewer(key), reviewedAt: new Date(ws.getTime() + 7 * 864e5) } : {}) } });
-      } else {
-        await prisma.timesheetPeriod.create({ data: { userId: u.id, weekStart: fmt(ws), status: "APPROVED", submittedAt: new Date(ws.getTime() + 5 * 864e5), reviewedById: reviewer(key), reviewedAt: new Date(ws.getTime() + 8 * 864e5) } });
-      }
+
+  // ---- Timesheets: earlier weeks approved, last week submitted except a few ----
+  const lastWeek = addDays(weekStart(TODAY), -7);
+  for (const [k, u] of Object.entries(users)) {
+    for (let w = 6; w >= 2; w--) {
+      const ws = addDays(weekStart(TODAY), -7 * w);
+      await prisma.timesheetPeriod.create({ data: { companyId: bux.id, userId: u.id, weekStart: ws, status: "APPROVED", submittedAt: new Date(addDays(ws, 5) + "T10:00:00Z"), reviewedAt: new Date(addDays(ws, 7) + "T10:00:00Z"), reviewedById: k === "priya" ? users.rohan.id : users.priya.id } });
     }
+    if (k === "sneha") await prisma.timesheetPeriod.create({ data: { companyId: bux.id, userId: u.id, weekStart: lastWeek, status: "REJECTED", note: "Tuesday has 3h on Cart and checkout with no description of what changed. Please add detail.", submittedAt: new Date(addDays(lastWeek, 5) + "T10:00:00Z"), reviewedAt: new Date(), reviewedById: users.rohan.id } });
+    else if (!["admin", "arjun", "neha"].includes(k)) await prisma.timesheetPeriod.create({ data: { companyId: bux.id, userId: u.id, weekStart: lastWeek, status: "SUBMITTED", submittedAt: new Date(addDays(lastWeek, 5) + "T10:00:00Z") } });
   }
 
-  // Invitations in different states.
-  const inv = (email: string, name: string, role: string, team: string, days: number, status = "PENDING") =>
-    prisma.invitation.create({ data: { email, name, role, teamId: teams[team].id, token: `demo-${email.split("@")[0]}`, status, expiresAt: new Date(Date.now() + days * 864e5), invitedById: users.admin.id, projectIds: "[]", allProjects: role !== "EMPLOYEE" } });
-  await inv("rahul@example.com", "Rahul Verma", "EMPLOYEE", "Engineering", 6);
-  await inv("isha@example.com", "Isha Menon", "MANAGER", "Design", 3);
-  await inv("dev@example.com", "Dev Malhotra", "EMPLOYEE", "QA", -2);
+  // ---- Leave and holidays ----
+  for (const [date, name] of [["2026-10-02", "Gandhi Jayanti"], ["2026-10-20", "Dussehra"], ["2026-11-09", "Diwali"], ["2026-12-25", "Christmas"]] as const) await prisma.holiday.create({ data: { companyId: bux.id, date, name } });
+  await prisma.leaveRequest.create({ data: { companyId: bux.id, userId: users.karan.id, type: "VACATION", from: addDays(TODAY, 6), to: addDays(TODAY, 10), reason: "Family trip", status: "PENDING" } });
+  await prisma.leaveRequest.create({ data: { companyId: bux.id, userId: users.meera.id, type: "SICK", from: addDays(TODAY, -15), to: addDays(TODAY, -14), status: "APPROVED", reviewedById: users.priya.id } });
+  await prisma.leaveRequest.create({ data: { companyId: bux.id, userId: users.ananya.id, type: "VACATION", from: addDays(TODAY, 14), to: addDays(TODAY, 18), status: "APPROVED", reviewedById: users.rohan.id } });
+  await prisma.leaveRequest.create({ data: { companyId: bux.id, userId: users.neha.id, type: "PERSONAL", from: addDays(TODAY, 20), to: addDays(TODAY, 20), halfDay: true, status: "PENDING", reason: "Appointment" } });
 
-  console.log(`Seeded ${Object.keys(users).length} users, ${plan.length + 1} projects and ${entries.length} time entries.`);
-  console.log("Sign in with admin@example.com, priya@example.com (manager) or neha@example.com (employee). Password: password123");
+  // ---- Custom fields, templates, automations, saved report ----
+  await prisma.customField.create({ data: { companyId: bux.id, name: "Sprint", type: "SELECT", options: JSON.stringify(["Sprint 18", "Sprint 19", "Sprint 20", "Sprint 21"]) } });
+  await prisma.customField.create({ data: { companyId: bux.id, name: "Story points", type: "NUMBER" } });
+  await prisma.template.create({ data: { companyId: bux.id, kind: "TASK", name: "Design review", payload: JSON.stringify({ title: "Design review", priority: "MEDIUM", estimateHours: 4, billable: true, tags: ["needs-review"], subtasks: [{ title: "Prepare frames", estimateHours: 2 }, { title: "Review call", estimateHours: 1 }, { title: "Capture feedback", estimateHours: 1 }] }) } });
+  await prisma.template.create({
+    data: {
+      companyId: bux.id, kind: "PROJECT", name: "Website project (12 weeks)",
+      payload: JSON.stringify({
+        description: "Standard discovery → design → build website engagement.", estimatedHours: 900, billingType: "HOURLY", durationDays: 84,
+        subprojects: [{ name: "Discovery" }, { name: "Design" }, { name: "Build" }],
+        milestones: [{ name: "Research sign-off", offsetDays: 14 }, { name: "Designs approved", offsetDays: 42 }, { name: "Launch", offsetDays: 84 }],
+        tasks: [
+          { ref: 1, title: "Kickoff workshop", section: "Discovery", priority: "HIGH", estimateHours: 6, startOffset: 0, dueOffset: 2, sub: "Discovery", blockedByRefs: [] },
+          { ref: 2, title: "Stakeholder interviews", section: "Discovery", priority: "MEDIUM", estimateHours: 16, startOffset: 3, dueOffset: 12, sub: "Discovery", blockedByRefs: [1] },
+          { ref: 3, title: "Wireframes", section: "Design", priority: "MEDIUM", estimateHours: 40, startOffset: 14, dueOffset: 28, sub: "Design", blockedByRefs: [2] },
+          { ref: 4, title: "Visual design", section: "Design", priority: "HIGH", estimateHours: 80, startOffset: 28, dueOffset: 42, sub: "Design", blockedByRefs: [3] },
+          { ref: 5, title: "Frontend build", section: "Build", priority: "HIGH", estimateHours: 200, startOffset: 42, dueOffset: 77, sub: "Build", blockedByRefs: [4] },
+          { ref: 6, title: "QA and launch", section: "Build", priority: "URGENT", estimateHours: 40, startOffset: 77, dueOffset: 84, sub: "Build", blockedByRefs: [5] },
+        ],
+      }),
+    },
+  });
+  await prisma.automation.create({ data: { companyId: bux.id, name: "Remind people to submit timesheets", trigger: "TIMESHEET_REMINDER", config: "{}" } });
+  await prisma.automation.create({ data: { companyId: bux.id, name: "Tell the project manager about overdue tasks", trigger: "TASK_OVERDUE", config: JSON.stringify({ notifyManager: true }) } });
+  await prisma.automation.create({ data: { companyId: bux.id, name: "Notify the manager when work is ready for review", trigger: "TASK_STATUS", config: JSON.stringify({ status: "IN_REVIEW", notify: "manager" }) } });
+  await prisma.automation.create({ data: { companyId: bux.id, name: "Due soon reminder", trigger: "DUE_SOON", config: JSON.stringify({ days: 1 }) } });
+  await prisma.savedReport.create({ data: { companyId: bux.id, userId: users.priya.id, name: "Weekly Greenleaf hours", schedule: "WEEKLY", nextRunAt: new Date(Date.now() + 3 * 864e5), config: JSON.stringify({ preset: "Last week", filters: { clientId: String(clients["Greenleaf Retail"]) }, config: { groupBy: ["project", "employee"], chart: "bar", chartBy: "day" } }) } });
+
+  // ---- Invitations: one pending with a known temporary password, one expired, one revoked ----
+  const pending = await prisma.user.create({ data: { name: "Rahul Verma", email: "rahul@example.com", role: "EMPLOYEE", title: "Frontend Developer", status: "INVITED", mustChangePassword: true, tempPasswordExpiresAt: new Date(Date.now() + 3 * 864e5), passwordHash: await bcrypt.hash(DEMO_TEMP, 10), lastCompanyId: bux.id } });
+  await prisma.membership.create({ data: { companyId: bux.id, userId: pending.id, teamId: teams.Engineering } });
+  await prisma.projectMember.create({ data: { projectId: projectsByName["Website Redesign"], userId: pending.id } });
+  await prisma.invitation.create({ data: { companyId: bux.id, userId: pending.id, email: pending.email, name: pending.name, role: "EMPLOYEE", title: pending.title, teamId: teams.Engineering, projectIds: JSON.stringify([projectsByName["Website Redesign"]]), expiresAt: pending.tempPasswordExpiresAt!, invitedById: users.admin.id } });
+  const expired = await prisma.user.create({ data: { name: "Dev Malhotra", email: "dev@example.com", role: "EMPLOYEE", title: "QA Engineer", status: "INVITED", mustChangePassword: true, tempPasswordExpiresAt: new Date(Date.now() - 2 * 864e5), passwordHash: await bcrypt.hash("Expired-0000-Temp", 10), lastCompanyId: bux.id } });
+  await prisma.membership.create({ data: { companyId: bux.id, userId: expired.id, teamId: teams.QA } });
+  await prisma.invitation.create({ data: { companyId: bux.id, userId: expired.id, email: expired.email, name: expired.name, role: "EMPLOYEE", teamId: teams.QA, expiresAt: expired.tempPasswordExpiresAt!, invitedById: users.admin.id, createdAt: new Date(Date.now() - 6 * 864e5) } });
+  await prisma.emailMessage.create({ data: { companyId: bux.id, kind: "INVITATION", to: pending.email, subject: "You're invited to Bridge UX on Time Portal", body: `Hi Rahul Verma,\n\nAarav Mehta invited you to Bridge UX on Time Portal as employee.\n\nSign in at: http://localhost:5173/login\nEmail: rahul@example.com\nTemporary password: •••••• (shown once to the inviter)\n\nYou'll be asked to choose your own password the first time you sign in.`, sentById: users.admin.id, sentAt: new Date() } });
+
+  // ---- Notifications so the inbox isn't empty ----
+  await prisma.notification.createMany({
+    data: [
+      { companyId: bux.id, userId: users.neha.id, type: "MENTION", title: "Priya Shah mentioned you on \"Homepage hi-fi\"", body: talk[0][1], link: `/tasks/${active[0].id}` },
+      { companyId: bux.id, userId: users.sneha.id, type: "TIMESHEET_REJECTED", title: `Your week of ${lastWeek} was sent back`, body: "Tuesday has 3h on Cart and checkout with no description of what changed. Please add detail.", link: `/timesheet?week=${lastWeek}` },
+      { companyId: bux.id, userId: users.rohan.id, type: "PROJECT_AT_RISK", title: "Mobile Banking App is at risk", body: "1 dependency conflict · 1 blocked", link: `/projects/${projectsByName["Mobile Banking App"]}` },
+      { companyId: bux.id, userId: users.priya.id, type: "LEAVE_REQUESTED", title: "Karan Patel requested leave", link: "/approvals?tab=leave" },
+    ],
+  });
+
+  // ---------------- Company B: Northwind Studio (separate tenant) ----------------
+  const nws = await prisma.company.create({
+    data: { name: "Northwind Studio", slug: "northwind-studio", color: "#26b5ce", country: "United States", timezone: "America/New_York", currency: "USD", workWeek: "1,2,3,4,5", settings: JSON.stringify({ taskKey: "NWS" }) },
+  });
+  const studio = (await prisma.team.create({ data: { companyId: nws.id, name: "Studio", color: "#26b5ce" } })).id;
+  const tom = await prisma.user.create({ data: { name: "Tom Becker", email: "tom@example.com", role: "MANAGER", title: "Studio Lead", passwordHash: pw, costRate: 60, billRate: 150, lastCompanyId: nws.id } });
+  const lisa = await prisma.user.create({ data: { name: "Lisa Chen", email: "lisa@example.com", role: "EMPLOYEE", title: "Motion Designer", passwordHash: pw, costRate: 45, billRate: 120, lastCompanyId: nws.id } });
+  for (const u of [tom, lisa]) await prisma.membership.create({ data: { companyId: nws.id, userId: u.id, teamId: studio } });
+  // Shared staff: the admin and Priya also work in the studio.
+  await prisma.membership.create({ data: { companyId: nws.id, userId: users.admin.id } });
+  await prisma.membership.create({ data: { companyId: nws.id, userId: users.priya.id, teamId: studio } });
+  const acme = await prisma.client.create({ data: { companyId: nws.id, name: "Acme Outdoors", email: "marketing@acme.example", contactName: "Jordan Lee", phone: "+1 212 555 0100", rate: 140 } });
+  const promo = await prisma.project.create({ data: { companyId: nws.id, name: "Spring Promo Video", code: "SPV", clientId: acme.id, managerId: tom.id, color: "#26b5ce", startDate: addDays(TODAY, -40), endDate: addDays(TODAY, 30), estimatedHours: 160, billingType: "HOURLY", hourlyRate: 140, budget: 22400 } });
+  await prisma.milestone.create({ data: { projectId: promo.id, name: "Storyboard approved", date: addDays(TODAY, -20), done: true } });
+  await prisma.milestone.create({ data: { projectId: promo.id, name: "Final cut", date: addDays(TODAY, 25), done: false } });
+  for (const u of [tom, lisa, { id: users.priya.id }]) await prisma.projectMember.create({ data: { projectId: promo.id, userId: u.id } });
+  let n2 = 1;
+  const nwsTasks = [];
+  for (const [title, who, status] of [["Storyboard", lisa.id, "DONE"], ["Animatics", lisa.id, "IN_PROGRESS"], ["Voice-over script", users.priya.id, "IN_REVIEW"], ["Color grade", lisa.id, "TODO"]] as const) {
+    nwsTasks.push(await prisma.task.create({ data: { companyId: nws.id, number: n2++, title, projectId: promo.id, assigneeId: who, creatorId: tom.id, status, priority: "MEDIUM", estimateHours: 20, startDate: addDays(TODAY, -30 + n2 * 8), dueDate: addDays(TODAY, -20 + n2 * 10), completedAt: status === "DONE" ? new Date() : null } }));
+  }
+  const nwsEntries: Prisma.TimeEntryCreateManyInput[] = [];
+  for (let day = addDays(TODAY, -35); day < TODAY; day = addDays(day, 1)) {
+    const wd = D(day).getUTCDay();
+    if (wd === 0 || wd === 6) continue;
+    nwsEntries.push({ companyId: nws.id, userId: lisa.id, projectId: promo.id, taskId: pick(nwsTasks).id, date: day, minutes: 300 + Math.round(rand() * 120), description: pick(["Animating product shots", "Storyboard revisions", "Render and export review"]), billable: true });
+    if (rand() > 0.6) nwsEntries.push({ companyId: nws.id, userId: users.priya.id, projectId: promo.id, taskId: nwsTasks[2].id, date: day, minutes: 60, description: "Script edits with client feedback", billable: true });
+  }
+  await prisma.timeEntry.createMany({ data: nwsEntries });
+
+  await prisma.auditLog.create({ data: { companyId: bux.id, userId: users.admin.id, action: "seeded", entity: "company", entityId: bux.id, newValue: JSON.stringify({ note: "Demo data loaded" }) } });
+
+  console.log(`Seeded ${entries.length + nwsEntries.length} time entries and ${number - 1 + n2 - 1} tasks across 2 companies.`);
+  console.log("Sign in with admin@example.com (admin), priya@example.com or rohan@example.com (managers), neha@example.com (employee). Password: password123");
+  console.log(`Pending invitation: rahul@example.com with temporary password ${DEMO_TEMP}`);
 }
 
-main().finally(() => prisma.$disconnect());
+main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());
