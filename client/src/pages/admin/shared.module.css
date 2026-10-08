@@ -1,0 +1,24 @@
+.secret {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-subtle);
+}
+.secretValue {
+  font-family: var(--mono); font-size: 15px; letter-spacing: 0.02em; padding: 4px 8px; border-radius: var(--radius-sm);
+  background: var(--bg); border: 1px solid var(--border); user-select: all; color: var(--text);
+}
+.colorBtn {
+  width: 18px; height: 18px; border-radius: 50%; border: 0; cursor: pointer; padding: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.colorBtn[data-active] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+.colorCustom {
+  position: relative; width: 18px; height: 18px; border-radius: 50%; overflow: hidden; cursor: pointer;
+  background: conic-gradient(#eb5757, #e0b400, #4cb782, #26b5ce, #5e6ad2, #bb87fc, #eb5757);
+}
+.colorCustom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dayBtn {
+  height: 28px; min-width: 40px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-input);
+  color: var(--text-2); cursor: pointer; font-size: 12px;
+}
+.dayBtn:hover { background: var(--bg-hover); }
+.dayBtn[data-active] { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }

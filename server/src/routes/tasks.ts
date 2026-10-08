@@ -54,6 +54,7 @@ const listQuery = z.object({
   parent: z.enum(["top", "all"]).default("top"), parentId: z.coerce.number().int().optional(),
   includeDone: z.enum(["true", "false"]).default("true"),
   limit: z.coerce.number().int().max(2000).default(1000),
+  creatorId: z.enum(["me"]).optional(), following: z.enum(["true"]).optional(),
 });
 
 tasksRouter.get("/", async (req, res) => {
@@ -73,8 +74,13 @@ tasksRouter.get("/", async (req, res) => {
   if (q.parentId) and.push({ parentId: q.parentId });
   else if (q.parent === "top") and.push({ parentId: null });
   if (q.includeDone === "false") and.push({ status: { not: "DONE" } });
+  if (q.creatorId === "me") and.push({ creatorId: uid(req) });
+  if (q.following) and.push({ followers: { some: { userId: uid(req) } } });
   const tasks = await prisma.task.findMany({ where: { AND: and }, include: taskListInclude, orderBy: [{ sortOrder: "asc" }, { number: "desc" }], take: q.limit });
-  res.json(await serializeTasks(cid(req), tasks));
+  // creatorId and followed let "My tasks" show Created / Following tabs.
+  const followed = new Set((await prisma.taskFollower.findMany({ where: { userId: uid(req), taskId: { in: tasks.map((t) => t.id) } }, select: { taskId: true } })).map((f) => f.taskId));
+  const out = await serializeTasks(cid(req), tasks);
+  res.json(out.map((t, i) => ({ ...t, creatorId: tasks[i].creatorId, followed: followed.has(t.id) })));
 });
 
 tasksRouter.get("/:id", async (req, res) => {
