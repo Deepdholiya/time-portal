@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Avatar, Button, DateRangePicker, EmptyState, ErrorState, SkeletonRows, type DateRange } from "@/components/arc";
+import { Avatar, Button, DateRangePicker, EmptyState, ErrorState, SkeletonRows, type DateRange } from "@/components/ui";
 import { useShell } from "@/components/app/shell-context";
 import { invalidate, useApi } from "@/lib/hooks";
 import { addDays, fmtDate, hm, today } from "@/lib/format";

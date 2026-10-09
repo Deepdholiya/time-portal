@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, ChevronDown, ChevronRight, Diamond, Layers } from "lucide-react";
-import { Avatar, Badge, Tooltip } from "@/components/arc";
+import { Avatar, Badge, Tooltip } from "@/components/ui";
 import { HEALTH_META, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { addDays, daysBetween, fmtDate, today } from "@/lib/format";
 import { headerTicks, PX_PER_DAY, type Zoom } from "./scale";

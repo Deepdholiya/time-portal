@@ -1,17 +1,17 @@
 import type { Options, TimeEntry } from "@/lib/types";
 import { defaultBillable } from "../time/time-utils";
 
-/** A timesheet row: one project/sub-project + task + description, with its entries for the week. */
+/** A timesheet row: one project (or sub-project) and task, with every entry for it in the range. A day can hold several entries. */
 export interface Row {
   key: string;
   projectId: number;
   taskId: number | null;
-  description: string;
   billable: boolean;
   color?: string | null;
   projectLabel: string;
   /** Sub-project (or project) name alone, for the dense grid. */
   leafLabel: string;
+  parentLabel?: string | null;
   taskLabel?: string | null;
   taskKey?: string | null;
   entries: TimeEntry[];
@@ -19,18 +19,18 @@ export interface Row {
   draft?: boolean;
 }
 
-export const rowKey = (projectId: number, taskId: number | null | undefined, description: string) => `${projectId}|${taskId ?? 0}|${description.trim().toLowerCase()}`;
+export const rowKey = (projectId: number, taskId: number | null | undefined) => `${projectId}|${taskId ?? 0}`;
 
 export function buildRows(entries: TimeEntry[], drafts: Row[], o: Options | undefined): Row[] {
   const map = new Map<string, Row>();
   for (const e of entries) {
-    const k = rowKey(e.projectId, e.taskId, e.description);
+    const k = rowKey(e.projectId, e.taskId);
     let r = map.get(k);
     if (!r) {
       const p = e.project;
       r = {
-        key: k, projectId: e.projectId, taskId: e.taskId ?? null, description: e.description, billable: e.billable, color: p?.color,
-        projectLabel: p?.parent ? `${p.parent.name} › ${p.name}` : p?.name ?? "", leafLabel: p?.name ?? "",
+        key: k, projectId: e.projectId, taskId: e.taskId ?? null, billable: e.billable, color: p?.color,
+        projectLabel: p?.parent ? `${p.parent.name} › ${p.name}` : p?.name ?? "", leafLabel: p?.name ?? "", parentLabel: p?.parent?.name ?? null,
         taskLabel: e.task?.title ?? null, taskKey: e.task?.number ? `${o?.taskKey ?? "T"}-${e.task.number}` : null,
         entries: [],
       };
@@ -38,8 +38,9 @@ export function buildRows(entries: TimeEntry[], drafts: Row[], o: Options | unde
     }
     r.entries.push(e);
   }
-  const rows = [...map.values()].sort((a, b) => a.projectLabel.localeCompare(b.projectLabel) || (a.taskLabel ?? "").localeCompare(b.taskLabel ?? "") || a.description.localeCompare(b.description));
-  for (const d of drafts) if (!map.has(d.key) && !rows.some((r) => r.key === d.key)) rows.push(d);
+  for (const r of map.values()) r.billable = r.entries.some((e) => e.billable);
+  const rows = [...map.values()].sort((a, b) => a.projectLabel.localeCompare(b.projectLabel) || (a.taskLabel ?? "").localeCompare(b.taskLabel ?? ""));
+  for (const d of drafts) if (!map.has(d.key)) rows.push(d);
   return rows;
 }
 
@@ -47,20 +48,19 @@ export function draftRow(o: Options | undefined, projectId: number, taskId: numb
   const p = o?.projects.find((x) => x.id === projectId);
   const parent = p?.parentId ? o?.projects.find((x) => x.id === p.parentId) : null;
   const t = p?.tasks.find((x) => x.id === taskId);
-  const description = t?.title ?? "";
   return {
-    key: `draft:${projectId}|${taskId ?? 0}|${Date.now()}`, projectId, taskId, description, billable: defaultBillable(p), color: p?.color,
-    projectLabel: parent ? `${parent.name} › ${p!.name}` : p?.name ?? "", leafLabel: p?.name ?? "", taskLabel: t?.title ?? null, taskKey: t?.key ?? null, entries: [], draft: true,
+    key: rowKey(projectId, taskId), projectId, taskId, billable: defaultBillable(p), color: p?.color,
+    projectLabel: parent ? `${parent.name} › ${p!.name}` : p?.name ?? "", leafLabel: p?.name ?? "", parentLabel: parent?.name ?? null,
+    taskLabel: t?.title ?? null, taskKey: t?.key ?? null, entries: [], draft: true,
   };
 }
 
-/** Full PUT body for an existing entry with some fields changed. */
-export function entryBody(e: TimeEntry, patch: Partial<{ minutes: number; description: string; billable: boolean; keepTimes: boolean }> = {}) {
-  const keepTimes = patch.keepTimes ?? patch.minutes === undefined;
+/** Full PUT body for an existing entry with some fields changed. The start stays put; the server works out the new end. */
+export function entryBody(e: TimeEntry, patch: Partial<{ minutes: number; billable: boolean }> = {}) {
   return {
     projectId: e.projectId, taskId: e.taskId ?? null, date: e.date,
-    startTime: keepTimes ? e.startTime ?? null : null, endTime: keepTimes ? e.endTime ?? null : null,
-    minutes: patch.minutes ?? e.minutes,
-    description: patch.description ?? e.description, billable: patch.billable ?? e.billable,
+    startTime: e.startTime ?? null, endTime: patch.minutes === undefined ? e.endTime ?? null : null,
+    minutes: patch.minutes ?? (e.startTime && e.endTime ? null : e.minutes),
+    description: e.description, billable: patch.billable ?? e.billable, tagIds: e.tags.map((t) => t.id),
   };
 }

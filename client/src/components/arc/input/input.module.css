@@ -1,20 +1,22 @@
-.wrap { position: relative; display: flex; align-items: center; min-width: 0; }
-.input {
-  width: 100%; height: 30px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input);
-  color: var(--text); font-size: 13px; outline: none; transition: border-color 0.12s, box-shadow 0.12s;
-}
-.input::placeholder { color: var(--text-3); }
-.input:hover:not(:disabled) { border-color: var(--border-strong); }
-.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
-.input:disabled { opacity: 0.6; cursor: not-allowed; }
-.invalid { border-color: var(--red) !important; }
-.sm { height: 26px; font-size: 12px; padding: 0 8px; }
-.lg { height: 36px; font-size: 14px; }
-.withIcon { padding-left: 30px; }
-.withSuffix { padding-right: 32px; }
-.icon { position: absolute; left: 9px; color: var(--text-3); display: flex; pointer-events: none; }
-.suffix { position: absolute; right: 6px; display: flex; align-items: center; color: var(--text-3); }
-.bare { border-color: transparent; background: transparent; padding-left: 0; padding-right: 0; }
-.bare:hover:not(:disabled) { border-color: transparent; }
-.bare:focus { box-shadow: none; border-color: transparent; }
-.textarea { height: auto; min-height: 72px; padding: 8px 10px; resize: vertical; line-height: 1.5; }
+/* No row gap: grid tracks clamp a negative margin at zero, so a closed message row would still pay the gap. Each row carries its own space instead. */
+.field { display: grid; min-width: 0; }
+.label { margin-bottom: var(--space-2); color: var(--foreground); font-size: var(--text-sm); font-weight: 500; line-height: var(--leading-body); }
+/* Focus answers with the border colour alone (no rings or halos); the field itself never changes size. */
+.input { width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-3); border: 1px solid var(--sh-input); border-radius: var(--radius-control); background: var(--bg-input); box-shadow: var(--shadow-xs); color: var(--foreground); font: inherit; font-size: var(--text-sm); line-height: var(--leading-body); letter-spacing: var(--tracking-body); outline: none; transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard); }
+.input::placeholder { color: var(--text-muted); }
+@media (hover: hover) and (pointer: fine) { .input:hover:not(:disabled, [aria-invalid="true"]) { border-color: var(--border-strong); } }
+.input:focus-visible { border-color: var(--sh-ring); box-shadow: 0 0 0 3px var(--focus-ring); }
+.input[aria-invalid="true"] { border-color: var(--danger); }
+.input:disabled { cursor: not-allowed; opacity: .5; background: var(--surface-muted); }
+/* The row's space is padding inside the clipped slot, so the height animates from a true zero. */
+.messageSlot { display: block; overflow: hidden; }
+.description, .error { display: block; padding-top: var(--space-2); font-size: var(--text-xs); line-height: var(--leading-body); }
+.description { color: var(--text-muted); } .error { color: var(--danger); }
+/* Words are measured against this box when they pop out to leave, so it must be the positioned parent. */
+.words { position: relative; display: block; }
+.word { display: inline-block; white-space: pre; }
+/* One column per character of a count. Tabular digits keep columns equal, so only a gained or lost digit changes the width. */
+.column { position: relative; display: inline-flex; justify-content: center; font-variant-numeric: tabular-nums; }
+.column > span { display: inline-block; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .input { transition-duration: .01ms; } }

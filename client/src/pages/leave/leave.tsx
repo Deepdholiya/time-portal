@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { PartyPopper, Plane, Plus } from "lucide-react";
-import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, SkeletonRows, toast, type BadgeTone } from "@/components/arc";
+import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, SkeletonRows, toast, type BadgeTone } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";

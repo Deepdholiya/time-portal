@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { CheckSquare } from "lucide-react";
-import { Tabs } from "@/components/arc";
+import { Tabs } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useSession } from "@/lib/session";
 import { TimesheetApprovals } from "./timesheet-approvals";

@@ -3,7 +3,7 @@ import { ArrowLeft, Mail, Phone, UserCog, Users } from "lucide-react";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { PriorityIcon, StatusIcon } from "@/components/app/icons";
-import { Avatar, Button, EmptyState, ErrorState, SkeletonRows } from "@/components/arc";
+import { Avatar, Button, EmptyState, ErrorState, SkeletonRows } from "@/components/ui";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { addDays, dueLabel, fmtDate, fmtDateTime, hm, hours, monthEnd, monthStart, today, weekStart } from "@/lib/format";

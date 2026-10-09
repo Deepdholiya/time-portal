@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge, Button, EmptyState } from "@/components/arc";
+import { Badge, Button, EmptyState } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { fmtDate, hm, hours } from "@/lib/format";
 import { ChartCard, Kpi, TimeChart, SERIES } from "../analytics/chart-kit";

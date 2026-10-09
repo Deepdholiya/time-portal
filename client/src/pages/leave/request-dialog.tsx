@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Checkbox, DatePicker, Dialog, Field, Select, Textarea, toast } from "@/components/arc";
+import { Button, Checkbox, DatePicker, Dialog, Field, Select, Textarea, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { daysBetween, range, today, weekday } from "@/lib/format";
 import s from "./leave.module.css";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
-import { Avatar, Badge, Button, Dialog, EmptyState, Field, SegmentedControl, SkeletonRows, Textarea, toast } from "@/components/arc";
+import { Avatar, Badge, Button, Dialog, EmptyState, Field, SegmentedControl, SkeletonRows, Textarea, toast } from "@/components/ui";
 import { refreshCounts } from "@/components/app/sidebar";
 import { post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";

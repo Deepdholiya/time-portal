@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Archive, Copy, FileStack, Link2, Pencil, Trash2 } from "lucide-react";
-import { Button, ConfirmDialog, Dialog, Input, toast } from "@/components/arc";
+import { Button, ConfirmDialog, Dialog, Input, toast } from "@/components/ui";
 import { del, post } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

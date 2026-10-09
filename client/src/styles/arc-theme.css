@@ -1,0 +1,77 @@
+/* Arc foundation tokens tuned to the Linear look: indigo accent, neutral greys, compact controls, small radii, Inter.
+   Loaded after components/arc/foundation.css so every Arc component picks these up. */
+:root {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-muted: #f4f4f6;
+  --foreground: #1b1b1f;
+  --text-secondary: #5c5f66;
+  --text-muted: #8e9098;
+  --border: #e4e4e8;
+  --border-subtle: #efeff1;
+  --border-strong: #d4d4d9;
+  --accent: #5e6ad2;
+  --accent-strong: #4f5bc4;
+  --accent-subtle: #eef0fc;
+  --accent-foreground: #ffffff;
+  --control-on: #5e6ad2;
+  --control-glyph: #ffffff;
+  --control-track: #dcdce1;
+  --control-track-hover: #d0d0d6;
+  --control-thumb-on: #ffffff;
+  --control-fill: #5e6ad2;
+  --success: #2e9e65;
+  --warning: #c98a0c;
+  --danger: #d6453d;
+  --shadow-resting: 0 1px 2px rgba(16, 17, 26, 0.06);
+  --shadow-raised: 0 4px 16px rgba(16, 17, 26, 0.08), 0 1px 3px rgba(16, 17, 26, 0.06);
+  --shadow-floating: 0 16px 48px rgba(16, 17, 26, 0.16), 0 2px 6px rgba(16, 17, 26, 0.08);
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --radius-surface: 12px;
+  --control-height-sm: 28px;
+  --control-height-md: 32px;
+  --control-height-lg: 36px;
+  --font-display: "Instrument Sans Variable", "Instrument Sans", sans-serif;
+  --font-body: "Instrument Sans Variable", "Instrument Sans", sans-serif;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 15px;
+  --text-xl: 18px;
+  --tracking-body: -0.003em;
+  --tracking-display: -0.01em;
+  --focus-outline: rgba(94, 106, 210, 0.55);
+}
+
+:root[data-theme="dark"] {
+  --background: #121316;
+  --surface: #17181b;
+  --surface-raised: #1a1b1f;
+  --surface-muted: #1d1e22;
+  --foreground: #ecedf0;
+  --text-secondary: #a0a3ab;
+  --text-muted: #6d7079;
+  --border: #25272c;
+  --border-subtle: #1f2024;
+  --border-strong: #33363d;
+  --accent: #6e79e0;
+  --accent-strong: #8b94ec;
+  --accent-subtle: #23263f;
+  --accent-foreground: #ffffff;
+  --control-on: #6e79e0;
+  --control-glyph: #ffffff;
+  --control-track: #33363d;
+  --control-track-hover: #3b3e46;
+  --control-thumb: #f2f2f4;
+  --control-thumb-on: #ffffff;
+  --control-fill: #6e79e0;
+  --success: #4cb782;
+  --warning: #e0b400;
+  --danger: #eb5757;
+  --shadow-resting: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-floating: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --focus-outline: rgba(110, 121, 224, 0.6);
+}

@@ -1,5 +1,5 @@
 import { ListTodo, Plus } from "lucide-react";
-import { Button } from "@/components/arc";
+import { Button } from "@/components/ui";
 import { useShell } from "@/components/app/shell-context";
 import { useMe } from "@/lib/session";
 import { TaskView } from "./task-view";

@@ -1,5 +1,5 @@
 import { ArrowDownWideNarrow, ArrowUpNarrowWide, Columns3 } from "lucide-react";
-import { Button, Checkbox, IconButton, Popover, SegmentedControl, Select } from "@/components/arc";
+import { Button, Checkbox, IconButton, Popover, SegmentedControl, Select } from "@/components/ui";
 import s from "./reports.module.css";
 
 // Mirrors server/src/routes/reports.ts (GROUPS / COLUMNS).

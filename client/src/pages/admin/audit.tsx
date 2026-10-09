@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { ChevronDown, ChevronRight, Download, ScrollText, Search } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Button, Combobox, DateRangePicker, EmptyState, ErrorState, Input, Select, SkeletonRows, Tooltip, presetRange, type DateRange } from "@/components/arc";
+import { Button, Combobox, DateRangePicker, EmptyState, ErrorState, Input, Select, SkeletonRows, Tooltip, presetRange, type DateRange } from "@/components/ui";
 import { download } from "@/lib/api";
 import { useApi, useDebounced } from "@/lib/hooks";
 import { fmtDateTime, relTime, titleCase } from "@/lib/format";

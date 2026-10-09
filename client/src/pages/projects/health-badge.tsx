@@ -1,4 +1,4 @@
-import { Badge, Tooltip } from "@/components/arc";
+import { Badge, Tooltip } from "@/components/ui";
 import { HEALTH_META } from "@/components/app/icons";
 import type { Project } from "./lib";
 

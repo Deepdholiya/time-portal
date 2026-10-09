@@ -1,56 +1,40 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { ChevronDown, Clock, Plus, Timer } from "lucide-react";
-import { Button, EmptyState, ErrorState, SkeletonRows } from "@/components/arc";
+import { useMemo } from "react";
+import { Clock, Plus } from "lucide-react";
+import { Button, EmptyState, ErrorState, SkeletonRows } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
-import { useRunningTimer } from "@/components/app/timer-widget";
+import { TimeRangeControl, useCompanyDay, useRangeParam } from "@/components/app/time-range";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
-import { addDays, hm, today, weekStart } from "@/lib/format";
+import { fmtDate, hm, range as days } from "@/lib/format";
 import type { TimeEntry } from "@/lib/types";
-import { EntryList, afterTimeChange } from "./entry-list";
-import { TrackerBar, type TrackerBarHandle } from "./tracker-bar";
-import { projectPath, useOptions } from "./time-utils";
+import { EntryList } from "./entry-list";
+import { QuickEntry } from "./quick-entry";
+import { expectedMinutes, useDays, useHolidays, useOptions } from "./time-utils";
 import s from "./time.module.css";
 
+/** Manual time logging: an entry bar, a summary for the selected range and the entries grouped by day. */
 export default function TimeTracker() {
   const { me } = useMe();
   const shell = useShell();
-  const [params, setParams] = useSearchParams();
-  const startsOn = me.company.weekStartsOn || 1;
-  const thisWeek = weekStart(today(), startsOn);
-  const [weekCount, setWeekCount] = useState(1);
-  const from = addDays(thisWeek, -7 * (weekCount - 1));
-  const to = addDays(thisWeek, 6);
-  const q = useApi<TimeEntry[]>("/time", { from, to });
+  const { today } = useCompanyDay();
+  const [range, setRange] = useRangeParam("This week");
+  const q = useApi<TimeEntry[]>("/time", { from: range.from, to: range.to });
+  const dayStates = useDays(range.from, range.to);
+  const holidays = useHolidays();
   const { data: options } = useOptions();
-  const { data: running } = useRunningTimer();
-  const bar = useRef<TrackerBarHandle>(null);
+  const reload = () => { q.reload(); dayStates.reload(); };
 
-  // /time?start=1 (from the command menu or sidebar) focuses the start bar.
-  useEffect(() => {
-    if (params.get("start")) {
-      const t = setTimeout(() => bar.current?.focus(), 50);
-      params.delete("start");
-      setParams(params, { replace: true });
-      return () => clearTimeout(t);
-    }
-  }, [params, setParams]);
-
-  const weeks = useMemo(() => Array.from({ length: weekCount }, (_, i) => addDays(thisWeek, -7 * i)), [weekCount, thisWeek]);
-  // Keep showing the loaded weeks while an extra week loads.
-  const last = useRef<TimeEntry[] | undefined>(undefined);
-  if (q.data) last.current = q.data;
-  const data = q.data ?? last.current;
-  const entries = data ?? [];
-  const thisWeekEntries = entries.filter((e) => e.date >= thisWeek);
-  const todayMin = entries.filter((e) => e.date === today()).reduce((a, e) => a + e.minutes, 0);
-  const weekMin = thisWeekEntries.reduce((a, e) => a + e.minutes, 0);
-  const billMin = thisWeekEntries.reduce((a, e) => a + (e.billable ? e.minutes : 0), 0);
+  const entries = q.data ?? [];
+  const total = entries.reduce((a, e) => a + e.minutes, 0);
+  const billable = entries.reduce((a, e) => a + (e.billable ? e.minutes : 0), 0);
+  const expected = useMemo(
+    () => expectedMinutes(days(range.from, range.to), me.company.workWeek, me.user.weeklyCapacity, new Set((holidays.data ?? []).map((h) => h.date))),
+    [range.from, range.to, me.company.workWeek, me.user.weeklyCapacity, holidays.data],
+  );
   const byProject = useMemo(() => {
     const m = new Map<string, { name: string; color: string; minutes: number }>();
-    for (const e of thisWeekEntries) {
+    for (const e of entries) {
       const top = e.project?.parent ?? e.project;
       const k = String(top?.id);
       const g = m.get(k) ?? { name: top?.name ?? "", color: top?.color ?? "", minutes: 0 };
@@ -58,34 +42,40 @@ export default function TimeTracker() {
       m.set(k, g);
     }
     return [...m.values()].sort((a, b) => b.minutes - a.minutes).slice(0, 4);
-  }, [thisWeekEntries]);
+  }, [entries]);
   const maxProj = byProject[0]?.minutes ?? 1;
-  const capacity = me.user.weeklyCapacity * 60;
+  const pct = expected ? Math.min(1, total / expected) : 0;
+  const single = range.from === range.to;
+  const logFirst = () => shell.logTime({ date: range.to }, reload);
 
   return (
     <Page
       title="Time tracker"
-      icon={<Timer size={15} className="faint" />}
-      actions={<Button size="sm" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: today() }, () => { afterTimeChange(); q.reload(); })}>Log time manually</Button>}
+      icon={<Clock size={15} className="faint" />}
+      actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: range.to <= today ? range.to : today }, reload)}>Log time manually</Button>}
+      toolbar={<TimeRangeControl value={range} onChange={setRange} />}
     >
-      <TrackerBar ref={bar} options={options} running={running} />
-      {running && <div className="small faint" style={{ margin: "6px 22px 0" }}>Tracking {projectPath(running.project)}{running.task ? ` · ${running.task.title}` : ""}. The timer keeps running while you move around the app.</div>}
+      <QuickEntry options={options} onAdded={reload} />
 
       <div className={s.summary}>
-        <div><div className={s.sumLabel}>Today</div><div className={s.sumValue}>{hm(todayMin)}</div></div>
         <div>
-          <div className={s.sumLabel}>This week</div>
-          <div className={s.sumValue}>{hm(weekMin)}</div>
-          {capacity > 0 && <div className="tiny faint">of {hm(capacity)} capacity</div>}
+          <div className={s.sumLabel}>{single ? "Day total" : "Range total"}</div>
+          <div className={s.sumValue}>{hm(total)}</div>
+          <div className="tiny faint">{single ? fmtDate(range.from) : `${fmtDate(range.from)} – ${fmtDate(range.to)}`}</div>
+        </div>
+        <div>
+          <div className={s.sumLabel}>Logged vs expected</div>
+          <div className={s.sumValue}>{hm(total)} <span className={s.sumOf}>/ {hm(expected)}</span></div>
+          <div className={s.capBar} role="meter" aria-valuemin={0} aria-valuemax={expected} aria-valuenow={total} aria-label="Logged against expected hours"><span style={{ width: `${pct * 100}%`, background: total > expected && expected ? "var(--orange)" : undefined }} /></div>
         </div>
         <div>
           <div className={s.sumLabel}>Billable</div>
-          <div className={s.sumValue}>{hm(billMin)}</div>
-          {weekMin > 0 && <div className="tiny faint">{Math.round((billMin / weekMin) * 100)}% of the week</div>}
+          <div className={s.sumValue}>{hm(billable)}</div>
+          {total > 0 && <div className="tiny faint">{Math.round((billable / total) * 100)}% of logged time</div>}
         </div>
         <div>
-          <div className={s.sumLabel} style={{ marginBottom: 6 }}>By project this week</div>
-          {byProject.length === 0 && <div className="small faint">Nothing tracked yet this week.</div>}
+          <div className={s.sumLabel} style={{ marginBottom: 6 }}>By project</div>
+          {byProject.length === 0 && <div className="small faint">Nothing logged in this range.</div>}
           <div className={s.projBars}>
             {byProject.map((p) => (
               <div key={p.name} className={s.projBar}>
@@ -100,22 +90,20 @@ export default function TimeTracker() {
 
       <div className={s.list}>
         {q.error ? <ErrorState error={q.error} onRetry={q.reload} />
-          : !data ? <SkeletonRows rows={8} />
-          : entries.length === 0 && weekCount === 1 ? (
+          : !q.data ? <SkeletonRows rows={8} />
+          : entries.length === 0 ? (
             <EmptyState
               icon={<Clock size={26} />}
-              title="No time tracked this week"
-              description="Start the timer above, or log time you've already spent."
-              action={<Button icon={<Plus size={14} />} onClick={() => shell.logTime({ date: today() }, () => q.reload())}>Log time</Button>}
+              title={single ? `No time logged ${range.from === today ? "today" : `on ${fmtDate(range.from)}`}` : "No time logged in this range"}
+              description="Add what you worked on with the bar above, or open the full entry form."
+              action={<Button variant="primary" icon={<Plus size={14} />} onClick={logFirst}>Log your first entry</Button>}
             />
           ) : (
-            <EntryList entries={entries} weeks={weeks} weekStartOf={(d) => weekStart(d, startsOn)} options={options} running={running} onChanged={q.reload} />
+            <>
+              <EntryList entries={entries} days={dayStates.byDate} options={options} onChanged={reload} />
+              <div className={s.rangeFoot}><span>{entries.length} {entries.length === 1 ? "entry" : "entries"}</span><span className="grow" /><span className="muted">Total</span><span className="num strong">{hm(total)}</span></div>
+            </>
           )}
-        {data && (
-          <div className={s.loadMore}>
-            <Button variant="ghost" size="sm" icon={<ChevronDown size={14} />} loading={q.loading} onClick={() => setWeekCount((n) => n + 1)}>Load previous week</Button>
-          </div>
-        )}
       </div>
     </Page>
   );

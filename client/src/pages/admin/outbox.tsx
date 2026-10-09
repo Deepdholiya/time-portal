@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Mail, Search, Sparkles } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Badge, EmptyState, ErrorState, Input, Select, Sheet, SkeletonRows, Tooltip } from "@/components/arc";
+import { Badge, EmptyState, ErrorState, Input, Select, Sheet, SkeletonRows, Tooltip } from "@/components/ui";
 import { useApi } from "@/lib/hooks";
 import { fmtDateTime, relTime, titleCase } from "@/lib/format";
 

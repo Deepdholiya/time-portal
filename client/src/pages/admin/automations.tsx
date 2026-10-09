@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AlarmClock, CalendarClock, ListChecks, MoreHorizontal, Pencil, Plus, Timer, Trash2, Workflow } from "lucide-react";
 import { Page } from "@/components/app/page";
 import { STATUSES, STATUS_META } from "@/components/app/icons";
-import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, Select, SkeletonRows, Switch, toast } from "@/components/arc";
+import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, Select, SkeletonRows, Switch, toast } from "@/components/ui";
 import { del, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { relTime } from "@/lib/format";
@@ -12,7 +12,7 @@ type Config = { status?: string; notify?: string; notifyManager?: boolean; days?
 type Automation = { id: number; name: string; trigger: string; config: Config; enabled: boolean; runs: number; createdAt: string };
 
 const TRIGGERS: Record<string, { label: string; icon: React.ReactNode; describe: (c: Config) => string }> = {
-  TIMESHEET_REMINDER: { label: "Timesheet reminder", icon: <Timer size={14} />, describe: () => "On the last working day (and the next week's first day), remind everyone who hasn't submitted their timesheet." },
+  TIMESHEET_REMINDER: { label: "Timesheet reminder", icon: <Timer size={14} />, describe: () => "Each working day, remind everyone who logged no time on the previous working day (people on approved leave are skipped)." },
   TASK_OVERDUE: { label: "Task overdue", icon: <AlarmClock size={14} />, describe: (c) => `When a task passes its due date, notify the assignee${c.notifyManager ? " and the project manager" : ""}.` },
   TASK_STATUS: { label: "Task status changes", icon: <ListChecks size={14} />, describe: (c) => `When a task moves to ${STATUS_META[c.status as keyof typeof STATUS_META]?.label ?? "a status"}, notify the ${c.notify === "creator" ? "task creator" : "project manager"}.` },
   DUE_SOON: { label: "Due soon", icon: <CalendarClock size={14} />, describe: (c) => `Remind assignees ${Number(c.days ?? 1) === 0 ? "on the due date" : `${c.days ?? 1} day${Number(c.days ?? 1) === 1 ? "" : "s"} before the due date`}.` },

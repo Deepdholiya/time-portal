@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Clock, FileStack, FolderKanban, Milestone, X } from "lucide-react";
-import { Button, Combobox, Dialog, DatePicker, Input, Menu, Popover, Switch, Textarea, toast } from "@/components/arc";
+import { Button, Combobox, Dialog, DatePicker, Input, Menu, Popover, Switch, Textarea, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { AssigneePicker, PriorityPicker, StatusPicker } from "@/components/app/properties";
 import type { NewTaskDefaults } from "@/components/app/shell-context";

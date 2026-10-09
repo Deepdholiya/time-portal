@@ -1,7 +1,7 @@
 /* Filter bar: one row of chips, wraps only when the window is narrow. */
 .filterBar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; width: 100%; }
 .chip {
-  display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 8px; border: 1px dashed var(--border-strong); border-radius: var(--radius);
+  display: inline-flex; align-items: center; gap: 6px; height: var(--control-height-sm); padding: 0 10px; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); box-shadow: var(--shadow-xs);
   background: var(--bg); color: var(--text-2); font-size: 12px; cursor: pointer; white-space: nowrap; max-width: 240px;
 }
 .chip:hover { background: var(--bg-hover); color: var(--text); }
@@ -13,9 +13,9 @@
 .note { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 12px; }
 
 /* KPI strip: hairline-divided tiles rather than heavy cards. */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); overflow: hidden; margin-bottom: 16px; }
 .kpi { padding: 12px 16px; border-right: 1px solid var(--border); margin-right: -1px; }
-.kpiValue { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.kpiValue { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin-top: 2px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 
 .charts { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; }
 .span12 { grid-column: span 12; }
@@ -24,7 +24,7 @@
 .span4 { grid-column: span 4; }
 @media (max-width: 1100px) { .span8, .span6, .span4 { grid-column: span 12; } }
 
-.chartCard { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 16px 14px; background: var(--bg); min-width: 0; }
+.chartCard { border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); padding: 12px 16px 14px; background: var(--bg); min-width: 0; }
 .chartHead { display: flex; align-items: center; gap: 8px; min-height: 26px; margin-bottom: 8px; }
 .chartHead h3 { font-size: 13px; font-weight: 500; }
 .emptyChart { color: var(--text-3); font-size: 12px; padding: 24px 0; text-align: center; }
@@ -43,10 +43,10 @@
 .barLabel { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .barTrack { height: 8px; position: relative; display: flex; align-items: center; }
 .barFill { display: block; height: 8px; border-radius: 0 4px 4px 0; min-width: 2px; }
-.barValue { text-align: right; font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text); }
+.barValue { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text); }
 
-.utilTrack { position: relative; flex: 1; height: 8px; background: var(--bg-active); border-radius: 4px; overflow: visible; display: flex; }
-.utilTrack .barFill { border-radius: 4px; }
+.utilTrack { position: relative; flex: 1; height: 8px; background: var(--bg-active); border-radius: var(--radius-pill); overflow: visible; display: flex; }
+.utilTrack .barFill { border-radius: var(--radius-pill); }
 .utilMark { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--text-3); }
 
 .entriesSummary { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 12px; }
@@ -57,7 +57,7 @@
 .crumb:hover { background: var(--bg-hover); color: var(--text); }
 .crumbCurrent { color: var(--text); font-weight: 500; padding: 2px 6px; }
 
-.panel { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.panel { border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); overflow: hidden; }
 .panelHead { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); min-height: 40px; }
 .panel :global(.table) th { background: var(--bg); }
 

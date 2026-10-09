@@ -6,7 +6,7 @@ import { HttpError, can, cid, uid } from "../auth.js";
 import { accessibleProjectIds } from "../permissions.js";
 import { projectStats } from "../health.js";
 import { appUrl, sendMail } from "../mail.js";
-import { addDays, today } from "../weeks.js";
+import { addDays, today, weekStartOf, zonedNow } from "../weeks.js";
 
 export const notificationsRouter = Router();
 export const aiRouter = Router();
@@ -151,6 +151,72 @@ aiRouter.post("/task-summary", async (req, res) => {
     t.comments.length ? `• Latest comment from ${t.comments.at(-1)!.user.name}: "${t.comments.at(-1)!.body.slice(0, 160)}"` : "• No comments yet.",
   ].filter(Boolean).join("\n");
   res.json({ summary: ai ?? fallback, source: ai ? "claude" : "template", aiGenerated: true });
+});
+
+// ---------- Ask AI from the search bar ----------
+// Answers questions about the person's own time and tasks. Claude writes the answer when a key is set; otherwise a built-in
+// reader handles the common questions (hours in a period, hours on a project, what's due) from the same facts.
+const PERIODS: [RegExp, string][] = [[/\btoday\b/, "today"], [/\byesterday\b/, "yesterday"], [/\blast week\b/, "last week"], [/\bthis month\b/, "this month"], [/\blast month\b/, "last month"], [/\bthis week\b|\bweek\b/, "this week"]];
+
+function periodRange(name: string, t: string, startsOn: number) {
+  const ws = weekStartOf(t, startsOn);
+  const ms = t.slice(0, 8) + "01";
+  switch (name) {
+    case "today": return { from: t, to: t };
+    case "yesterday": return { from: addDays(t, -1), to: addDays(t, -1) };
+    case "last week": return { from: addDays(ws, -7), to: addDays(ws, -1) };
+    case "this month": return { from: ms, to: t };
+    case "last month": { const end = addDays(ms, -1); return { from: end.slice(0, 8) + "01", to: end }; }
+    default: return { from: ws, to: t };
+  }
+}
+const hrs = (m: number) => { const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`; };
+
+aiRouter.post("/ask", async (req, res) => {
+  const { q } = z.object({ q: z.string().trim().min(2, "Ask a question").max(500) }).parse(req.body);
+  const company = req.company!;
+  const t = zonedNow(company.timezone).date;
+  const text = q.toLowerCase();
+  const periodName = PERIODS.find(([re]) => re.test(text))?.[1] ?? "this week";
+  const range = periodRange(periodName, t, company.weekStartsOn);
+  const ids = await accessibleProjectIds(cid(req), req.user!, req.perms);
+  const projects = await prisma.project.findMany({ where: { companyId: cid(req), archived: false, ...(ids === "all" ? {} : { id: { in: ids } }) }, select: { id: true, name: true, parentId: true } });
+  const project = projects.filter((p) => text.includes(p.name.toLowerCase())).sort((a, b) => b.name.length - a.name.length)[0];
+  const projectIds = project ? projects.filter((p) => p.id === project.id || p.parentId === project.id).map((p) => p.id) : undefined;
+  const entries = await prisma.timeEntry.findMany({
+    where: { companyId: cid(req), userId: uid(req), running: false, date: { gte: range.from, lte: range.to }, ...(projectIds ? { projectId: { in: projectIds } } : {}) },
+    select: { minutes: true, billable: true, date: true, description: true, project: { select: { name: true, parent: { select: { name: true } } } } },
+  });
+  const total = entries.reduce((a, e) => a + e.minutes, 0);
+  const byProject = new Map<string, number>();
+  for (const e of entries) { const n = e.project.parent?.name ?? e.project.name; byProject.set(n, (byProject.get(n) ?? 0) + e.minutes); }
+  const top = [...byProject.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const tasks = await prisma.task.findMany({ where: { companyId: cid(req), assigneeId: uid(req), status: { not: "DONE" }, dueDate: { not: null, lte: addDays(t, 7) } }, select: { id: true, number: true, title: true, dueDate: true }, orderBy: { dueDate: "asc" }, take: 8 });
+  const days = await prisma.timesheetDay.findMany({ where: { companyId: cid(req), userId: uid(req), status: { in: ["FAILED", "REJECTED", "REOPENED"] } }, select: { date: true, status: true, note: true }, take: 10 });
+  const facts = {
+    today: t, period: periodName, range, project: project?.name ?? null, loggedMinutes: total, billableMinutes: entries.reduce((a, e) => a + (e.billable ? e.minutes : 0), 0),
+    byProject: top.map(([name, minutes]) => ({ name, minutes })), entries: entries.length,
+    tasksDueWithinAWeek: tasks.map((x) => ({ title: x.title, due: x.dueDate })), daysNeedingAttention: days,
+  };
+  const timeLink = { label: `Open ${periodName} in Time tracker`, to: `/time?from=${range.from}&to=${range.to}` };
+  const aiOn = companySettings(company).aiEnabled && can(req, "aiAssist", "yes");
+  const ai = aiOn ? await claude("You answer a person's questions about their own logged time and tasks in a time-tracking app. Use only the JSON facts given. Minutes must be shown as hours and minutes. Two to four short sentences, plain text, no markdown.", `Question: ${q}\nFacts: ${JSON.stringify(facts)}`) : null;
+  if (ai) return res.json({ answer: ai, source: "claude", links: [timeLink] });
+
+  let answer: string;
+  const links = [timeLink];
+  if (/\b(due|overdue|deadline|task)/.test(text)) {
+    answer = tasks.length ? `You have ${tasks.length} open ${tasks.length === 1 ? "task" : "tasks"} due by ${addDays(t, 7)}: ${tasks.slice(0, 4).map((x) => `${x.title} (${x.dueDate})`).join(", ")}${tasks.length > 4 ? ", and more" : ""}.` : "Nothing assigned to you is due in the next week.";
+    links.unshift({ label: "Open My tasks", to: "/my-tasks" });
+  } else if (/\b(submit|submission|fix|returned|rejected|failed)/.test(text)) {
+    answer = days.length ? `${days.length} ${days.length === 1 ? "day needs" : "days need"} attention: ${days.map((d) => `${d.date} (${d.status === "FAILED" ? "couldn't be submitted" : d.status === "REJECTED" ? "sent back" : "reopened"}${d.note ? `: ${d.note}` : ""})`).join("; ")}.` : "All your days are submitted or still open for today. Nothing needs fixing.";
+    links.unshift({ label: "Open Timesheet", to: "/timesheet" });
+  } else {
+    answer = `You logged ${hrs(total)}${project ? ` on ${project.name}` : ""} ${periodName === "today" || periodName === "yesterday" ? periodName : `${periodName} (${range.from} to ${range.to})`}` +
+      (total && !project && top.length ? `, most of it on ${top.slice(0, 3).map(([n, m]) => `${n} (${hrs(m)})`).join(", ")}.` : ".") +
+      (total ? ` ${Math.round((facts.billableMinutes / total) * 100)}% was billable.` : "");
+  }
+  res.json({ answer, source: "built-in", links });
 });
 
 // ---------- Public client status page (no sign-in; client-safe fields only) ----------

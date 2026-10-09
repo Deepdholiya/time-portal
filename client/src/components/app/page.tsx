@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
-import { EmptyState } from "@/components/arc";
+import { EmptyState } from "@/components/ui";
 import { useSession } from "@/lib/session";
 
 /** Standard page frame: 44px header with title + actions, optional toolbar row, scrollable body. */

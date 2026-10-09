@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LogOut, MonitorSmartphone, RotateCcw } from "lucide-react";
-import { Badge, Button, Combobox, Dialog, Field, Input, Select, SkeletonRows, Switch, Tooltip, toast, ErrorState } from "@/components/arc";
+import { Badge, Button, Combobox, Dialog, Field, Input, Select, SkeletonRows, Switch, Tooltip, toast, ErrorState } from "@/components/ui";
 import { get, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

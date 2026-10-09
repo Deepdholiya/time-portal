@@ -18,7 +18,7 @@
   display: flex; align-items: center; gap: 10px; height: var(--row-h); padding: 0 8px; border-bottom: 1px solid var(--border); cursor: pointer;
 }
 .taskRow:hover { background: var(--bg-hover); }
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); }
 .stats > div + div { border-left: 1px solid var(--border); }
 @media (max-width: 1000px) {
   .profile { grid-template-columns: 1fr; }

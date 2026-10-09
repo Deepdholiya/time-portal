@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma, audit, companySettings } from "../db.js";
 import { HttpError, can, cid, uid } from "../auth.js";
 import { accessibleProjectIds } from "../permissions.js";
-import { assertWeekOpen } from "../weeks.js";
+import { assertDayOpen } from "../days.js";
 import { DATE } from "../scope.js";
 
 export const timeRouter = Router();
@@ -16,8 +16,10 @@ const entrySchema = z.object({
   startTime: TIME.nullish(),
   endTime: TIME.nullish(),
   minutes: z.number().int().positive().max(24 * 60).nullish(),
-  description: z.string().trim().min(1, "Describe the work you did").max(2000),
+  // Descriptions can be added later; the company's rules are checked when the day is submitted.
+  description: z.string().trim().max(2000).default(""),
   billable: z.boolean().default(true),
+  tagIds: z.array(z.number().int()).max(20).optional(),
   userId: z.number().int().optional(),
 });
 
@@ -25,7 +27,11 @@ export const timeInclude = {
   project: { select: { id: true, name: true, color: true, parentId: true, parent: { select: { id: true, name: true, color: true } }, client: { select: { id: true, name: true } } } },
   task: { select: { id: true, number: true, title: true } },
   user: { select: { id: true, name: true } },
+  tags: { select: { tag: { select: { id: true, name: true, color: true } } } },
 } as const;
+
+/** Entries come back with their tags as a plain list. */
+export const flatTags = <T extends { tags: { tag: { id: number; name: string; color: string } }[] }>(e: T) => ({ ...e, tags: e.tags.map((t) => t.tag) });
 
 const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
 const snapshot = (e: { date: string; minutes: number; projectId: number; taskId: number | null; description: string; billable: boolean; startTime: string | null; endTime: string | null }) =>
@@ -54,22 +60,54 @@ export async function checkProject(req: Request, userId: number, projectId: numb
   return project;
 }
 
-function resolveMinutes(d: { startTime?: string | null; endTime?: string | null; minutes?: number | null }) {
-  if (d.startTime && d.endTime) {
-    const m = toMin(d.endTime) - toMin(d.startTime);
+const toTime = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+/**
+ * Works out start, end and duration from what was entered: start + end gives the duration, a duration gives the end.
+ * A duration without a start begins where the day's last entry ends, or at the start of the working day.
+ */
+async function resolveTimes(company: { settings: string }, userId: number, d: { date: string; startTime?: string | null; endTime?: string | null; minutes?: number | null }, ignoreId?: number) {
+  let start = d.startTime ?? null;
+  if (start && d.endTime && !d.minutes) {
+    const m = toMin(d.endTime) - toMin(start);
     if (m <= 0) throw new HttpError(400, "End time must be after start time");
-    return m;
+    return { startTime: start, endTime: d.endTime, minutes: m };
   }
-  if (!d.minutes) throw new HttpError(400, "Enter a duration or a start and end time");
-  return d.minutes;
+  if (!d.minutes) throw new HttpError(400, "Enter a duration, or a start and end time");
+  if (!start) {
+    const last = await prisma.timeEntry.findFirst({ where: { userId, date: d.date, endTime: { not: null }, running: false, ...(ignoreId ? { id: { not: ignoreId } } : {}) }, orderBy: { endTime: "desc" } });
+    start = last?.endTime ?? companySettings(company).workdayStart;
+  }
+  const end = toMin(start) + d.minutes;
+  if (end > 24 * 60) {
+    if (d.startTime) throw new HttpError(400, `Starting at ${start}, ${Math.floor(d.minutes / 60)}h ${d.minutes % 60}m runs past midnight. Pick an earlier start or a shorter duration.`);
+    // No room left after the day's last entry: keep the duration without clock times.
+    return { startTime: null, endTime: null, minutes: d.minutes };
+  }
+  return { startTime: start, endTime: toTime(end), minutes: d.minutes };
 }
 
-async function checkOverlap(userId: number, date: string, start?: string | null, end?: string | null, ignoreId?: number) {
-  if (!start || !end) return;
+/** Tags must be active and allowed for the person's team. */
+async function checkTags(companyId: number, userId: number, tagIds?: number[]) {
+  if (!tagIds?.length) return [];
+  const ids = [...new Set(tagIds)];
+  const member = await prisma.membership.findUnique({ where: { companyId_userId: { companyId, userId } } });
+  const tags = await prisma.tag.findMany({ where: { companyId, id: { in: ids } } });
+  if (tags.length !== ids.length) throw new HttpError(400, "One of the tags doesn't exist");
+  for (const t of tags) {
+    if (!t.active) throw new HttpError(400, `The tag "${t.name}" is no longer in use`);
+    const teams = JSON.parse(t.teamIds || "[]") as number[];
+    if (teams.length && (!member?.teamId || !teams.includes(member.teamId))) throw new HttpError(403, `The tag "${t.name}" isn't available for your team`);
+  }
+  return ids;
+}
+
+async function checkOverlap(company: { settings: string }, userId: number, date: string, start?: string | null, end?: string | null, ignoreId?: number) {
+  if (!start || !end || companySettings(company).allowOverlappingTimers) return;
   const others = await prisma.timeEntry.findMany({ where: { userId, date, startTime: { not: null }, endTime: { not: null }, running: false, ...(ignoreId ? { id: { not: ignoreId } } : {}) } });
   const s = toMin(start), e = toMin(end);
   const clash = others.find((o) => toMin(o.startTime!) < e && toMin(o.endTime!) > s);
-  if (clash) throw new HttpError(409, `Overlaps an entry from ${clash.startTime} to ${clash.endTime}`);
+  if (clash) throw new HttpError(409, `${start}–${end} overlaps your entry from ${clash.startTime} to ${clash.endTime}`);
 }
 
 async function taskActivity(taskId: number | null | undefined, actorId: number, toValue: string) {
@@ -89,30 +127,31 @@ timeRouter.get("/", async (req, res) => {
     include: timeInclude,
     orderBy: [{ date: "desc" }, { startTime: "desc" }, { createdAt: "desc" }],
   });
-  res.json(entries);
+  res.json(entries.map(flatTags));
 });
 
 timeRouter.get("/entry/:id", async (req, res) => {
   const e = await prisma.timeEntry.findFirst({ where: { id: Number(req.params.id), companyId: cid(req) }, include: timeInclude });
   if (!e) throw new HttpError(404, "Entry not found");
   if (e.userId !== uid(req) && !can(req, "timesheetsView", "all")) throw new HttpError(403, "You can only see your own time");
-  res.json(e);
+  res.json(flatTags(e));
 });
 
 timeRouter.post("/", async (req, res) => {
   const d = entrySchema.parse(req.body);
   const userId = targetUser(req, d.userId);
   await checkProject(req, userId, d.projectId, d.taskId);
-  await assertWeekOpen(cid(req), userId, d.date);
-  const minutes = resolveMinutes(d);
-  await checkOverlap(userId, d.date, d.startTime, d.endTime);
+  await assertDayOpen(req.company!, userId, d.date);
+  const tagIds = await checkTags(cid(req), userId, d.tagIds);
+  const t = await resolveTimes(req.company!, userId, d);
+  await checkOverlap(req.company!, userId, d.date, t.startTime, t.endTime);
   const entry = await prisma.timeEntry.create({
-    data: { companyId: cid(req), userId, projectId: d.projectId, taskId: d.taskId ?? null, date: d.date, startTime: d.startTime ?? null, endTime: d.endTime ?? null, minutes, description: d.description, billable: d.billable },
+    data: { companyId: cid(req), userId, projectId: d.projectId, taskId: d.taskId ?? null, date: d.date, ...t, description: d.description, billable: d.billable, tags: { create: tagIds.map((tagId) => ({ tagId })) } },
     include: timeInclude,
   });
-  await audit(req, "time_created", "timeEntry", entry.id, { new: { ...snapshot(entry), userId } });
-  await taskActivity(entry.taskId, uid(req), `${minutes} min logged`);
-  res.status(201).json(entry);
+  await audit(req, "time_created", "timeEntry", entry.id, { new: { ...snapshot(entry), userId, tagIds } });
+  await taskActivity(entry.taskId, uid(req), `${t.minutes} min logged`);
+  res.status(201).json(flatTags(entry));
 });
 
 async function findEntry(req: Request, id: number) {
@@ -127,22 +166,25 @@ timeRouter.put("/:id", async (req, res) => {
   const d = entrySchema.parse(req.body);
   const reason = z.object({ reason: z.string().max(500).optional() }).parse(req.body).reason;
   await checkProject(req, existing.userId, d.projectId, d.taskId);
-  await assertWeekOpen(cid(req), existing.userId, existing.date);
-  await assertWeekOpen(cid(req), existing.userId, d.date);
-  const minutes = resolveMinutes(d);
-  await checkOverlap(existing.userId, d.date, d.startTime, d.endTime, existing.id);
+  await assertDayOpen(req.company!, existing.userId, existing.date);
+  await assertDayOpen(req.company!, existing.userId, d.date);
+  const oldTags = (await prisma.timeEntryTag.findMany({ where: { entryId: existing.id } })).map((t) => t.tagId);
+  // Tags that were already on the entry stay valid even if they were since limited to other teams.
+  const tagIds = d.tagIds === undefined ? oldTags : [...oldTags.filter((t) => d.tagIds!.includes(t)), ...(await checkTags(cid(req), existing.userId, d.tagIds.filter((t) => !oldTags.includes(t))))];
+  const t = await resolveTimes(req.company!, existing.userId, d, existing.id);
+  await checkOverlap(req.company!, existing.userId, d.date, t.startTime, t.endTime, existing.id);
   const entry = await prisma.timeEntry.update({
     where: { id: existing.id },
-    data: { projectId: d.projectId, taskId: d.taskId ?? null, date: d.date, startTime: d.startTime ?? null, endTime: d.endTime ?? null, minutes, description: d.description, billable: d.billable },
+    data: { projectId: d.projectId, taskId: d.taskId ?? null, date: d.date, ...t, description: d.description, billable: d.billable, tags: { deleteMany: {}, create: tagIds.map((tagId) => ({ tagId })) } },
     include: timeInclude,
   });
-  await audit(req, "time_edited", "timeEntry", entry.id, { old: { ...snapshot(existing), userId: existing.userId }, new: snapshot(entry), reason });
-  res.json(entry);
+  await audit(req, "time_edited", "timeEntry", entry.id, { old: { ...snapshot(existing), userId: existing.userId, tagIds: oldTags }, new: { ...snapshot(entry), tagIds }, reason });
+  res.json(flatTags(entry));
 });
 
 timeRouter.delete("/:id", async (req, res) => {
   const existing = await findEntry(req, Number(req.params.id));
-  await assertWeekOpen(cid(req), existing.userId, existing.date);
+  await assertDayOpen(req.company!, existing.userId, existing.date);
   await prisma.timeEntry.delete({ where: { id: existing.id } });
   await audit(req, "time_deleted", "timeEntry", existing.id, { old: { ...snapshot(existing), userId: existing.userId }, reason: typeof req.query.reason === "string" ? req.query.reason : undefined });
   res.json({ ok: true });
@@ -154,14 +196,16 @@ timeRouter.post("/copy", async (req, res) => {
   const userId = targetUser(req, d.userId);
   let created = 0, skipped = 0;
   for (const [from, to] of d.pairs) {
-    await assertWeekOpen(cid(req), userId, to);
+    await assertDayOpen(req.company!, userId, to);
     const src = await prisma.timeEntry.findMany({ where: { companyId: cid(req), userId, date: from, running: false } });
     for (const s of src) {
       try {
         await checkProject(req, userId, s.projectId, s.taskId);
-        if (d.withTimes) await checkOverlap(userId, to, s.startTime, s.endTime);
+        const t = d.withTimes && s.startTime && s.endTime ? { startTime: s.startTime, endTime: s.endTime, minutes: s.minutes } : await resolveTimes(req.company!, userId, { date: to, minutes: s.minutes });
+        await checkOverlap(req.company!, userId, to, t.startTime, t.endTime);
+        const tags = await prisma.timeEntryTag.findMany({ where: { entryId: s.id } });
         await prisma.timeEntry.create({
-          data: { companyId: cid(req), userId, projectId: s.projectId, taskId: s.taskId, date: to, minutes: s.minutes, description: s.description, billable: s.billable, startTime: d.withTimes ? s.startTime : null, endTime: d.withTimes ? s.endTime : null },
+          data: { companyId: cid(req), userId, projectId: s.projectId, taskId: s.taskId, date: to, ...t, description: s.description, billable: s.billable, tags: { create: tags.map((x) => ({ tagId: x.tagId })) } },
         });
         created++;
       } catch { skipped++; }
@@ -169,115 +213,4 @@ timeRouter.post("/copy", async (req, res) => {
   }
   await audit(req, "time_copied", "timeEntry", null, { new: { userId, created, skipped, pairs: d.pairs } });
   res.json({ created, skipped });
-});
-
-// ---- Timer: one running entry per user unless the company allows overlapping timers ----
-
-const elapsedSec = (e: { accumulatedSec: number; startedAt: Date | null; pausedAt: Date | null }) =>
-  e.accumulatedSec + (e.startedAt && !e.pausedAt ? Math.floor((Date.now() - e.startedAt.getTime()) / 1000) : 0);
-
-const withElapsed = <T extends { accumulatedSec: number; startedAt: Date | null; pausedAt: Date | null }>(e: T | null) => (e ? { ...e, elapsedSec: elapsedSec(e) } : null);
-
-async function running(req: Request) {
-  return prisma.timeEntry.findFirst({ where: { companyId: cid(req), userId: uid(req), running: true }, include: timeInclude, orderBy: { id: "desc" } });
-}
-
-timeRouter.get("/timer", async (req, res) => {
-  res.json(withElapsed(await running(req)));
-});
-
-const startSchema = z.object({
-  projectId: z.number().int().optional(), taskId: z.number().int().nullish(), description: z.string().trim().max(2000).default(""),
-  billable: z.boolean().optional(), date: DATE, startTime: TIME,
-});
-
-async function startTimer(req: Request, raw: unknown) {
-  const d = startSchema.parse(raw);
-  let projectId = d.projectId;
-  let billable = d.billable;
-  let description = d.description;
-  // Starting from a task inherits its project, sub-project and billability.
-  if (d.taskId) {
-    const task = await prisma.task.findFirst({ where: { id: d.taskId, companyId: cid(req) } });
-    if (!task) throw new HttpError(404, "Task not found");
-    projectId = task.projectId;
-    billable ??= task.billable;
-    if (!description) description = task.title;
-  }
-  if (!projectId) throw new HttpError(400, "Pick a project or task first");
-  const settings = companySettings(req.company!);
-  if (!settings.allowOverlappingTimers && (await running(req))) throw new HttpError(409, "A timer is already running. Stop it or switch to this one.");
-  await checkProject(req, uid(req), projectId, d.taskId);
-  await assertWeekOpen(cid(req), uid(req), d.date);
-  const entry = await prisma.timeEntry.create({
-    data: { companyId: cid(req), userId: uid(req), projectId, taskId: d.taskId ?? null, date: d.date, startTime: d.startTime, minutes: 0, description, billable: billable ?? true, running: true, startedAt: new Date() },
-    include: timeInclude,
-  });
-  return withElapsed(entry);
-}
-
-async function stopTimer(req: Request, raw: unknown) {
-  const d = z.object({ endTime: TIME, description: z.string().trim().max(2000).optional() }).parse(raw);
-  const r = await running(req);
-  if (!r) throw new HttpError(404, "No timer is running");
-  const description = d.description || r.description;
-  if (!description) throw new HttpError(400, "Describe the work you did before stopping");
-  const sec = elapsedSec(r);
-  const minutes = Math.max(1, Math.round(sec / 60));
-  // A timer that was paused or crossed midnight keeps its duration; the clock range is dropped when it no longer fits.
-  const contiguous = !r.accumulatedSec && toMin(d.endTime) >= toMin(r.startTime!);
-  const entry = await prisma.timeEntry.update({
-    where: { id: r.id },
-    data: { running: false, minutes, description, endTime: contiguous ? d.endTime : null, startTime: contiguous ? r.startTime : null, pausedAt: null, startedAt: null, accumulatedSec: sec },
-    include: timeInclude,
-  });
-  await audit(req, "time_created", "timeEntry", entry.id, { new: { ...snapshot(entry), via: "timer" } });
-  await taskActivity(entry.taskId, uid(req), `${minutes} min tracked with timer`);
-  return entry;
-}
-
-timeRouter.post("/timer/start", async (req, res) => {
-  res.status(201).json(await startTimer(req, req.body));
-});
-
-timeRouter.post("/timer/pause", async (req, res) => {
-  const r = await running(req);
-  if (!r) throw new HttpError(404, "No timer is running");
-  if (r.pausedAt) return res.json(withElapsed(r));
-  const e = await prisma.timeEntry.update({ where: { id: r.id }, data: { pausedAt: new Date(), accumulatedSec: elapsedSec(r) }, include: timeInclude });
-  res.json(withElapsed(e));
-});
-
-timeRouter.post("/timer/resume", async (req, res) => {
-  const r = await running(req);
-  if (!r) throw new HttpError(404, "No timer is running");
-  if (!r.pausedAt) return res.json(withElapsed(r));
-  const e = await prisma.timeEntry.update({ where: { id: r.id }, data: { pausedAt: null, startedAt: new Date() }, include: timeInclude });
-  res.json(withElapsed(e));
-});
-
-timeRouter.post("/timer/stop", async (req, res) => {
-  res.json(await stopTimer(req, req.body));
-});
-
-// Stop the current timer and start a new one in one step.
-timeRouter.post("/timer/switch", async (req, res) => {
-  const d = z.object({ endTime: TIME }).passthrough().parse(req.body);
-  const stopped = (await running(req)) ? await stopTimer(req, { endTime: d.endTime }) : null;
-  const started = await startTimer(req, req.body);
-  res.json({ stopped, started });
-});
-
-timeRouter.patch("/timer", async (req, res) => {
-  const d = z.object({ description: z.string().max(2000).optional(), billable: z.boolean().optional(), projectId: z.number().int().optional(), taskId: z.number().int().nullish() }).parse(req.body);
-  const r = await running(req);
-  if (!r) throw new HttpError(404, "No timer is running");
-  if (d.projectId) await checkProject(req, uid(req), d.projectId, d.taskId);
-  const e = await prisma.timeEntry.update({ where: { id: r.id }, data: d, include: timeInclude });
-  res.json(withElapsed(e));
-});
-
-timeRouter.delete("/timer/discard", async (req, res) => {
-  await prisma.timeEntry.deleteMany({ where: { companyId: cid(req), userId: uid(req), running: true } });
-  res.json({ ok: true });
 });

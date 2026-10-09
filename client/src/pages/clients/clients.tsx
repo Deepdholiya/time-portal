@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Archive, ArchiveRestore, Briefcase, MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, SegmentedControl, SkeletonRows, toast } from "@/components/arc";
+import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, SegmentedControl, SkeletonRows, toast } from "@/components/ui";
 import { del, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { KeyRound, MonitorSmartphone, MoreHorizontal, Pencil, ShieldCheck, ShieldOff, UserCheck, UserX, Users } from "lucide-react";
-import { Avatar, ConfirmDialog, Dialog, EmptyState, ErrorState, IconButton, Menu, SkeletonRows, Tooltip, Button, toast } from "@/components/arc";
+import { Avatar, ConfirmDialog, Dialog, EmptyState, ErrorState, IconButton, Menu, SkeletonRows, Tooltip, Button, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

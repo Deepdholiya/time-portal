@@ -1,4 +1,4 @@
-.period { min-width: 150px; text-align: center; font-weight: 500; font-variant-numeric: tabular-nums; }
+.period { min-width: 150px; text-align: center; font-weight: 500; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .legend { display: flex; gap: 12px; align-items: center; }
 .table th:first-child, .table td:first-child { padding-left: 20px; }
 .sticky { position: sticky; left: 0; background: var(--bg); z-index: 1; min-width: 200px; }
@@ -6,12 +6,12 @@ thead .sticky { z-index: 3; background: var(--bg-subtle); }
 .who { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
 .leave { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; color: var(--text-3); font-size: 11px; }
 .meter { display: flex; align-items: center; gap: 8px; }
-.meterTrack { position: relative; flex: 1; height: 8px; border-radius: 4px; background: var(--bg-active); }
-.meterTrack > span { display: block; height: 100%; border-radius: 4px; }
+.meterTrack { position: relative; flex: 1; height: 8px; border-radius: var(--radius-pill); background: var(--bg-active); }
+.meterTrack > span { display: block; height: 100%; border-radius: var(--radius-pill); }
 .meterTrack > i { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--text-3); }
 .meter :global(.num) { width: 36px; text-align: right; }
 .bucketHead { min-width: 64px; border-left: 1px solid var(--border); }
 .bucket { padding: 0 4px !important; border-left: 1px solid var(--border); }
-.heat { display: inline-flex; align-items: center; justify-content: center; gap: 2px; width: 100%; height: 26px; border-radius: var(--radius-sm); font-size: 12px; font-variant-numeric: tabular-nums; position: relative; }
+.heat { display: inline-flex; align-items: center; justify-content: center; gap: 2px; width: 100%; height: 26px; border-radius: var(--radius-sm); font-size: 12px; font-family: var(--mono); font-variant-numeric: tabular-nums; position: relative; }
 .leaveIcon { position: absolute; top: 2px; right: 3px; color: var(--text-3); }
 .sheetStats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }

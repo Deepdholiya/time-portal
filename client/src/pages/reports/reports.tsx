@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, FileDown, FileSpreadsheet, FileText, Mail, Printer, Save, Table2 } from "lucide-react";
-import { Button, DateRangePicker, IconButton, Menu, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/arc";
+import { Button, DateRangePicker, IconButton, Menu, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { download, post } from "@/lib/api";
 import { useLocal } from "@/lib/hooks";

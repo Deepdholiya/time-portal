@@ -1,4 +1,4 @@
-import { EmptyState, SkeletonRows } from "@/components/arc";
+import { EmptyState, SkeletonRows } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

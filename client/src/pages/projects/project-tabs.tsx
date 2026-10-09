@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Archive, ExternalLink, FileText, Image as ImageIcon, Link2, MoreHorizontal, Pencil, Plus, Trash2, Users } from "lucide-react";
-import { Avatar, Badge, Button, Checkbox, Combobox, ConfirmDialog, DatePicker, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, Select, SkeletonRows, Textarea, toast } from "@/components/arc";
+import { Avatar, Badge, Button, Checkbox, Combobox, ConfirmDialog, DatePicker, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, Select, SkeletonRows, Textarea, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { del, get, post, put } from "@/lib/api";

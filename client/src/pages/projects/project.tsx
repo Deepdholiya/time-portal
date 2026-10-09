@@ -1,6 +1,6 @@
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Archive, Plus } from "lucide-react";
-import { Badge, Button, ErrorState, Loading, Tabs } from "@/components/arc";
+import { Badge, Button, ErrorState, Loading, Tabs } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { Forbidden } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";

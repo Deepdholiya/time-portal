@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, SegmentedControl, Sheet, toast } from "@/components/arc";
+import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, SegmentedControl, Sheet, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { patch } from "@/lib/api";

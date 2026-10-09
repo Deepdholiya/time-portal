@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from "recharts";
-import { Tooltip } from "@/components/arc";
+import { Tooltip } from "@/components/ui";
 import { hm, pct } from "@/lib/format";
 import s from "./analytics.module.css";
 

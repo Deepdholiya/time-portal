@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Bell, BellOff, Copy, FileStack, Lock, MoreHorizontal, Sparkles, Trash2, Users, X } from "lucide-react";
-import { AvatarGroup, Button, ConfirmDialog, Dialog, ErrorState, IconButton, Input, Menu, SkeletonRows, Tooltip, toast } from "@/components/arc";
+import { AvatarGroup, Button, ConfirmDialog, Dialog, ErrorState, IconButton, Input, Menu, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
-import { Sheet } from "@/components/arc";
+import { Sheet } from "@/components/ui";
 import { del, post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { fmtDateTime, relTime } from "@/lib/format";

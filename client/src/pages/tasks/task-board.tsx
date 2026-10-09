@@ -1,6 +1,6 @@
 import { useState, type DragEvent } from "react";
 import { Clock, MessageSquare, Paperclip, Plus } from "lucide-react";
-import { Avatar, IconButton } from "@/components/arc";
+import { Avatar, IconButton } from "@/components/ui";
 import { PriorityIcon, STATUSES, STATUS_META, StatusIcon } from "@/components/app/icons";
 import { hm } from "@/lib/format";
 import type { TaskStatus } from "@/lib/types";

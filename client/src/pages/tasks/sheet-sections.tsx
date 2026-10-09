@@ -1,10 +1,9 @@
 import { useRef, useState } from "react";
-import { AlertTriangle, Download, FileText, Image as ImageIcon, Link2, Play, Plus, Timer, Trash2, Upload, X } from "lucide-react";
-import { Avatar, Button, Combobox, ConfirmDialog, IconButton, Spinner, toast } from "@/components/arc";
+import { AlertTriangle, Clock3, Download, FileText, Image as ImageIcon, Link2, Plus, Trash2, Upload, X } from "lucide-react";
+import { Avatar, Button, Combobox, ConfirmDialog, IconButton, Spinner, toast } from "@/components/ui";
 import { StatusIcon } from "@/components/app/icons";
 import { StatusPicker } from "@/components/app/properties";
 import { useShell } from "@/components/app/shell-context";
-import { timerActions, useRunningTimer } from "@/components/app/timer-widget";
 import { del, post, upload } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";
 import { fmtDate, hm, relTime } from "@/lib/format";
@@ -154,22 +153,15 @@ export function Dependencies({ task, options, onOpenTask, reload }: { task: Task
   );
 }
 
-/** Tracked vs estimate, linked time entries, and timer / log-time actions that keep the task link. */
+/** Tracked vs estimate, linked time entries, and a log-time action that keeps the task link. */
 export function TimeSection({ task, reload }: { task: TaskDetail; reload: () => void }) {
   const shell = useShell();
-  const running = useRunningTimer();
-  const [starting, setStarting] = useState(false);
   const est = task.estimateHours ?? 0;
   const pct = est ? Math.min(1, task.trackedMinutes / 60 / est) : 0;
   const over = est > 0 && task.trackedMinutes / 60 > est;
-  const onThis = running.data?.taskId === task.id;
-  const start = async () => {
-    setStarting(true);
-    try { await timerActions.start({ taskId: task.id, projectId: task.projectId }); toast.success(`Timer started on ${task.key}`); } catch (e) { toast.error(e); } finally { setStarting(false); }
-  };
   return (
     <div className={s.timeBox}>
-      <div className={s.sideTitle}><Timer size={12} />Time</div>
+      <div className={s.sideTitle}><Clock3 size={12} />Time</div>
       <div className={s.timeNums}>
         <span className={s.timeBig}>{hm(task.trackedMinutes)}</span>
         <span className="small muted">{est ? `of ${est}h estimate` : "tracked"}</span>
@@ -177,12 +169,7 @@ export function TimeSection({ task, reload }: { task: TaskDetail; reload: () => 
       {est > 0 && <div className="progress"><span style={{ width: `${pct * 100}%`, background: over ? "var(--red)" : undefined }} /></div>}
       {over && <span className="small danger">{hm(task.trackedMinutes - est * 60)} over estimate</span>}
       <div className="row gap-4">
-        {onThis ? (
-          <Button size="sm" variant="secondary" icon={<span className="dot" style={{ background: "var(--red)" }} />} onClick={async () => { try { await timerActions.stop(); reload(); } catch (e) { toast.error(e); } }}>Stop timer</Button>
-        ) : (
-          <Button size="sm" variant="secondary" icon={<Play size={13} />} loading={starting} onClick={start}>Start timer</Button>
-        )}
-        <Button size="sm" variant="ghost" icon={<Plus size={13} />} onClick={() => shell.logTime({ taskId: task.id, projectId: task.projectId }, () => { invalidate("/tasks"); reload(); })}>Log time</Button>
+        <Button size="sm" variant="secondary" icon={<Plus size={13} />} onClick={() => shell.logTime({ taskId: task.id, projectId: task.projectId }, () => { invalidate("/tasks"); reload(); })}>Log time</Button>
       </div>
       {task.timeEntries.length > 0 && (
         <div className="col" style={{ gap: 0 }}>

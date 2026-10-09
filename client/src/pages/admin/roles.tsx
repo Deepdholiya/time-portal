@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Info, Lock, ShieldCheck } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { ErrorState, Select, SkeletonRows, Tooltip, toast } from "@/components/arc";
+import { ErrorState, Select, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { put } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { useSession } from "@/lib/session";

@@ -1,64 +1,37 @@
-import { cloneElement, isValidElement, useRef, useState, type ReactElement, type ReactNode } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
-import { cx, useDismiss, useFloating, useLayerId } from "../_lib/floating";
-import s from "./popover.module.css";
+"use client";
 
-export interface PopoverProps {
-  /** Element that toggles the popover; receives onClick and a ref. */
-  trigger: ReactElement;
-  children: ReactNode | ((close: () => void) => ReactNode);
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  placement?: "bottom-start" | "bottom-end" | "top-start" | "right-start";
-  padded?: boolean;
-  width?: number | string;
-  matchWidth?: boolean;
-  className?: string;
-}
+import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { forwardRef } from "react";
+import type { ComponentPropsWithoutRef } from "react";
+import styles from "./popover.module.css";
 
-export function Popover({ trigger, children, open: controlled, onOpenChange, placement, padded = true, width, matchWidth, className }: PopoverProps) {
-  const [inner, setInner] = useState(false);
-  const open = controlled ?? inner;
-  const setOpen = (v: boolean) => { setInner(v); onOpenChange?.(v); };
-  const anchor = useRef<HTMLElement | null>(null);
-  const layer = useLayerId(open);
-  const { floating, style } = useFloating(open, anchor, { placement, matchWidth });
-  useDismiss(open, [anchor, floating], () => setOpen(false), layer);
-  const close = () => setOpen(false);
+export const Popover = PopoverPrimitive.Root;
+export const PopoverClose = PopoverPrimitive.Close;
 
-  const t = isValidElement(trigger)
-    ? cloneElement(trigger as ReactElement<Record<string, unknown>>, {
-        ref: (el: HTMLElement | null) => { anchor.current = el; },
-        onClick: (e: React.MouseEvent) => { (trigger.props as { onClick?: (e: React.MouseEvent) => void }).onClick?.(e); setOpen(!open); },
-        "aria-expanded": open,
-        "aria-haspopup": "dialog",
-      })
-    : trigger;
+/** The trigger anchors the panel, so it opts out of press-scale: a scaled rect measured on open would shift the panel as the trigger springs back. */
+export const PopoverTrigger = forwardRef<
+  HTMLButtonElement,
+  ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
+>(function PopoverTrigger({ className, ...props }, ref) {
+  return <PopoverPrimitive.Trigger {...props} ref={ref} className={[styles.anchor, className].filter(Boolean).join(" ")}/>;
+});
 
-  return (
-    <>
-      {t}
-      {createPortal(
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              ref={floating}
-              data-layer={layer}
-              role="dialog"
-              className={cx(s.content, padded && s.padded, className)}
-              style={{ ...style, width }}
-              initial={{ opacity: 0, y: -4, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.98, transition: { duration: 0.1 } }}
-              transition={{ duration: 0.14, ease: [0.2, 0, 0, 1] }}
-            >
-              {typeof children === "function" ? children(close) : children}
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )}
-    </>
-  );
-}
+PopoverTrigger.displayName = "PopoverTrigger";
+
+export const PopoverContent = forwardRef<
+  HTMLDivElement,
+  ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+>(function PopoverContent({ className, align = "start", sideOffset = 6, collisionPadding = 10, ...props }, ref) {
+  return <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      {...props}
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      collisionPadding={collisionPadding}
+      className={[styles.content, className].filter(Boolean).join(" ")}
+    />
+  </PopoverPrimitive.Portal>;
+});
+
+PopoverContent.displayName = "PopoverContent";

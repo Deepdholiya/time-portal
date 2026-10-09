@@ -24,6 +24,7 @@ optionsRouter.get("/", async (req, res) => {
   const key = companySettings(req.company!).taskKey;
   const tags = new Set<string>();
   projects.forEach((p) => parseJson<string[]>(p.tags, []).forEach((t) => tags.add(t)));
+  (await prisma.tag.findMany({ where: { companyId: cid(req) }, select: { name: true } })).forEach((t) => tags.add(t.name));
   (await prisma.task.findMany({ where: { companyId: cid(req), tags: { not: "[]" } }, select: { tags: true }, take: 2000 })).forEach((t) => parseJson<string[]>(t.tags, []).forEach((x) => tags.add(x)));
   res.json({
     projects: projects.map((p) => ({ ...p, tags: parseJson<string[]>(p.tags, []), tasks: p.tasks.map((t) => ({ ...t, key: `${key}-${t.number}` })), canLog: ids === "all" || ids.includes(p.id) })),

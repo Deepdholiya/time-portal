@@ -1,7 +1,7 @@
-import { useState, type ReactNode } from "react";
+import { forwardRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Archive, Building2, CircleDot, FolderKanban, Lock, Plus, Receipt, Search, Tag, UserRound, X } from "lucide-react";
-import { Avatar, AvatarGroup, Button, Combobox, EmptyState, ErrorState, Input, Select, SkeletonRows } from "@/components/arc";
+import { Avatar, AvatarGroup, Button, Combobox, EmptyState, ErrorState, Input, Select, SkeletonRows } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { HealthBadge } from "./health-badge";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
@@ -16,9 +16,10 @@ import s from "./projects.module.css";
 interface Filters { status: string[]; clientId: number | null; managerId: number | null; archived: "false" | "true" | "all"; billing: string[]; tag: string | null }
 const EMPTY: Filters = { status: [], clientId: null, managerId: null, archived: "false", billing: [], tag: null };
 
-function Chip({ active, icon, children }: { active: boolean; icon: ReactNode; children: ReactNode }) {
-  return <button type="button" className={`${t.filterChip} ${active ? t.active : ""}`}>{icon}{children}</button>;
-}
+/** Filter chip; forwards the popover trigger's ref and handlers so it can open a picker. */
+const Chip = forwardRef<HTMLButtonElement, { active: boolean; icon: ReactNode; children: ReactNode } & ButtonHTMLAttributes<HTMLButtonElement>>(function Chip({ active, icon, children, ...rest }, ref) {
+  return <button ref={ref} type="button" {...rest} className={`${t.filterChip} ${active ? t.active : ""}`}>{icon}{children}</button>;
+});
 
 /** Linear-style projects list with health, progress and tracked-vs-estimate. */
 export default function Projects() {

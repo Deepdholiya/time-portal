@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { Combobox } from "@/components/arc";
+import { Combobox } from "@/components/ui";
 import type { Priority, TaskStatus, UserLite } from "@/lib/types";
-import { Avatar } from "@/components/arc";
+import { Avatar } from "@/components/ui";
 import { PRIORITIES, PRIORITY_META, PriorityIcon, STATUSES, STATUS_META, StatusIcon } from "./icons";
 
 const chip = (children: ReactNode, label: string) => (

@@ -2,10 +2,10 @@
 .block { display: flex; flex-direction: column; gap: 10px; }
 .blockHead { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .h2 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-.blockBody { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; background: var(--bg); }
+.blockBody { border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); padding: 16px; background: var(--bg); }
 
 .gate { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--bg-app); }
-.gateCard { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 18px; padding: 28px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); }
+.gateCard { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 18px; padding: 28px; border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); }
 .gateTitle { font-size: 18px; font-weight: 600; }
 
 .mfaSetup { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
