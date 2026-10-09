@@ -19,6 +19,8 @@ const settingsSchema = z.object({
   overloadPct: z.number().min(50).max(300), healthyPct: z.number().min(10).max(200), underPct: z.number().min(0).max(150),
   tempPasswordHours: z.number().int().min(1).max(24 * 30), sessionTimeoutMinutes: z.number().int().min(5).max(60 * 24 * 30),
   enforceAdminMfa: z.boolean(), aiEnabled: z.boolean(), allowOverlappingTimers: z.boolean(), lockApprovedWeeks: z.boolean(),
+  autoSubmitTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM"), workdayStart: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM"),
+  requireDescription: z.boolean(), requireTags: z.boolean(), billableEnabled: z.boolean(),
   invitationDays: z.number().int().min(1).max(60), taskKey: z.string().regex(/^[A-Z]{2,5}$/, "Use 2 to 5 capital letters"),
 }).partial();
 

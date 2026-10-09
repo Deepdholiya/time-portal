@@ -42,6 +42,7 @@ const Users = p(() => import("./pages/admin/users"));
 const Roles = p(() => import("./pages/admin/roles"));
 const Companies = p(() => import("./pages/admin/companies"));
 const Settings = p(() => import("./pages/admin/settings"));
+const TagsAdmin = p(() => import("./pages/admin/tags"));
 const Integrations = p(() => import("./pages/admin/integrations"));
 const Automations = p(() => import("./pages/admin/automations"));
 const Audit = p(() => import("./pages/admin/audit"));
@@ -129,6 +130,7 @@ export function App() {
         <Route path="admin/roles" element={g(["settings", "yes"], <Roles />)} />
         <Route path="admin/companies" element={g(["companies", "yes"], <Companies />)} />
         <Route path="admin/settings" element={g(["settings", "yes"], <Settings />)} />
+        <Route path="admin/tags" element={g(["settings", "yes"], <TagsAdmin />)} />
         <Route path="admin/integrations" element={g(["settings", "yes"], <Integrations />)} />
         <Route path="admin/automations" element={g(["settings", "yes"], <Automations />)} />
         <Route path="admin/audit" element={g(["audit", "yes"], <Audit />)} />

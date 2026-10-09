@@ -267,7 +267,8 @@ async function main() {
         if (minutes < 15) break;
         const mine = sl.tasks.filter((t) => t.assigneeId === u.id);
         const task = mine.length && rand() < 0.85 ? pick(mine) : sl.tasks.length && rand() < 0.4 ? pick(sl.tasks) : null;
-        entries.push({ companyId: bux.id, userId: u.id, projectId: sl.projectId, taskId: task?.id ?? null, date: day, startTime: hhmm(cursor), endTime: hhmm(cursor + minutes), minutes, description: pick(sl.work), billable: sl.billable });
+        const at = new Date(day + "T10:00:00Z");
+        entries.push({ companyId: bux.id, userId: u.id, projectId: sl.projectId, taskId: task?.id ?? null, date: day, startTime: hhmm(cursor), endTime: hhmm(cursor + minutes), minutes, description: pick(sl.work), billable: sl.billable, createdAt: at, updatedAt: at });
         cursor += minutes + (rand() < 0.3 ? 30 : 0);
         if (cursor > 13 * 60 && cursor < 14 * 60) cursor = 14 * 60;
         logged += minutes;
@@ -287,16 +288,48 @@ async function main() {
     if (p.id !== ops.id) await prisma.project.update({ where: { id: p.id }, data: { estimatedHours: est } });
   }
 
-  // ---- Timesheets: earlier weeks approved, last week submitted except a few ----
-  const lastWeek = addDays(weekStart(TODAY), -7);
-  for (const [k, u] of Object.entries(users)) {
-    for (let w = 6; w >= 2; w--) {
-      const ws = addDays(weekStart(TODAY), -7 * w);
-      await prisma.timesheetPeriod.create({ data: { companyId: bux.id, userId: u.id, weekStart: ws, status: "APPROVED", submittedAt: new Date(addDays(ws, 5) + "T10:00:00Z"), reviewedAt: new Date(addDays(ws, 7) + "T10:00:00Z"), reviewedById: k === "priya" ? users.rohan.id : users.priya.id } });
-    }
-    if (k === "sneha") await prisma.timesheetPeriod.create({ data: { companyId: bux.id, userId: u.id, weekStart: lastWeek, status: "REJECTED", note: "Tuesday has 3h on Cart and checkout with no description of what changed. Please add detail.", submittedAt: new Date(addDays(lastWeek, 5) + "T10:00:00Z"), reviewedAt: new Date(), reviewedById: users.rohan.id } });
-    else if (!["admin", "arjun", "neha"].includes(k)) await prisma.timesheetPeriod.create({ data: { companyId: bux.id, userId: u.id, weekStart: lastWeek, status: "SUBMITTED", submittedAt: new Date(addDays(lastWeek, 5) + "T10:00:00Z") } });
+  // ---- Tags: managed by admins, some limited to teams, attached to recent entries ----
+  const tagDefs: [string, string, string[], boolean][] = [
+    ["Meeting", "#8a8f98", [], true], ["Client call", "#4ea7fc", [], true], ["Bug fix", "#eb5757", ["Engineering", "QA"], true],
+    ["Code review", "#26b5ce", ["Engineering"], true], ["Research", "#bb87fc", ["Design"], true], ["Content", "#f2994a", ["Marketing"], true],
+    ["Overtime", "#f2c94c", [], true], ["Training", "#4cb782", [], false],
+  ];
+  const tagIds: Record<string, number> = {};
+  for (const [name, color, teamNames, active] of tagDefs) {
+    tagIds[name] = (await prisma.tag.create({ data: { companyId: bux.id, name, color, active, teamIds: JSON.stringify(teamNames.map((t) => teams[t])) } })).id;
   }
+  const teamOfUser = new Map((await prisma.membership.findMany({ where: { companyId: bux.id } })).map((m) => [m.userId, Object.entries(teams).find(([, id]) => id === m.teamId)?.[0]]));
+  const recent = await prisma.timeEntry.findMany({ where: { companyId: bux.id, date: { gte: addDays(TODAY, -45) } }, select: { id: true, userId: true, description: true } });
+  const links: Prisma.TimeEntryTagCreateManyInput[] = [];
+  for (const e of recent) {
+    const team = teamOfUser.get(e.userId);
+    const allowed = tagDefs.filter(([, , ts, active]) => active && (!ts.length || (team && ts.includes(team)))).map(([n]) => n);
+    const d = e.description.toLowerCase();
+    const hit = d.includes("interview") || d.includes("session") || d.includes("review") ? (allowed.includes("Code review") && d.includes("review") ? "Code review" : "Meeting")
+      : d.includes("regression") || d.includes("latency") ? "Bug fix" : d.includes("research") || d.includes("survey") || d.includes("audit") ? "Research" : null;
+    if (hit && allowed.includes(hit)) links.push({ entryId: e.id, tagId: tagIds[hit] });
+    else if (rand() < 0.12) links.push({ entryId: e.id, tagId: tagIds[pick(allowed)] });
+  }
+  await prisma.timeEntryTag.createMany({ data: links });
+
+  // ---- Timesheets: days are submitted daily. Older weeks approved, last week waiting, this week submits itself at the cutoff ----
+  const lastWeek = addDays(weekStart(TODAY), -7);
+  const days: Prisma.TimesheetDayCreateManyInput[] = [];
+  const seen = new Set<string>();
+  for (const e of entries) {
+    const key = `${e.userId}:${e.date}`;
+    if (seen.has(key) || e.date >= weekStart(TODAY) || e.date < addDays(weekStart(TODAY), -42)) continue;
+    seen.add(key);
+    const k = Object.entries(users).find(([, u]) => u.id === e.userId)![0];
+    const submittedAt = new Date(e.date + "T18:29:00Z");
+    if (e.date < lastWeek) days.push({ companyId: bux.id, userId: e.userId, date: e.date, status: "APPROVED", auto: true, submittedAt, reviewedAt: new Date(addDays(weekStart(e.date), 7) + "T10:00:00Z"), reviewedById: k === "priya" ? users.rohan.id : users.priya.id });
+    else if (k === "sneha" && e.date === addDays(lastWeek, 1)) days.push({ companyId: bux.id, userId: e.userId, date: e.date, status: "REJECTED", auto: true, note: "3h on Cart and checkout with no description of what changed. Please add detail.", submittedAt, reviewedAt: new Date(), reviewedById: users.rohan.id });
+    else days.push({ companyId: bux.id, userId: e.userId, date: e.date, status: "SUBMITTED", auto: true, submittedAt });
+  }
+  await prisma.timesheetDay.createMany({ data: days });
+  // Neha left yesterday's last entry without a description, so tonight's automatic submission flags it.
+  const nehaLast = await prisma.timeEntry.findFirst({ where: { userId: users.neha.id, date: { gte: weekStart(TODAY), lt: TODAY } }, orderBy: [{ date: "desc" }, { startTime: "desc" }] });
+  if (nehaLast) await prisma.timeEntry.update({ where: { id: nehaLast.id }, data: { description: "", updatedAt: new Date(nehaLast.date + "T10:00:00Z") } });
 
   // ---- Leave and holidays ----
   for (const [date, name] of [["2026-10-02", "Gandhi Jayanti"], ["2026-10-20", "Dussehra"], ["2026-11-09", "Diwali"], ["2026-12-25", "Christmas"]] as const) await prisma.holiday.create({ data: { companyId: bux.id, date, name } });
@@ -347,7 +380,7 @@ async function main() {
   await prisma.notification.createMany({
     data: [
       { companyId: bux.id, userId: users.neha.id, type: "MENTION", title: "Priya Shah mentioned you on \"Homepage hi-fi\"", body: talk[0][1], link: `/tasks/${active[0].id}` },
-      { companyId: bux.id, userId: users.sneha.id, type: "TIMESHEET_REJECTED", title: `Your week of ${lastWeek} was sent back`, body: "Tuesday has 3h on Cart and checkout with no description of what changed. Please add detail.", link: `/timesheet?week=${lastWeek}` },
+      { companyId: bux.id, userId: users.sneha.id, type: "TIMESHEET_REJECTED", title: `Your time for ${addDays(lastWeek, 1)} needs corrections`, body: "3h on Cart and checkout with no description of what changed. Please add detail.", link: `/timesheet?from=${addDays(lastWeek, 1)}&to=${addDays(lastWeek, 1)}` },
       { companyId: bux.id, userId: users.rohan.id, type: "PROJECT_AT_RISK", title: "Mobile Banking App is at risk", body: "1 dependency conflict · 1 blocked", link: `/projects/${projectsByName["Mobile Banking App"]}` },
       { companyId: bux.id, userId: users.priya.id, type: "LEAVE_REQUESTED", title: "Karan Patel requested leave", link: "/approvals?tab=leave" },
     ],

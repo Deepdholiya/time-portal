@@ -25,11 +25,13 @@ export interface DatePickerProps {
   fullWidth?: boolean;
   trigger?: ReactElement;
   disabled?: boolean;
+  /** Latest selectable date (ISO); later days are disabled. */
+  max?: string;
   "aria-label"?: string;
 }
 
 /** Form fields use Arc DatePicker. Property chips and custom triggers open Arc's Calendar in an Arc Popover. Values are ISO dates. */
-export const DatePicker = ownsField(function DatePicker({ value, onChange, placeholder = "Pick a date", size = "md", appearance = "field", clearable = true, highlightOverdue, fullWidth, trigger, disabled, ...rest }: DatePickerProps) {
+export const DatePicker = ownsField(function DatePicker({ value, onChange, placeholder = "Pick a date", size = "md", appearance = "field", clearable = true, highlightOverdue, fullWidth, trigger, disabled, max, ...rest }: DatePickerProps) {
   const field = useField();
   const [open, setOpen] = useState(false);
   if (appearance === "field" && !trigger) {
@@ -43,6 +45,7 @@ export const DatePicker = ownsField(function DatePicker({ value, onChange, place
           placeholder={placeholder}
           description={field?.error ?? field?.description}
           disabled={disabled}
+          maxDate={max ? parse(max) : undefined}
           showToday
         />
       </div>
@@ -59,7 +62,7 @@ export const DatePicker = ownsField(function DatePicker({ value, onChange, place
     <Popover trigger={t} open={open} onOpenChange={setOpen} padded={false}>
       {(close) => (
         <div className={s.calendarPop}>
-          <Calendar value={value ? parse(value) : undefined} onChange={(d) => { onChange(iso(d)); close(); }} showToday />
+          <Calendar value={value ? parse(value) : undefined} onChange={(d) => { onChange(iso(d)); close(); }} maxDate={max ? parse(max) : undefined} showToday />
           <div className={s.calendarFoot}>
             <button type="button" className="link small" style={{ background: "none", border: 0 }} onClick={() => { onChange(iso(new Date())); close(); }}>Today</button>
             {clearable && value && <button type="button" className="link small" style={{ background: "none", border: 0 }} onClick={() => { onChange(null); close(); }}>Clear</button>}
@@ -97,17 +100,25 @@ export function presetRange(name: string, today = iso(new Date())): DateRange {
 export const PRESETS = ["Today", "Yesterday", "This week", "Last week", "This month", "Last month", "Last 30 days", "This quarter", "Last quarter", "This year"];
 
 /** Arc DateRangePicker with the app's named presets. Ranges travel as ISO dates and remember which preset produced them. */
-export function DateRangePicker({ value, onChange, presets = PRESETS, size = "md" }: { value: DateRange; onChange: (r: DateRange) => void; presets?: string[]; size?: "sm" | "md" }) {
-  const arcPresets: DateRangePreset[] = presets.map((name) => ({ label: name, range: (today) => { const r = presetRange(name, iso(today)); return { start: parse(r.from), end: parse(r.to) }; } }));
+export function DateRangePicker({ value, onChange, presets = PRESETS, size = "md", max, weekStartsOn = 1, presetFn = presetRange }: {
+  value: DateRange; onChange: (r: DateRange) => void; presets?: string[]; size?: "sm" | "md";
+  /** Latest selectable date (ISO). */
+  max?: string;
+  weekStartsOn?: 0 | 1;
+  /** Turns a preset name into a range; defaults to the app-wide presets. */
+  presetFn?: (name: string) => DateRange;
+}) {
+  const arcPresets: DateRangePreset[] = presets.map((name) => ({ label: name, range: () => { const r = presetFn(name); return { start: parse(r.from), end: parse(r.to) }; } }));
   return (
     <div className={cx(size === "sm" && s.sm, s.inline)}>
       <ArcDateRangePicker
         value={{ start: parse(value.from), end: parse(value.to) }}
         presets={arcPresets}
-        weekStartsOn={1}
+        weekStartsOn={weekStartsOn}
+        maxDate={max ? parse(max) : undefined}
         onChange={(r) => {
           const from = iso(r.start), to = iso(r.end);
-          const match = presets.find((p) => { const x = presetRange(p); return x.from === from && x.to === to; });
+          const match = presets.find((p) => { const x = presetFn(p); return x.from === from && x.to === to; });
           onChange({ from, to, preset: match ?? "Custom" });
         }}
       />

@@ -1,7 +1,7 @@
 .table td { height: 40px; vertical-align: middle; }
 .nameCell { display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 340px; }
 .name { font-weight: 500; color: var(--text); }
-.code { color: var(--text-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.code { color: var(--text-3); font-size: 12px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .progressCell { display: flex; align-items: center; gap: 8px; width: 120px; }
 .progressCell .progress { flex: 1; }
 .locked { color: var(--text-3); }

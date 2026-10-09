@@ -1,8 +1,8 @@
 # Time Portal
 
-Work management and time intelligence portal: Clockify-style time tracking, Linear/Asana-style tasks and projects, a date- and week-wise roadmap, workload, analytics with drill-down, Excel/CSV/PDF reports, approvals, leave, AI client emails, multi-company tenancy and role-based access that admins can tune.
+Work management and time intelligence portal: manual time logging with daily auto-submission, Linear/Asana-style tasks and projects, a date- and week-wise roadmap, workload, analytics with drill-down, Excel/CSV/PDF reports, approvals, leave, AI client emails, multi-company tenancy and role-based access that admins can tune.
 
-The UI follows Linear's look: a light sidebar with a workspace switcher, dense 36px rows, status circles and priority bars, a right-hand task panel, ⌘K command menu and dark mode (⇧D).
+The UI follows Linear's look with Intercom-style navigation: a rail of areas (Home, Time, Work, Insights, Admin) beside a panel of grouped pages, a top bar that searches pages, projects and tasks and answers questions about your time (Ask AI, ⌘K), dense rows, a right-hand task panel and dark mode (⇧D). Text is Instrument Sans; numbers, durations and totals use Chivo Mono.
 
 ## Run it locally
 
@@ -33,6 +33,12 @@ To run as a single server: `npm run build && npm start`, then open http://localh
 
 Import the repository at vercel.com/new and keep the defaults; `vercel.json` builds the web app, loads the demo data and serves the API from `api/index.mjs`. Set `JWT_SECRET` in the project's environment variables, and connect a Postgres database (for example Neon from the Storage tab) so `DATABASE_URL` points at it: the build then creates the tables and loads the demo data there on every deploy. Without Postgres each serverless instance gets its own SQLite copy, so sign-ins and changes are not shared between instances.
 
+### Time logging rules
+
+- Time is logged by hand, in the Time tracker or straight into Timesheet cells: a duration plus a start gives the end (the start defaults to where the day's last entry ended). Overlaps, future dates and entries past midnight are rejected.
+- Entries save immediately. Each day is submitted automatically at the company's cutoff (Admin → Company settings → Time, default 23:59 in the company timezone); a day with problems (a missing description or tag, or overlaps) is marked "Needs fixes" and the employee is notified. Days can also be submitted by hand, reopened for corrections while waiting for approval, and sent back by a manager.
+- Tags are managed under Admin → Time tags, can be limited to teams, and can be required.
+
 ### Optional settings (`server/.env`)
 
 | Variable | Effect when set | Without it |
@@ -52,13 +58,14 @@ server/   Express 5 + Prisma (SQLite) API in TypeScript, run with tsx
   src/permissions.ts     features, levels and role defaults (per company, with per-user overrides)
   src/auth.ts, totp.ts   cookie sessions, lockout, MFA (TOTP), forced password change
   src/health.ts          project health, budget and hour variance
-  src/jobs.ts            due-soon/overdue/milestone/at-risk alerts, timesheet reminders, scheduled reports
+  src/days.ts            daily submission: cutoff, automatic submit, validation, day locks
+  src/jobs.ts            due-soon/overdue/milestone/at-risk alerts, daily auto-submit and reminders, scheduled reports
   src/routes/            auth, time, timesheets, tasks, projects, people, clients, companies, analytics,
                          reports, roadmap/calendar/leave, settings, notifications, ai, public
 client/   React 19 + Vite
   src/components/arc/    official Arc components from uiarc.dev, vendored unchanged from its shadcn registry
   src/components/ui/     the app's component API, built on the Arc components (pages import from here)
-  src/components/app/    app shell: sidebar, ⌘K, running timer, status/priority icons
+  src/components/app/    app shell: rail and panel navigation, top bar search with Ask AI, shared date range control, status/priority icons
   src/pages/             one folder per screen
 ```
 

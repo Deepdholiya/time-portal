@@ -33,7 +33,7 @@ export function timeWhere(req: Request, f: Filters, level: "own" | "all"): Prism
   if (f.milestoneId) and.push({ task: { milestoneId: { in: f.milestoneId } } });
   if (f.status) and.push({ task: { status: { in: f.status.split(",") } } });
   if (f.priority) and.push({ task: { priority: { in: f.priority.split(",") } } });
-  if (f.tag) and.push({ OR: [{ task: { tags: { contains: `"${f.tag}"` } } }, { project: { tags: { contains: `"${f.tag}"` } } }] });
+  if (f.tag) and.push({ OR: [{ tags: { some: { tag: { name: f.tag } } } }, { task: { tags: { contains: `"${f.tag}"` } } }, { project: { tags: { contains: `"${f.tag}"` } } }] });
   if (f.billable) and.push({ billable: f.billable === "true" });
   if (f.q) and.push({ description: { contains: f.q } });
   return { AND: and };

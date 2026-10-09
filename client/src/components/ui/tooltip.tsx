@@ -2,7 +2,7 @@ import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { Tooltip as ArcTooltip } from "../arc/tooltip/tooltip";
 import s from "./ui.module.css";
 
-export interface TooltipProps { content: ReactNode; children: ReactElement; shortcut?: string; delay?: number; side?: "top" | "bottom" }
+export interface TooltipProps { content: ReactNode; children: ReactElement; shortcut?: string; delay?: number; side?: "top" | "bottom" | "left" | "right" }
 
 /** Arc Tooltip, with an optional keyboard hint after the text. */
 export function Tooltip({ content, children, shortcut, side = "top" }: TooltipProps) {

@@ -14,13 +14,13 @@ import s from "./team-time.module.css";
 type GroupBy = "employee" | "project" | "subProject" | "client" | "task";
 type Span = "week" | "2weeks" | "month";
 interface Row { key: string; label: string; color?: string; sub?: string; days: Record<string, number>; minutes: number; billableMinutes: number; entries: number; userId?: number }
-interface Resp { rows: Row[]; periods: { userId: number; weekStart: string; status: string }[]; total: number }
+interface Resp { rows: Row[]; days: { userId: number; date: string; status: string }[]; total: number }
 
 const GROUPS: { value: GroupBy; label: string }[] = [
   { value: "employee", label: "Employee" }, { value: "project", label: "Project" }, { value: "subProject", label: "Sub-project" }, { value: "client", label: "Client" }, { value: "task", label: "Task" },
 ];
-const STATUS_TONE: Record<string, "yellow" | "green" | "red" | "gray"> = { SUBMITTED: "yellow", APPROVED: "green", REJECTED: "red" };
-const STATUS_LABEL: Record<string, string> = { SUBMITTED: "Submitted", APPROVED: "Approved", REJECTED: "Sent back" };
+const STATUS_TONE: Record<string, "yellow" | "green" | "red" | "gray" | "orange"> = { SUBMITTED: "yellow", APPROVED: "green", REJECTED: "red", FAILED: "orange", REOPENED: "gray" };
+const STATUS_LABEL: Record<string, string> = { SUBMITTED: "Submitted", APPROVED: "Approved", REJECTED: "Sent back", FAILED: "Needs fixes", REOPENED: "Correcting" };
 
 // Row key prefix → filter that isolates the row's entries.
 function rowFilter(groupBy: GroupBy, key: string): Record<string, string> {
@@ -52,8 +52,9 @@ export default function TeamTime() {
   const billable = (data?.rows ?? []).reduce((a, r) => a + r.billableMinutes, 0);
   const statusFor = (userId?: number) => {
     if (!userId || !data) return null;
-    const p = data.periods.filter((x) => x.userId === userId && x.weekStart >= weekStart(from, ws) && x.weekStart <= to);
-    return p.length ? p[p.length - 1].status : null;
+    // The status that most needs attention across the person's days in range.
+    const seen = new Set(data.days.filter((x) => x.userId === userId).map((x) => x.status));
+    return ["REJECTED", "FAILED", "REOPENED", "SUBMITTED", "APPROVED"].find((x) => seen.has(x)) ?? null;
   };
   const label = span === "month" ? new Date(from + "T00:00:00").toLocaleString("en", { month: "long", year: "numeric" }) : `${fmtDate(from)} – ${fmtDate(to, true)}`;
   const compact = days.length > 14;

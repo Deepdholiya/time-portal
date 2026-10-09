@@ -1,7 +1,7 @@
 // SQLite for local development. For Postgres, set provider = "postgresql"
 // and point DATABASE_URL at your database.
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   // rhel-openssl-3.0.x is the engine Vercel's Node runtime needs.
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
@@ -15,22 +15,22 @@ datasource db {
 
 // A company is the tenant boundary: clients, projects, tasks, time and settings all belong to one.
 model Company {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   name         String
-  slug         String    @unique
-  color        String    @default("#5e6ad2")
+  slug         String   @unique
+  color        String   @default("#5e6ad2")
   logoUrl      String?
-  country      String    @default("India")
-  timezone     String    @default("Asia/Kolkata")
-  currency     String    @default("INR")
-  workWeek     String    @default("1,2,3,4,5") // ISO weekdays that are working days
-  weekStartsOn Int       @default(1) // 1 = Monday
-  hoursPerDay  Float     @default(8)
+  country      String   @default("India")
+  timezone     String   @default("Asia/Kolkata")
+  currency     String   @default("INR")
+  workWeek     String   @default("1,2,3,4,5") // ISO weekdays that are working days
+  weekStartsOn Int      @default(1) // 1 = Monday
+  hoursPerDay  Float    @default(8)
   billingNotes String?
   // JSON blob of company settings: thresholds, security, AI, temp password expiry...
-  settings     String    @default("{}")
-  status       String    @default("ACTIVE") // ACTIVE | ARCHIVED
-  createdAt    DateTime  @default(now())
+  settings     String   @default("{}")
+  status       String   @default("ACTIVE") // ACTIVE | ARCHIVED
+  createdAt    DateTime @default(now())
 
   memberships   Membership[]
   teams         Team[]
@@ -50,6 +50,8 @@ model Company {
   emails        EmailMessage[]
   leaves        LeaveRequest[]
   periods       TimesheetPeriod[]
+  days          TimesheetDay[]
+  tags          Tag[]
   automations   Automation[]
   integrations  Integration[]
   permissions   RolePermission[]
@@ -71,46 +73,48 @@ model Membership {
 // ---------- People & auth ----------
 
 model User {
-  id                 Int       @id @default(autoincrement())
-  name               String
-  email              String    @unique
-  passwordHash       String
-  role               String    @default("EMPLOYEE") // ADMIN | MANAGER | EMPLOYEE
-  status             String    @default("ACTIVE") // INVITED | ACTIVE | DEACTIVATED
-  title              String?
-  phone              String?
-  location           String?
-  weeklyCapacity     Float     @default(40)
-  costRate           Float? // internal hourly cost, Admin only
-  billRate           Float? // default hourly bill rate
-  mustChangePassword Boolean   @default(false)
+  id                    Int       @id @default(autoincrement())
+  name                  String
+  email                 String    @unique
+  passwordHash          String
+  role                  String    @default("EMPLOYEE") // ADMIN | MANAGER | EMPLOYEE
+  status                String    @default("ACTIVE") // INVITED | ACTIVE | DEACTIVATED
+  title                 String?
+  phone                 String?
+  location              String?
+  weeklyCapacity        Float     @default(40)
+  costRate              Float? // internal hourly cost, Admin only
+  billRate              Float? // default hourly bill rate
+  mustChangePassword    Boolean   @default(false)
   tempPasswordExpiresAt DateTime?
-  mfaSecret          String?
-  mfaEnabled         Boolean   @default(false)
-  failedLogins       Int       @default(0)
-  lockedUntil        DateTime?
-  lastLoginAt        DateTime?
-  lastCompanyId      Int?
-  emailVerifiedAt    DateTime?
-  createdAt          DateTime  @default(now())
+  mfaSecret             String?
+  mfaEnabled            Boolean   @default(false)
+  failedLogins          Int       @default(0)
+  lockedUntil           DateTime?
+  lastLoginAt           DateTime?
+  lastCompanyId         Int?
+  emailVerifiedAt       DateTime?
+  createdAt             DateTime  @default(now())
 
   memberships   Membership[]
   sessions      Session[]
-  managed       Project[]          @relation("ProjectManager")
+  managed       Project[]         @relation("ProjectManager")
   projectRoles  ProjectMember[]
   timeEntries   TimeEntry[]
-  assigned      Task[]             @relation("Assignee")
-  created       Task[]             @relation("Creator")
+  assigned      Task[]            @relation("Assignee")
+  created       Task[]            @relation("Creator")
   comments      Comment[]
   attachments   Attachment[]
   following     TaskFollower[]
-  periods       TimesheetPeriod[]  @relation("PeriodOwner")
-  reviewed      TimesheetPeriod[]  @relation("PeriodReviewer")
-  leaves        LeaveRequest[]     @relation("LeaveOwner")
-  leaveReviews  LeaveRequest[]     @relation("LeaveReviewer")
+  periods       TimesheetPeriod[] @relation("PeriodOwner")
+  reviewed      TimesheetPeriod[] @relation("PeriodReviewer")
+  days          TimesheetDay[]    @relation("DayOwner")
+  reviewedDays  TimesheetDay[]    @relation("DayReviewer")
+  leaves        LeaveRequest[]    @relation("LeaveOwner")
+  leaveReviews  LeaveRequest[]    @relation("LeaveReviewer")
   notifications Notification[]
   auditLogs     AuditLog[]
-  invitesSent   Invitation[]       @relation("InvitedBy")
+  invitesSent   Invitation[]      @relation("InvitedBy")
   savedViews    SavedView[]
   reports       SavedReport[]
   emails        EmailMessage[]
@@ -222,43 +226,43 @@ model Initiative {
 }
 
 model Project {
-  id             Int       @id @default(autoincrement())
-  companyId      Int
-  name           String
-  code           String?
-  description    String?
-  notes          String? // project notes (markdown)
-  color          String    @default("#5e6ad2")
-  status         String    @default("ACTIVE") // PLANNING | ACTIVE | ON_HOLD | COMPLETED
-  priority       String    @default("MEDIUM") // URGENT | HIGH | MEDIUM | LOW | NONE
-  health         String    @default("ON_TRACK") // manual override; computed health is returned alongside
-  archived       Boolean   @default(false)
-  startDate      String? // YYYY-MM-DD
-  endDate        String?
-  estimatedHours Float?
-  budget         Float?
-  billingType    String    @default("HOURLY") // HOURLY | FIXED | NON_BILLABLE
-  hourlyRate     Float?
-  tags           String    @default("[]") // JSON array
-  links          String    @default("{}") // JSON {figma, document, drive, other[]}
-  clientShareToken String? @unique
-  clientId       Int?
-  parentId       Int?
-  managerId      Int?
-  teamId         Int?
-  initiativeId   Int?
-  createdAt      DateTime  @default(now())
-  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  client         Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  parent         Project?  @relation("SubProjects", fields: [parentId], references: [id], onDelete: Cascade)
-  children       Project[] @relation("SubProjects")
-  manager        User?     @relation("ProjectManager", fields: [managerId], references: [id], onDelete: SetNull)
-  team           Team?     @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  initiative     Initiative? @relation(fields: [initiativeId], references: [id], onDelete: SetNull)
-  members        ProjectMember[]
-  milestones     Milestone[]
-  tasks          Task[]
-  timeEntries    TimeEntry[]
+  id               Int             @id @default(autoincrement())
+  companyId        Int
+  name             String
+  code             String?
+  description      String?
+  notes            String? // project notes (markdown)
+  color            String          @default("#5e6ad2")
+  status           String          @default("ACTIVE") // PLANNING | ACTIVE | ON_HOLD | COMPLETED
+  priority         String          @default("MEDIUM") // URGENT | HIGH | MEDIUM | LOW | NONE
+  health           String          @default("ON_TRACK") // manual override; computed health is returned alongside
+  archived         Boolean         @default(false)
+  startDate        String? // YYYY-MM-DD
+  endDate          String?
+  estimatedHours   Float?
+  budget           Float?
+  billingType      String          @default("HOURLY") // HOURLY | FIXED | NON_BILLABLE
+  hourlyRate       Float?
+  tags             String          @default("[]") // JSON array
+  links            String          @default("{}") // JSON {figma, document, drive, other[]}
+  clientShareToken String?         @unique
+  clientId         Int?
+  parentId         Int?
+  managerId        Int?
+  teamId           Int?
+  initiativeId     Int?
+  createdAt        DateTime        @default(now())
+  company          Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  client           Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  parent           Project?        @relation("SubProjects", fields: [parentId], references: [id], onDelete: Cascade)
+  children         Project[]       @relation("SubProjects")
+  manager          User?           @relation("ProjectManager", fields: [managerId], references: [id], onDelete: SetNull)
+  team             Team?           @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  initiative       Initiative?     @relation(fields: [initiativeId], references: [id], onDelete: SetNull)
+  members          ProjectMember[]
+  milestones       Milestone[]
+  tasks            Task[]
+  timeEntries      TimeEntry[]
 }
 
 model ProjectMember {
@@ -271,55 +275,55 @@ model ProjectMember {
 }
 
 model Milestone {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   projectId   Int
   name        String
   description String?
   date        String // YYYY-MM-DD
-  done        Boolean  @default(false)
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  done        Boolean @default(false)
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks       Task[]
 }
 
 model Task {
-  id             Int       @id @default(autoincrement())
-  companyId      Int
-  number         Int // per-company sequence, shown as KEY-123
-  title          String
-  description    String?
-  status         String    @default("TODO") // BACKLOG | TODO | IN_PROGRESS | IN_REVIEW | BLOCKED | DONE
-  priority       String    @default("NONE") // URGENT | HIGH | MEDIUM | LOW | NONE
-  section        String?
-  sortOrder      Float     @default(0)
-  startDate      String?
-  dueDate        String?
-  estimateHours  Float?
-  billable       Boolean   @default(true)
-  tags           String    @default("[]")
-  customFields   String    @default("{}")
-  recurrence     String? // DAILY | WEEKLY | MONTHLY | null
-  completedAt    DateTime?
-  projectId      Int
-  parentId       Int?
-  milestoneId    Int?
-  assigneeId     Int?
-  creatorId      Int?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  parent         Task?     @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
-  subtasks       Task[]    @relation("Subtasks")
-  milestone      Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
-  assignee       User?     @relation("Assignee", fields: [assigneeId], references: [id], onDelete: SetNull)
-  creator        User?     @relation("Creator", fields: [creatorId], references: [id], onDelete: SetNull)
-  blocking       TaskDependency[] @relation("Blocker")
-  blockedBy      TaskDependency[] @relation("Blocked")
-  comments       Comment[]
-  attachments    Attachment[]
-  followers      TaskFollower[]
-  activity       TaskActivity[]
-  timeEntries    TimeEntry[]
+  id            Int              @id @default(autoincrement())
+  companyId     Int
+  number        Int // per-company sequence, shown as KEY-123
+  title         String
+  description   String?
+  status        String           @default("TODO") // BACKLOG | TODO | IN_PROGRESS | IN_REVIEW | BLOCKED | DONE
+  priority      String           @default("NONE") // URGENT | HIGH | MEDIUM | LOW | NONE
+  section       String?
+  sortOrder     Float            @default(0)
+  startDate     String?
+  dueDate       String?
+  estimateHours Float?
+  billable      Boolean          @default(true)
+  tags          String           @default("[]")
+  customFields  String           @default("{}")
+  recurrence    String? // DAILY | WEEKLY | MONTHLY | null
+  completedAt   DateTime?
+  projectId     Int
+  parentId      Int?
+  milestoneId   Int?
+  assigneeId    Int?
+  creatorId     Int?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  company       Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  project       Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent        Task?            @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks      Task[]           @relation("Subtasks")
+  milestone     Milestone?       @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  assignee      User?            @relation("Assignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  creator       User?            @relation("Creator", fields: [creatorId], references: [id], onDelete: SetNull)
+  blocking      TaskDependency[] @relation("Blocker")
+  blockedBy     TaskDependency[] @relation("Blocked")
+  comments      Comment[]
+  attachments   Attachment[]
+  followers     TaskFollower[]
+  activity      TaskActivity[]
+  timeEntries   TimeEntry[]
 
   @@unique([companyId, number])
   @@index([projectId])
@@ -345,15 +349,15 @@ model TaskFollower {
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   taskId    Int
   userId    Int
   body      String
-  mentions  String   @default("[]")
-  createdAt DateTime @default(now())
+  mentions  String    @default("[]")
+  createdAt DateTime  @default(now())
   editedAt  DateTime?
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Attachment {
@@ -404,33 +408,81 @@ model Template {
 // ---------- Time ----------
 
 model TimeEntry {
-  id             Int       @id @default(autoincrement())
+  id             Int            @id @default(autoincrement())
   companyId      Int
   date           String // YYYY-MM-DD
   startTime      String? // HH:MM
   endTime        String?
   minutes        Int
   description    String
-  billable       Boolean   @default(true)
-  running        Boolean   @default(false)
+  billable       Boolean        @default(true)
+  running        Boolean        @default(false)
   startedAt      DateTime? // when the current running segment started
   pausedAt       DateTime?
-  accumulatedSec Int       @default(0) // seconds from earlier segments of a paused timer
+  accumulatedSec Int            @default(0) // seconds from earlier segments of a paused timer
   userId         Int
   projectId      Int
   taskId         Int?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  task           Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task           Task?          @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  tags           TimeEntryTag[]
 
   @@index([companyId, date])
   @@index([userId, date])
   @@index([projectId])
 }
 
+// Company-wide tags for time entries. Admins create them and choose which teams may use them.
+model Tag {
+  id        Int            @id @default(autoincrement())
+  companyId Int
+  name      String
+  color     String         @default("#5e6ad2")
+  active    Boolean        @default(true)
+  teamIds   String         @default("[]") // JSON array of team ids; empty means every team
+  createdAt DateTime       @default(now())
+  company   Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  entries   TimeEntryTag[]
+
+  @@unique([companyId, name])
+}
+
+model TimeEntryTag {
+  entryId Int
+  tagId   Int
+  entry   TimeEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  tag     Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([entryId, tagId])
+  @@index([tagId])
+}
+
+// One person's day of time. Days are submitted automatically at the company's cutoff, or by hand.
+// FAILED means the automatic submission found problems the employee has to fix; REOPENED is a day pulled back for corrections.
+model TimesheetDay {
+  id           Int       @id @default(autoincrement())
+  companyId    Int
+  userId       Int
+  date         String
+  status       String    @default("SUBMITTED") // SUBMITTED | APPROVED | REJECTED | FAILED | REOPENED
+  note         String?
+  auto         Boolean   @default(false)
+  submittedAt  DateTime  @default(now())
+  reviewedAt   DateTime?
+  reviewedById Int?
+  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user         User      @relation("DayOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy   User?     @relation("DayReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, userId, date])
+  @@index([companyId, status])
+}
+
+// Weekly submissions from before daily submission; kept so existing databases migrate without data loss. No longer used.
 model TimesheetPeriod {
   id           Int       @id @default(autoincrement())
   companyId    Int
@@ -449,21 +501,21 @@ model TimesheetPeriod {
 }
 
 model LeaveRequest {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   companyId    Int
   userId       Int
-  type         String    @default("VACATION") // VACATION | SICK | PERSONAL | OTHER
+  type         String   @default("VACATION") // VACATION | SICK | PERSONAL | OTHER
   from         String
   to           String
-  halfDay      Boolean   @default(false)
+  halfDay      Boolean  @default(false)
   reason       String?
-  status       String    @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED
+  status       String   @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED
   reviewedById Int?
   reviewNote   String?
-  createdAt    DateTime  @default(now())
-  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user         User      @relation("LeaveOwner", fields: [userId], references: [id], onDelete: Cascade)
-  reviewedBy   User?     @relation("LeaveReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user         User     @relation("LeaveOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy   User?    @relation("LeaveReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
 }
 
 model Holiday {
@@ -490,17 +542,17 @@ model SavedView {
 }
 
 model SavedReport {
-  id         Int       @id @default(autoincrement())
-  companyId  Int
-  userId     Int
-  name       String
-  config     String // filters, grouping, columns, chart
-  schedule   String? // DAILY | WEEKLY | MONTHLY | QUARTERLY
-  nextRunAt  DateTime?
-  lastRunAt  DateTime?
-  createdAt  DateTime  @default(now())
-  company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int       @id @default(autoincrement())
+  companyId Int
+  userId    Int
+  name      String
+  config    String // filters, grouping, columns, chart
+  schedule  String? // DAILY | WEEKLY | MONTHLY | QUARTERLY
+  nextRunAt DateTime?
+  lastRunAt DateTime?
+  createdAt DateTime  @default(now())
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -550,12 +602,12 @@ model Automation {
 }
 
 model Integration {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   companyId Int
   kind      String // GOOGLE_SSO | MICROSOFT_SSO | SLACK | GOOGLE_CALENDAR | SMTP
-  config    String   @default("{}")
-  enabled   Boolean  @default(false)
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  config    String  @default("{}")
+  enabled   Boolean @default(false)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, kind])
 }

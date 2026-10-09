@@ -5,6 +5,7 @@ export type Permissions = Record<string, Level>;
 export interface CompanySettings {
   overloadPct: number; healthyPct: number; underPct: number; tempPasswordHours: number; sessionTimeoutMinutes: number;
   enforceAdminMfa: boolean; aiEnabled: boolean; allowOverlappingTimers: boolean; lockApprovedWeeks: boolean; invitationDays: number; taskKey: string;
+  autoSubmitTime: string; workdayStart: string; requireDescription: boolean; requireTags: boolean; billableEnabled: boolean;
 }
 export interface Company {
   id: number; name: string; slug: string; color: string; logoUrl?: string | null; country?: string | null; timezone: string; currency: string;
@@ -45,6 +46,16 @@ export interface TimeEntry {
   startedAt?: string | null; pausedAt?: string | null; accumulatedSec: number; elapsedSec?: number; userId: number; projectId: number; taskId?: number | null;
   user?: UserLite; project?: { id: number; name: string; color: string; parentId?: number | null; parent?: { id: number; name: string; color: string } | null; client?: { id: number; name: string } | null };
   task?: { id: number; title: string; number?: number; key?: string } | null;
+  tags: TagLite[];
   [k: string]: unknown;
 }
+export interface TagLite { id: number; name: string; color: string }
+export interface Tag extends TagLite { active: boolean; teamIds: number[]; uses: number }
+/** SAVED: has entries, not submitted yet. FAILED: automatic submission found problems. REOPENED: pulled back for corrections. */
+export type DayStatus = "SAVED" | "SUBMITTED" | "APPROVED" | "REJECTED" | "FAILED" | "REOPENED";
+export interface DayState {
+  date: string; minutes: number; entries: number; status: DayStatus; note: string | null; auto: boolean; overdue: boolean;
+  submittedAt: string | null; reviewedAt: string | null; reviewedBy: { name: string } | null;
+}
+export interface DaysResponse { days: DayState[]; today: string; cutoff: string }
 export interface Notification { id: number; type: string; title: string; body?: string | null; link?: string | null; readAt?: string | null; createdAt: string }

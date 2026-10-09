@@ -19,15 +19,15 @@
 .cell.holiday { background: color-mix(in srgb, var(--orange-soft) 55%, transparent); }
 .cell.dropTarget { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
 .cellHead { display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 4px; }
-.num { font-size: 12px; font-weight: 500; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.num { font-size: 12px; font-weight: 500; color: var(--text-2); font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .num.today { background: var(--accent); color: #fff; border-radius: 10px; min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
-.hours { margin-left: auto; font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.hours { margin-left: auto; font-size: 11px; color: var(--text-3); font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .hours.has { color: var(--text-2); font-weight: 500; }
 
 .chip { display: flex; align-items: center; gap: 5px; height: 20px; padding: 0 5px; border-radius: 4px; font-size: 12px; min-width: 0; white-space: nowrap; color: var(--text); line-height: 1; }
 .chip:hover { background: var(--bg-hover); }
 .chip .label { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
-.chip .meta { color: var(--text-3); font-size: 11px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.chip .meta { color: var(--text-3); font-size: 11px; font-family: var(--mono); font-variant-numeric: tabular-nums; flex-shrink: 0; }
 .chipTask { cursor: pointer; }
 .chipTask[draggable="true"] { cursor: grab; }
 .chipTask.done .label { color: var(--text-3); text-decoration: line-through; }

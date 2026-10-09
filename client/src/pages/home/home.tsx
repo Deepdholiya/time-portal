@@ -9,9 +9,8 @@ import { useApi, useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { dueLabel, fmtDate, hm, pct, today } from "@/lib/format";
 import type { Priority, Task, TaskStatus, TimeEntry } from "@/lib/types";
-import { useOptions } from "../time/time-utils";
 import { HoursByDay, HoursByProject, type Group } from "./home-charts";
-import { HomeTimer } from "./home-timer";
+import { HomeToday } from "./home-today";
 import s from "./home.module.css";
 
 type View = "my" | "team" | "company";
@@ -46,7 +45,6 @@ export default function Home() {
   const dash = useApi<Dashboard>("/analytics/dashboard", { view, from: range.from, to: range.to });
   const todayTime = useApi<TimeEntry[]>("/time", { from: t0, to: t0 });
   const dueTasks = useApi<Task[]>("/tasks", { assigneeId: "me", includeDone: "false", dueTo: t0 });
-  const { data: options } = useOptions();
   const d = dash.data;
   const todayMin = (todayTime.data ?? []).reduce((a, e) => a + e.minutes, 0);
 
@@ -157,7 +155,7 @@ export default function Home() {
           </div>
 
           <div className={s.stack}>
-            {view === "my" && <HomeTimer options={options} />}
+            {view === "my" && <HomeToday />}
             <section className={s.panel}>
               <div className={s.panelHead}>Hours by project<span className="grow" /><span className="small muted">{range.preset && range.preset !== "Custom" ? range.preset : `${fmtDate(range.from)} – ${fmtDate(range.to)}`}</span></div>
               <div className={s.panelBody} style={{ paddingTop: 6, paddingBottom: 8 }}>{d ? <HoursByProject groups={d.byProject} onOpen={(g) => nav(`/projects/${g.id}`)} /> : <Skeleton height={90} />}</div>

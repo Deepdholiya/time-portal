@@ -10,6 +10,6 @@
 .body { color: var(--text-2); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
 .read .title { font-weight: 400; color: var(--text-2); }
 .read .body { color: var(--text-3); }
-.time { color: var(--text-3); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.time { color: var(--text-3); font-size: 12px; white-space: nowrap; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .actions { display: none; gap: 2px; position: absolute; right: 12px; background: var(--bg-hover); padding-left: 8px; }
 .row:hover .actions { display: flex; }
