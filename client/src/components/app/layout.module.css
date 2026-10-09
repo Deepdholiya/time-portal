@@ -1,11 +1,11 @@
 .app { display: flex; height: 100vh; overflow: hidden; background: var(--bg-sidebar); }
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0 8px 8px 0; }
-.content { flex: 1; min-height: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.content { flex: 1; min-height: 0; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); }
 .mobileBar { display: none; }
 .drawer { position: fixed; inset: 0; z-index: 50; display: flex; }
 .drawerBackdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.35); }
 .drawerPanel { position: relative; height: 100%; box-shadow: var(--shadow-lg); }
-.banner { margin: 0 0 8px; padding: 8px 12px; border-radius: 8px; background: var(--yellow-soft); color: var(--yellow); display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.banner { margin: 0 0 8px; padding: 8px 12px; border-radius: var(--radius-lg); background: var(--yellow-soft); color: var(--yellow); display: flex; gap: 8px; align-items: center; font-size: 13px; }
 @media (max-width: 900px) {
   .desktopSidebar { display: none; }
   .main { padding: 0; }

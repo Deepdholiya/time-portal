@@ -28,10 +28,10 @@
 /* Radix writes pointer-events inline on the overlay, so the closing state has to win over it. */
 .overlay[data-state="closed"], .content[data-state="closed"] { pointer-events: none !important; }
 
-.content[data-side="right"] { inset: 0 0 0 auto; border-width: 1px 0 1px 1px; border-radius: 22px 0 0 22px; }
+.content[data-side="right"] { inset: 0 0 0 auto; border-width: 1px 0 1px 1px; border-radius: 0; }
 .content[data-side="left"] { inset: 0 auto 0 0; border-width: 1px 1px 1px 0; border-radius: 0 22px 22px 0; }
 .content[data-side="top"] { inset: 0 0 auto; width: 100%; max-width: none; max-height: min(32rem, 100dvh); border-width: 0 0 1px; border-radius: 0 0 22px 22px; }
-.content[data-side="bottom"] { inset: auto 0 0; width: 100%; max-width: none; max-height: min(32rem, 100dvh); border-width: 1px 0 0; border-radius: 22px 22px 0 0; }
+.content[data-side="bottom"] { inset: auto 0 0; width: 100%; max-width: none; max-height: min(32rem, 100dvh); border-width: 1px 0 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
 .content[data-side="bottom"]::before { position: absolute; top: 9px; left: 50%; width: 2.25rem; height: 4px; border-radius: var(--radius-pill); background: var(--border-strong); content: ""; opacity: .75; transform: translateX(-50%); }
 
 /* Motion springs the panel from its edge. Keyframes only run when DrawerContent sits under a bare Radix root. */
@@ -72,10 +72,10 @@
 
 @media (max-width: 40rem) {
   .content { --drawer-size: calc(100vw - var(--space-3)); }
-  .content[data-side="right"] { border-radius: 18px 0 0 18px; }
+  .content[data-side="right"] { border-radius: 0; }
   .content[data-side="left"] { border-radius: 0 18px 18px 0; }
   .content[data-side="top"] { border-radius: 0 0 18px 18px; }
-  .content[data-side="bottom"] { border-radius: 18px 18px 0 0; }
+  .content[data-side="bottom"] { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
   .header, .body { padding: var(--space-5); }
 }
 

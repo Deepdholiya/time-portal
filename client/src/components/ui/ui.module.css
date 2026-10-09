@@ -9,7 +9,7 @@
 /* Buttons: Linear uses the indigo accent for the primary action and compact text buttons. */
 .btn { gap: 6px; font-size: 13px; }
 .btn.primary { color: var(--accent-foreground); background: var(--accent); border-color: var(--accent); }
-.btn.primary:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); }
+.btn.primary:hover:not(:disabled) { opacity: .9; box-shadow: none; }
 .btn.dangerGhost { color: var(--danger); }
 .btn.link { color: var(--accent-text); padding-inline: 2px; min-height: auto; }
 .btn.link:hover { text-decoration: underline; background: transparent; }
@@ -20,7 +20,7 @@
 .icon.sm { width: var(--control-height-sm); }
 .icon.md { width: var(--control-height-md); }
 .icon.lg { width: var(--control-height-lg); }
-.shortcut { margin-left: 2px; padding: 0 4px; border-radius: 4px; background: color-mix(in oklab, currentColor 12%, transparent); font-size: 11px; line-height: 16px; opacity: .8; }
+.shortcut { margin-left: 2px; padding: 0 4px; border-radius: var(--radius-xs); background: color-mix(in oklab, currentColor 12%, transparent); font-size: 11px; line-height: 16px; opacity: .8; }
 
 /* Inputs */
 .inputWrap { position: relative; display: block; min-width: 0; }
@@ -43,16 +43,17 @@
 /* Dialogs and the side sheet */
 .dialog { width: min(calc(100vw - 32px), var(--dialog-w, 520px)); }
 .dialogForm { display: contents; }
-.footer { display: flex; justify-content: flex-end; gap: 8px; margin: 20px calc(var(--space-6) * -1) calc(var(--space-6) * -1); padding: 12px var(--space-6); border-top: 1px solid var(--border); background: var(--bg-subtle); }
+.footer { display: flex; justify-content: flex-end; gap: 8px; margin: 20px calc(var(--space-6) * -1) calc(var(--space-6) * -1); padding: 12px var(--space-6); border-top: 1px solid var(--border); background: var(--bg-subtle); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
 .sheet.sheet { --drawer-size: min(var(--sheet-w, 640px), calc(100vw - 24px)); width: var(--drawer-size); max-width: var(--drawer-size); }
 .sheetActions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin: calc(var(--space-6) * -1) calc(var(--space-6) * -1) 16px; padding: 8px 16px; border-bottom: 1px solid var(--border); }
 
 /* Linear-style pickers composed on Arc Popover */
-.chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; min-width: 0; max-width: 100%; text-align: left; }
-.chip:hover { border-color: var(--border-strong); background: var(--surface-muted); }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: var(--control-height-sm); padding: 0 10px; border: 1px solid var(--sh-input); border-radius: var(--radius-control); background: var(--bg-input); box-shadow: var(--shadow-xs); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; min-width: 0; max-width: 100%; text-align: left; }
+.chip:hover { background: var(--sh-accent); }
+.chip:focus-visible { outline: none !important; border-color: var(--sh-ring); box-shadow: 0 0 0 3px var(--focus-ring); }
 .chip:disabled { opacity: .55; cursor: not-allowed; }
-.chip.sm { height: 26px; font-size: 12px; }
-.chip.ghost { border-color: transparent; background: transparent; color: var(--text-2); padding: 0 6px; }
+.chip.sm { height: 28px; font-size: 12px; }
+.chip.ghost { border-color: transparent; background: transparent; box-shadow: none; color: var(--text-2); padding: 0 6px; }
 .chip.ghost:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); }
 .chip.full { width: 100%; }
 .chipValue { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
@@ -65,13 +66,13 @@
 .search::placeholder { color: var(--text-3); }
 .list { overflow: auto; padding: 4px; max-height: 300px; }
 .group { padding: 6px 8px 2px; font-size: 11px; color: var(--text-3); font-weight: 500; }
-.option { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: calc(var(--radius-panel) - 4px); cursor: pointer; font-size: 13px; }
-.option.hi { background: var(--surface-muted); }
+.option { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; }
+.option.hi { background: var(--sh-accent); }
 .option .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .option .optHint { color: var(--text-3); font-size: 12px; }
 .check { color: var(--accent); flex-shrink: 0; }
-.box { width: 14px; height: 14px; border: 1px solid var(--border-strong); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.box.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.box { width: 14px; height: 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.box.on { background: var(--accent); border-color: var(--accent); color: var(--accent-foreground); }
 .empty { padding: 12px; color: var(--text-3); text-align: center; font-size: 12px; }
 .pickerFooter { border-top: 1px solid var(--border); padding: 4px; display: flex; justify-content: space-between; }
 .calendarPop { padding: 12px; }
@@ -79,8 +80,8 @@
 
 /* Menus on the Radix dropdown primitive with Arc's dropdown-menu styles */
 .menuHeading { padding: 6px 11px 2px; font-size: 11px; font-weight: 500; color: var(--text-3); }
-.menuItem { min-height: 30px; gap: 8px; }
-.menuItem[data-highlighted] { background: var(--surface-muted); }
+.menuItem { min-height: 32px; gap: 8px; border-radius: var(--radius-sm); }
+.menuItem[data-highlighted] { background: var(--sh-accent); }
 .menuItem.menuDanger[data-highlighted] { background: color-mix(in oklab, var(--danger) 8%, var(--surface)); }
 .menuLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menuShortcut { color: var(--text-3); font-size: 11px; }
@@ -93,11 +94,11 @@
 .spinner { display: inline-block; border-radius: 50%; border: 1.5px solid var(--border-strong); border-top-color: var(--accent); animation: tp-spin .7s linear infinite; flex-shrink: 0; }
 .loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 48px; color: var(--text-3); }
 .skeletonRow { display: flex; align-items: center; gap: 12px; height: 36px; padding: 0 20px; border-bottom: 1px solid var(--border); }
-.bar { display: block; border-radius: 4px; background: var(--bg-active); animation: tp-pulse 1.4s ease-in-out infinite; }
+.bar { display: block; border-radius: var(--radius-sm); background: var(--bg-active); animation: tp-pulse 1.4s ease-in-out infinite; }
 .compact { padding-block: 16px; }
-.errorBox { margin: 16px; padding: 10px 12px; border-radius: 8px; background: var(--red-soft); color: var(--red); display: flex; gap: 12px; align-items: center; }
+.errorBox { margin: 16px; padding: 10px 12px; border-radius: var(--radius-lg); background: var(--red-soft); color: var(--red); display: flex; gap: 12px; align-items: center; }
 .errorBox button { background: none; border: 0; color: inherit; text-decoration: underline; cursor: pointer; }
-.kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-subtle); color: var(--text-2); font-size: 11px; font-family: var(--font); font-weight: 500; line-height: 1; }
+.kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 4px; border-radius: var(--radius-sm); border: 0; background: var(--sh-muted); color: var(--text-2); font-size: 11px; font-family: var(--font); font-weight: 500; line-height: 1; }
 
 /* Badges: Arc badge, a touch denser for list rows */
 .badge.badge { min-height: 20px; padding: 0 7px; font-size: 11.5px; }
@@ -111,4 +112,4 @@
 .avatarGroup { display: inline-flex; align-items: center; }
 .avatarGroup > * + * { margin-left: -4px; box-shadow: 0 0 0 2px var(--bg); }
 .avatarMore { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg-active); color: var(--text-2); font-weight: 500; }
-.sheet.sheet[data-side="right"] { border-radius: 12px 0 0 12px; }
+.sheet.sheet[data-side="right"] { border-radius: 0; }

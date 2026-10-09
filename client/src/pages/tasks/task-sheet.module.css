@@ -49,8 +49,8 @@
   height: 24px; width: 100%; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; padding: 0 5px; font-size: 13px; color: var(--text); outline: none;
 }
 .inlineInput:hover { background: var(--bg-hover); }
-.inlineInput:focus { border-color: var(--accent); background: var(--bg); }
-.tagPill { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 4px 0 7px; border: 1px solid var(--border); border-radius: 10px; font-size: 11.5px; color: var(--text-2); background: var(--bg); }
+.inlineInput:focus { border-color: var(--sh-ring); background: var(--bg); }
+.tagPill { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 4px 0 7px; border: 1px solid var(--border); border-radius: var(--radius-pill); font-size: 11.5px; color: var(--text-2); background: var(--bg); }
 .tagPill button { border: 0; background: none; color: var(--text-3); cursor: pointer; padding: 0; display: inline-flex; }
 .tagPill button:hover { color: var(--text); }
 
@@ -62,7 +62,7 @@
 
 .file { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 6px; border-radius: var(--radius); }
 .file:hover { background: var(--bg-hover); }
-.fileIcon { width: 24px; height: 24px; border-radius: 5px; background: var(--bg-active); display: inline-flex; align-items: center; justify-content: center; color: var(--text-2); flex-shrink: 0; }
+.fileIcon { width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--bg-active); display: inline-flex; align-items: center; justify-content: center; color: var(--text-2); flex-shrink: 0; }
 .drop { border: 1px dashed var(--border-strong); border-radius: var(--radius); padding: 8px; text-align: center; color: var(--text-3); font-size: 12px; }
 .drop.over { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); }
 
@@ -75,7 +75,7 @@
 .comment { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 12px; margin: 6px 0; background: var(--bg); }
 .commentHead { display: flex; align-items: center; gap: 8px; font-size: 12.5px; margin-bottom: 4px; }
 .commentBody { white-space: pre-wrap; word-break: break-word; line-height: 1.55; }
-.mention { color: var(--accent-text); background: var(--accent-soft); border-radius: 4px; padding: 0 3px; font-weight: 500; }
+.mention { color: var(--accent-text); background: var(--accent-soft); border-radius: var(--radius-xs); padding: 0 3px; font-weight: 500; }
 .composer { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); position: relative; margin-top: 8px; }
 .composer:focus-within { border-color: var(--border-strong); box-shadow: 0 0 0 3px var(--focus); }
 .composer textarea { width: 100%; border: 0; background: none; resize: none; outline: none; padding: 10px 12px 4px; min-height: 64px; font-family: inherit; font-size: 13px; color: var(--text); }

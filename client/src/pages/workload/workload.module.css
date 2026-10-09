@@ -6,8 +6,8 @@ thead .sticky { z-index: 3; background: var(--bg-subtle); }
 .who { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
 .leave { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; color: var(--text-3); font-size: 11px; }
 .meter { display: flex; align-items: center; gap: 8px; }
-.meterTrack { position: relative; flex: 1; height: 8px; border-radius: 4px; background: var(--bg-active); }
-.meterTrack > span { display: block; height: 100%; border-radius: 4px; }
+.meterTrack { position: relative; flex: 1; height: 8px; border-radius: var(--radius-pill); background: var(--bg-active); }
+.meterTrack > span { display: block; height: 100%; border-radius: var(--radius-pill); }
 .meterTrack > i { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--text-3); }
 .meter :global(.num) { width: 36px; text-align: right; }
 .bucketHead { min-width: 64px; border-left: 1px solid var(--border); }

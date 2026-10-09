@@ -13,10 +13,10 @@ export interface SwitchProps extends ComponentPropsWithoutRef<typeof SwitchPrimi
 }
 
 /** Track inner width (42 - 6 padding) minus the 18px thumb; keep in sync with switch.module.css. */
-const size = 18;
-const travel = 18;
+const size = 16;
+const travel = 14;
 /** How far the thumb widens toward the other side while pressed. */
-const stretch = 5;
+const stretch = 3;
 /** Critically damped: the thumb lands on its end without overshooting the state it reports. */
 const glide: Transition = { type: "spring", visualDuration: 0.3, bounce: 0 };
 

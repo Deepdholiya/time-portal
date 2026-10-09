@@ -38,8 +38,8 @@
 .actionSlot { display: flex; flex: none; justify-content: flex-end; margin-top: -4px; }
 .actionSlot[data-moving="true"] { overflow: hidden; }
 .action, .close { flex: none; border: 1px solid transparent; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: scale var(--duration-spring) var(--ease-spring), background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
-.action { height: 28px; padding: 0 var(--space-3); border-color: var(--border); border-radius: var(--radius-pill); background: var(--surface); color: var(--foreground); font-size: var(--text-sm); font-weight: 500; white-space: nowrap; }
-.close { display: grid; width: 28px; height: 28px; margin: -4px -2px 0 0; place-items: center; border-radius: var(--radius-pill); background: transparent; color: var(--text-muted); }
+.action { height: 28px; padding: 0 var(--space-3); border-color: var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--foreground); font-size: var(--text-sm); font-weight: 500; white-space: nowrap; }
+.close { display: grid; width: 28px; height: 28px; margin: -4px -2px 0 0; place-items: center; border-radius: var(--radius-sm); background: transparent; color: var(--text-muted); }
 @media (hover: hover) and (pointer: fine) {
   .action:hover { border-color: var(--border-strong); background: var(--surface-muted); }
   .close:hover { background: var(--surface-muted); color: var(--foreground); }

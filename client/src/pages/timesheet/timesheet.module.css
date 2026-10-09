@@ -1,4 +1,4 @@
-.wrap { margin: 16px 20px 0; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); overflow-x: auto; }
+.wrap { margin: 16px 20px 0; border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); overflow-x: auto; }
 .grid { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; table-layout: fixed; }
 .grid th { height: 52px; font-weight: 500; font-size: 12px; color: var(--text-2); text-align: left; padding: 0 10px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); white-space: nowrap; }
 .grid td { height: 44px; padding: 0 10px; border-bottom: 1px solid var(--border); vertical-align: middle; background: var(--bg); }
@@ -20,7 +20,7 @@
 .dayHead.today :global(.dd), .dayHead.today :global(.dn) { color: var(--accent-text); }
 .offDay { background: color-mix(in srgb, var(--bg-subtle) 70%, transparent) !important; }
 .dayTag { font-size: 10px; color: var(--orange); max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dayStatus { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; padding: 0 5px; height: 16px; border-radius: 8px; white-space: nowrap; }
+.dayStatus { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 500; padding: 0 5px; height: 16px; border-radius: var(--radius-pill); white-space: nowrap; }
 .st_SAVED { background: var(--gray-soft, var(--bg-active)); color: var(--text-2); }
 .st_SUBMITTED { background: var(--blue-soft); color: var(--blue); }
 .st_APPROVED { background: var(--green-soft); color: var(--green); }
@@ -38,7 +38,7 @@
 }
 .cellInput::placeholder { color: var(--border-strong); }
 .cellInput:hover:not(:disabled) { border-color: var(--border); background: var(--bg); }
-.cellInput:focus { border-color: var(--accent); background: var(--bg); box-shadow: 0 0 0 3px var(--focus); }
+.cellInput:focus { border-color: var(--sh-ring); background: var(--bg); box-shadow: 0 0 0 3px var(--focus); }
 .cellInput.saving { color: var(--text-3); }
 .cellInput.draft { border-style: dashed; border-color: var(--accent); background: var(--bg); }
 .cellMulti { border: 1px dashed var(--border-strong); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 2px; }
@@ -49,7 +49,7 @@
 .futureCell { background: repeating-linear-gradient(135deg, transparent 0 6px, var(--bg-subtle) 6px 7px) !important; }
 .cellMenu {
   position: absolute; right: 1px; top: 50%; transform: translateY(-50%); width: 16px; height: 22px; display: flex; align-items: center; justify-content: center;
-  border: 0; border-radius: 4px; background: var(--bg); color: var(--text-3); cursor: pointer; opacity: 0; transition: opacity 0.1s;
+  border: 0; border-radius: var(--radius-sm); background: var(--bg); color: var(--text-3); cursor: pointer; opacity: 0; transition: opacity 0.1s;
 }
 .cellWrap:hover .cellMenu, .cellMenu:focus-visible, .cellMenu[data-state="open"] { opacity: 1; }
 .cellMenu:hover { color: var(--text); background: var(--bg-hover); }
@@ -67,7 +67,7 @@ tr:hover .rowActions, tr:focus-within .rowActions { opacity: 1; }
 .banner.orange { background: color-mix(in srgb, var(--orange) 12%, transparent); color: var(--orange); }
 .banner.yellow { background: var(--yellow-soft); color: var(--text); }
 .capacity { display: flex; align-items: center; gap: 10px; }
-.capBar { width: 120px; height: 4px; border-radius: 4px; background: var(--bg-active); overflow: hidden; }
+.capBar { width: 120px; height: 4px; border-radius: var(--radius-pill); background: var(--bg-active); overflow: hidden; }
 .capBar > span { display: block; height: 100%; background: var(--accent); }
 .foot { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 10px 20px 32px; }
 .legend { display: flex; gap: 6px; flex-wrap: wrap; }

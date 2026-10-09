@@ -191,12 +191,12 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
 @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
 
 /* Progress bar */
-.progress { height: 4px; border-radius: 4px; background: var(--bg-active); overflow: hidden; }
-.progress > span { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.progress { height: 4px; border-radius: var(--radius-pill); background: var(--bg-active); overflow: hidden; }
+.progress > span { display: block; height: 100%; background: var(--accent); border-radius: var(--radius-pill); }
 
 /* Dot */
 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
-.swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; display: inline-block; }
+.swatch { width: 10px; height: 10px; border-radius: var(--radius-xs); flex-shrink: 0; display: inline-block; }
 
 /* Spinner keyframes used by Arc Spinner */
 @keyframes tp-spin { to { transform: rotate(360deg); } }

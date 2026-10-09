@@ -93,6 +93,7 @@ export function TimeRangeControl({ value, onChange }: { value: Range; onChange: 
         onChange={(m) => onChange(m === "day" ? { from: value.to, to: value.to } : presetRange("This week", value.to, startsOn))}
         options={[{ value: "day", label: "Day" }, { value: "range", label: "Range" }]}
       />
+      <span className="range-break" aria-hidden />
       <IconButton size="sm" variant="secondary" label={single ? "Previous day" : "Previous period"} icon={<ChevronLeft size={14} />} onClick={() => onChange(step(value, -1, today, startsOn))} />
       {single ? (
         <DatePicker

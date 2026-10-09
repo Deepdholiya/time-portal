@@ -1,5 +1,5 @@
 .wrap { padding: 20px 24px 40px; max-width: 920px; }
-.matrix { border: 1px solid var(--border); border-radius: var(--radius-lg); border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.matrix { border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); border-collapse: separate; border-spacing: 0; overflow: hidden; }
 .matrix th { position: static; }
 .matrix tr:last-child td { border-bottom: 0; }
 .roleCol { width: 170px; }

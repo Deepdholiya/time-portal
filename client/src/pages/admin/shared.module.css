@@ -21,4 +21,4 @@
   color: var(--text-2); cursor: pointer; font-size: 12px;
 }
 .dayBtn:hover { background: var(--bg-hover); }
-.dayBtn[data-active] { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
+.dayBtn[data-active] { background: var(--sh-accent); color: var(--text); border-color: var(--border-strong); font-weight: 500; }

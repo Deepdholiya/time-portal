@@ -27,7 +27,7 @@
   transition: box-shadow var(--duration-considered) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
 }
 .surface::after { content: ""; position: absolute; inset: 0; border: 1px solid var(--border); border-radius: inherit; pointer-events: none; transition: border-color var(--duration-fast) var(--ease-standard); }
-.root[data-open] .surface { box-shadow: var(--shadow-floating); }
+.root[data-open] .surface { box-shadow: var(--shadow-raised); }
 
 /* Trigger */
 /* The trigger sits in flow above the surface while closed; when open, the surface and its panel rise over it. */
@@ -66,7 +66,7 @@
 .body { display: flex; gap: 10px; }
 
 .rail { position: relative; display: flex; width: 9.25rem; flex: none; flex-direction: column; gap: 2px; padding-right: 10px; border-right: 1px solid var(--border-subtle); }
-.railHighlight { position: absolute; top: 0; left: 0; border-radius: 12px; background: color-mix(in oklab, var(--foreground) 6.5%, transparent); pointer-events: none; }
+.railHighlight { position: absolute; top: 0; left: 0; border-radius: var(--radius-md); background: color-mix(in oklab, var(--foreground) 6.5%, transparent); pointer-events: none; }
 .preset {
   position: relative;
   display: flex;
@@ -75,7 +75,7 @@
   align-items: center;
   padding: 0 12px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
@@ -98,7 +98,7 @@
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
@@ -123,9 +123,9 @@
 
 /* The highlight lives under the days: one bar per week plus a solid end at each side of the range. */
 .layer { position: absolute; inset: 0; pointer-events: none; }
-.bar { position: absolute; height: calc(var(--cell) - 6px); border-radius: var(--radius-pill); background: var(--accent-subtle); }
+.bar { position: absolute; height: calc(var(--cell) - 6px); border-radius: var(--radius-md); background: var(--accent-subtle); }
 .thumb { position: absolute; top: 0; left: 0; width: var(--cell); height: var(--cell); }
-.thumb::before { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--accent); }
+.thumb::before { content: ""; position: absolute; inset: 3px; border-radius: var(--radius-md); background: var(--accent); }
 
 .day {
   position: relative;
@@ -136,7 +136,7 @@
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--foreground);
   cursor: pointer;
@@ -145,7 +145,7 @@
   -webkit-tap-highlight-color: transparent;
   transition: color var(--duration-fast) var(--ease-standard);
 }
-.day > span { position: relative; display: grid; width: calc(100% - 6px); height: calc(100% - 6px); place-items: center; border-radius: 50%; transition: background-color var(--duration-fast) var(--ease-standard), transform var(--duration-instant) var(--ease-standard); }
+.day > span { position: relative; display: grid; width: calc(100% - 6px); height: calc(100% - 6px); place-items: center; border-radius: var(--radius-md); transition: background-color var(--duration-fast) var(--ease-standard), transform var(--duration-instant) var(--ease-standard); }
 .day:active:not(:disabled) > span { transform: scale(.9); }
 .day[data-edge] { color: var(--accent-foreground); font-weight: 500; transition-delay: 40ms; }
 .day[data-today]::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--accent); }
