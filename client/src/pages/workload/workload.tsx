@@ -70,19 +70,11 @@ export default function Workload() {
       title="Workload" icon={<Gauge size={15} />}
       toolbar={
         <div className="row wrap" style={{ width: "100%" }}>
-          <IconButton size="sm" label="Previous" icon={<ChevronLeft size={15} />} onClick={() => setAnchor(addDays(anchor, -7 * weeks))} />
+          <IconButton size="sm" variant="secondary" label="Previous" icon={<ChevronLeft size={15} />} onClick={() => setAnchor(addDays(anchor, -7 * weeks))} />
           <span className={s.period}>{fmtDate(from)} – {fmtDate(to, true)}</span>
-          <IconButton size="sm" label="Next" icon={<ChevronRight size={15} />} onClick={() => setAnchor(addDays(anchor, 7 * weeks))} />
-          <Button size="sm" variant="ghost" onClick={() => setAnchor(weekStart(today(), ws))}>This week</Button>
-          <div className="grow" />
-          <div className={s.legend}>
-            {(Object.keys(STATUS) as WRow["status"][]).map((k) => (
-              <Tooltip key={k} content={k === "OVERLOADED" ? `Over ${t.overloadPct}%` : k === "HEALTHY" ? `${t.healthyPct}–${t.overloadPct}%` : k === "UNDERUTILIZED" ? `Under ${t.underPct}%` : `${t.underPct}–${t.healthyPct}%`}>
-                <span className="row gap-4"><span className="swatch" style={{ background: STATUS[k].color }} /><span className="small muted">{STATUS[k].label}</span>{counts[k] ? <span className="small faint">{counts[k]}</span> : null}</span>
-              </Tooltip>
-            ))}
-          </div>
-          <FilterMenu
+          <IconButton size="sm" variant="secondary" label="Next" icon={<ChevronRight size={15} />} onClick={() => setAnchor(addDays(anchor, 7 * weeks))} />
+          <Button size="sm" variant="secondary" onClick={() => setAnchor(weekStart(today(), ws))}>This week</Button>
+          <FilterMenu placement="bottom-start"
             sections={[
               { key: "weeks", label: "Period", single: true, required: true, defaultValue: "4", options: [{ value: "1", label: "1 week" }, { value: "2", label: "2 weeks" }, { value: "4", label: "4 weeks" }, { value: "6", label: "6 weeks" }] },
               { key: "grain", label: "Columns", single: true, required: true, defaultValue: "week", options: [{ value: "week", label: "By week" }, { value: "day", label: "By day (up to 2 weeks)" }] },
@@ -94,6 +86,14 @@ export default function Workload() {
               const w = Number(v.weeks?.[0] ?? 4) as Span; const g = (v.grain?.[0] ?? "week") as Grain;
               setGrain(g); setWeeks(g === "day" && w > 2 ? 2 : w); setMetric((v.metric?.[0] ?? "planned") as Metric); setTeamId(v.team?.[0] ?? "");
             }} />
+          <div className="grow" />
+          <div className={s.legend}>
+            {(Object.keys(STATUS) as WRow["status"][]).map((k) => (
+              <Tooltip key={k} content={k === "OVERLOADED" ? `Over ${t.overloadPct}%` : k === "HEALTHY" ? `${t.healthyPct}–${t.overloadPct}%` : k === "UNDERUTILIZED" ? `Under ${t.underPct}%` : `${t.underPct}–${t.healthyPct}%`}>
+                <span className="row gap-4"><span className="swatch" style={{ background: STATUS[k].color }} /><span className="small muted">{STATUS[k].label}</span>{counts[k] ? <span className="small faint">{counts[k]}</span> : null}</span>
+              </Tooltip>
+            ))}
+          </div>
         </div>
       }
     >

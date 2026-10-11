@@ -1,4 +1,4 @@
-.configWrap { padding: 8px 16px 8px 20px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); }
+.configWrap { padding: 8px var(--gutter); border-bottom: 1px solid var(--border); background: var(--bg-subtle); }
 .config { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; }
 .cfgLabel { color: var(--text-3); font-size: 12px; margin-right: 2px; }
 .sep { width: 1px; height: 18px; background: var(--border); margin: 0 6px; }
@@ -24,3 +24,13 @@
 .shareList { width: 100%; display: flex; flex-direction: column; }
 .shareRow { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: 10px; height: 30px; font-size: 13px; }
 .donutPanel { position: sticky; top: 12px; }
+
+/* Group by menu: first and second level side by side */
+.gbMenu { display: flex; gap: 4px; padding: 6px; }
+.gbCol { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.gbCol + .gbCol { border-left: 1px solid var(--border); padding-left: 4px; }
+.gbTitle { font-size: 12px; color: var(--text-3); padding: 6px 10px 4px; }
+.gbItem { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 10px; border: 0; background: none; border-radius: var(--radius-sm); font-size: 13px; color: var(--text); text-align: left; cursor: pointer; white-space: nowrap; }
+.gbItem:hover { background: var(--bg-hover); }
+.gbItem:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.gbOn { font-weight: 500; }

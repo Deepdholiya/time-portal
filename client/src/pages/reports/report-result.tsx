@@ -7,7 +7,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { ChartCard, TimeChart, SERIES } from "../analytics/chart-kit";
 import type { EntryRow } from "../analytics/entries";
 import type { Group } from "../analytics/types";
-import { COLUMN_OPTIONS, GROUP_OPTIONS, type ReportConfig } from "./report-config";
+import { ChartControls, COLUMN_OPTIONS, GROUP_OPTIONS, TableControls, type ReportConfig } from "./report-config";
 import a from "../analytics/analytics.module.css";
 import s from "./reports.module.css";
 
@@ -45,7 +45,7 @@ function cell(r: EntryRow, k: string) {
   }
 }
 
-export function ResultView({ data, config, view, onMore, loadingMore }: { data: ReportResult; config: ReportConfig; view: "summary" | "detailed"; onMore: () => void; loadingMore: boolean }) {
+export function ResultView({ data, config, onConfig, view, onMore, loadingMore }: { data: ReportResult; config: ReportConfig; onConfig: (c: ReportConfig) => void; view: "summary" | "detailed"; onMore: () => void; loadingMore: boolean }) {
   const t = data.totals;
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const toggle = (k: string) => setCollapsed((c) => { const n = new Set(c); if (n.has(k)) n.delete(k); else n.add(k); return n; });
@@ -67,8 +67,11 @@ export function ResultView({ data, config, view, onMore, loadingMore }: { data: 
         <span className="faint small">{data.level === "own" ? "Your own time" : "All time you can see"}</span>
       </div>
 
+      {view === "summary" && config.chart === "none" && (
+        <div className="row"><span className="small muted">Chart hidden</span><ChartControls value={config} onChange={onConfig} /></div>
+      )}
       {view === "summary" && config.chart !== "none" && chartData.length > 0 && (
-        <ChartCard title={`Hours by ${groupLabel(config.chartBy).toLowerCase()}`}>
+        <ChartCard title={`Hours by ${groupLabel(config.chartBy).toLowerCase()}`} action={<ChartControls value={config} onChange={onConfig} />}>
           <TimeChart data={chartData} kind={config.chart} fmtX={fmtX} height={220}
             series={config.chart === "line" ? [{ key: "billable", label: "Billable", color: SERIES.billable }, { key: "nonBillable", label: "Non-billable", color: "var(--text-3)" }]
               : [{ key: "billable", label: "Billable", color: SERIES.billable }, { key: "nonBillable", label: "Non-billable", color: SERIES.nonBillable }]} />
@@ -126,7 +129,7 @@ export function ResultView({ data, config, view, onMore, loadingMore }: { data: 
       )}
 
       {view === "detailed" && <section className={a.panel}>
-        <div className={a.panelHead}><span className="medium">Time entries</span><span className="faint small">{data.rows.length} of {data.rowCount}</span></div>
+        <div className={a.panelHead}><span className="medium">Time entries</span><span className="faint small">{data.rows.length} of {data.rowCount}</span><span className="grow" /><TableControls value={config} onChange={onConfig} /></div>
         <div className="table-wrap">
           <table className="table">
             <thead><tr>{cols.map((c) => <th key={c.value} className={c.value === "hours" ? "num" : ""}>{c.label}</th>)}</tr></thead>

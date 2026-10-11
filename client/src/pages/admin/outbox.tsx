@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { Mail, Search, Sparkles } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Badge, EmptyState, ErrorState, Input, Select, Sheet, SkeletonRows, Tooltip } from "@/components/ui";
+import { Badge, EmptyState, ErrorState, Sheet, SkeletonRows, Tooltip } from "@/components/ui";
 import { useApi } from "@/lib/hooks";
 import { fmtDateTime, relTime, titleCase } from "@/lib/format";
+import { SearchField } from "@/components/app/search-field";
+import { FilterMenu } from "@/components/app/filter-menu";
 
 type Email = {
   id: number; kind: string; to: string; subject: string; body: string; aiGenerated: boolean; status: string; sentAt: string | null; createdAt: string;
@@ -20,8 +22,9 @@ export default function Outbox() {
 
   const toolbar = (
     <>
-      <Input size="sm" icon={<Search size={14} />} placeholder="Search recipient or subject" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
-      <Select size="sm" fullWidth={false} value={kind} onChange={setKind} aria-label="Kind" options={[{ value: "", label: "All kinds" }, ...kinds.map((k) => ({ value: k, label: titleCase(k) }))]} />
+      <SearchField placeholder="Search recipient or subject" value={q} onChange={setQ} />
+      <FilterMenu placement="bottom-start" sections={[{ key: "kind", label: "Kind", single: true, options: kinds.map((k) => ({ value: k, label: titleCase(k) })) }]}
+        value={{ kind: kind ? [kind] : [] }} onApply={(v) => setKind(v.kind?.[0] ?? "")} />
       <div className="grow" />
       <span className="small faint">Latest 200 emails sent from this company</span>
     </>

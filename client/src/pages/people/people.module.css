@@ -1,6 +1,6 @@
 .list { display: flex; flex-direction: column; min-width: 0; }
 .row {
-  display: grid; align-items: center; gap: 12px; height: var(--row-h); padding: 0 16px 0 20px; border-bottom: 1px solid var(--border);
+  display: grid; align-items: center; gap: 12px; height: var(--row-h); padding: 0 var(--gutter); border-bottom: 1px solid var(--border);
 }
 .row > span { min-width: 0; }
 .head { height: 32px; background: var(--bg-subtle); color: var(--text-2); font-size: 12px; font-weight: 500; position: sticky; top: 0; z-index: 1; }

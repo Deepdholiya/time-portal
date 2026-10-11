@@ -1,13 +1,15 @@
 import { Fragment, useState } from "react";
-import { ChevronDown, ChevronRight, Download, ScrollText, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, ScrollText } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Button, Combobox, DateRangePicker, EmptyState, ErrorState, Input, Select, SkeletonRows, Tooltip, presetRange, type DateRange } from "@/components/ui";
+import { Button, DateRangePicker, EmptyState, ErrorState, SkeletonRows, Tooltip, presetRange, type DateRange } from "@/components/ui";
 import { download } from "@/lib/api";
 import { useApi, useDebounced } from "@/lib/hooks";
 import { fmtDateTime, relTime, titleCase } from "@/lib/format";
 import type { Options } from "@/lib/types";
 import { describeAgent } from "./user-dialogs";
 import s from "./audit.module.css";
+import { SearchField } from "@/components/app/search-field";
+import { FilterMenu } from "@/components/app/filter-menu";
 
 type Row = {
   id: number; action: string; entity: string; entityId: number | null; oldValue: string | null; newValue: string | null; reason: string | null;
@@ -35,13 +37,18 @@ export default function Audit() {
 
   const toolbar = (
     <>
-      <Input size="sm" icon={<Search size={14} />} placeholder="Search values or reason" value={q} onChange={(e) => reset(setQ)(e.target.value)} style={{ width: 200 }} />
-      <Select size="sm" fullWidth={false} value={action} onChange={reset(setAction)} aria-label="Action" options={[{ value: "", label: "All actions" }, ...(data?.actions ?? []).map((a) => ({ value: a, label: titleCase(a) }))]} />
-      <Select size="sm" fullWidth={false} value={entity} onChange={reset(setEntity)} aria-label="Object" options={[{ value: "", label: "All objects" }, ...ENTITIES.map((e) => ({ value: e, label: entityLabel(e) }))]} />
-      <Combobox size="sm" appearance="chip" value={userId} onChange={reset(setUserId)} clearable placeholder="Any actor" options={(opts.data?.users ?? []).map((u) => ({ value: String(u.id), label: u.name }))} />
+      <SearchField placeholder="Search values or reason" value={q} onChange={(v) => reset(setQ)(v)} />
       <DateRangePicker size="sm" value={range} onChange={reset(setRange)} />
+      <FilterMenu placement="bottom-start"
+        sections={[
+          { key: "action", label: "Action", single: true, options: (data?.actions ?? []).map((a) => ({ value: a, label: titleCase(a) })) },
+          { key: "entity", label: "Object", single: true, options: ENTITIES.map((e) => ({ value: e, label: entityLabel(e) })) },
+          { key: "actor", label: "Actor", single: true, options: (opts.data?.users ?? []).map((u) => ({ value: String(u.id), label: u.name })) },
+        ]}
+        value={{ action: action ? [action] : [], entity: entity ? [entity] : [], actor: userId ? [String(userId)] : [] }}
+        onApply={(v) => { setAction(v.action?.[0] ?? ""); setEntity(v.entity?.[0] ?? ""); setUserId((v.actor?.[0] ?? null) as never); setOffset(0); }} />
       <div className="grow" />
-      <Button size="sm" variant="ghost" icon={<Download size={14} />} onClick={() => download("/settings/audit/export.csv", query)}>Export CSV</Button>
+      <Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => download("/settings/audit/export.csv", query)}>Export</Button>
     </>
   );
 

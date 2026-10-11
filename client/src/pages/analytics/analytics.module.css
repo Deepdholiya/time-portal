@@ -9,7 +9,7 @@
 .chipLabelOn { color: var(--text-3); }
 .chipValue { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
-.tabsRow { display: flex; align-items: center; gap: 8px; padding: 0 16px 0 20px; border-bottom: 1px solid var(--border); height: 40px; }
+.tabsRow { display: flex; align-items: center; gap: 8px; padding: 6px var(--gutter); border-bottom: 1px solid var(--border); min-height: 48px; flex-wrap: wrap; }
 .note { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 12px; }
 
 /* KPI strip: hairline-divided tiles rather than heavy cards. */
@@ -89,3 +89,4 @@
 .chartCard { display: flex; flex-direction: column; }
 .donutWrap { grid-template-columns: 200px 1fr; padding-top: 8px; }
 .donut { width: 200px; height: 200px; }
+.chartHead, .panelHead { flex-wrap: wrap; row-gap: 6px; }

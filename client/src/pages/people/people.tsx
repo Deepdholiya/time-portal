@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, UserPlus, Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Avatar, Button, EmptyState, ErrorState, Input, SkeletonRows, Tooltip } from "@/components/ui";
+import { Avatar, Button, EmptyState, ErrorState, SkeletonRows, Tooltip } from "@/components/ui";
 import { FilterMenu } from "@/components/app/filter-menu";
 import { InviteDialog } from "../admin/invite-dialogs";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
@@ -10,6 +10,7 @@ import { useMe } from "@/lib/session";
 import { addDays, hours, money, today, weekStart } from "@/lib/format";
 import { RoleBadge, StatusBadge } from "../admin/shared";
 import s from "./people.module.css";
+import { SearchField } from "@/components/app/search-field";
 
 export interface DirPerson {
   id: number; name: string; email: string; role: string; title?: string | null; status: string; location?: string | null;
@@ -42,10 +43,8 @@ export default function People() {
 
   const toolbar = (
     <>
-      <Input size="sm" icon={<Search size={14} />} placeholder="Search name, email, title" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
-      <div className="grow" />
-      {data && <span className="small faint">{data.length} {data.length === 1 ? "person" : "people"}</span>}
-      <FilterMenu
+      <SearchField placeholder="Search name, email, title" value={q} onChange={setQ} />
+      <FilterMenu placement="bottom-start"
         sections={[
           { key: "team", label: "Team", single: true, options: (teams.data ?? []).map((x) => ({ value: String(x.id), label: x.name, icon: <span className="dot" style={{ background: x.color }} /> })) },
           { key: "role", label: "Role", single: true, options: [{ value: "ADMIN", label: "Admins" }, { value: "MANAGER", label: "Managers" }, { value: "EMPLOYEE", label: "Employees" }] },
@@ -54,6 +53,8 @@ export default function People() {
         value={{ team: team ? [team] : [], role: role ? [role] : [], status: [status] }}
         onApply={(v) => { setTeam(v.team?.[0] ?? ""); setRole(v.role?.[0] ?? ""); setStatus(v.status?.[0] ?? "ACTIVE"); }}
       />
+      <div className="grow" />
+      {data && <span className="small faint">{data.length} {data.length === 1 ? "person" : "people"}</span>}
     </>
   );
 

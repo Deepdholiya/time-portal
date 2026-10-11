@@ -81,11 +81,12 @@ const ALL: FilterKey[] = ["client", "project", "subProject", "team", "employee",
 const KEY: Record<FilterKey, keyof Filters> = { client: "clientId", project: "projectId", subProject: "subProjectId", team: "teamId", employee: "userId", task: "taskId", status: "status", billable: "billable", tag: "tag" };
 
 /**
- * Filter bar: optional date range, then the shared Filter dropdown holding every dimension (multi-select with Select all),
+ * Filter bar, the same on every page: scope and date range, then the shared Filter dropdown, all on the left; page actions such
+ * as Export on the right. The Filter dropdown holding every dimension (multi-select with Select all),
  * applied together. `extra` adds sections such as Rows to the same dropdown.
  */
-export function FilterBar({ value, onChange, hide = [], showRange = true, presets, leading, trailing, extra }: {
-  value: Filters; onChange: (f: Filters) => void; hide?: FilterKey[]; showRange?: boolean; presets?: string[]; leading?: ReactNode; trailing?: ReactNode;
+export function FilterBar({ value, onChange, hide = [], showRange = true, presets, leading, afterRange, trailing, extra, label }: {
+  value: Filters; onChange: (f: Filters) => void; hide?: FilterKey[]; showRange?: boolean; presets?: string[]; leading?: ReactNode; afterRange?: ReactNode; trailing?: ReactNode; label?: string;
   extra?: { sections: FilterSection[]; value: FilterValues; onChange: (v: FilterValues) => void };
 }) {
   const { data: opts } = useOptions();
@@ -126,9 +127,10 @@ export function FilterBar({ value, onChange, hide = [], showRange = true, preset
     <div className={s.filterBar}>
       {leading}
       {showRange && <DateRangePicker size="sm" value={value.range} onChange={(range) => onChange({ ...value, range })} presets={presets} />}
+      {afterRange}
+      <FilterMenu sections={[...(extra?.sections ?? []), ...sections]} value={values} onApply={apply} placement="bottom-start" label={label} />
       <div className="grow" />
-      {trailing}
-      <FilterMenu sections={[...(extra?.sections ?? []), ...sections]} value={values} onApply={apply} />
+      {trailing && <div className="row" style={{ marginLeft: "auto" }}>{trailing}</div>}
     </div>
   );
 }

@@ -46,11 +46,11 @@ export default function TeamTime() {
   return (
     <Page
       title="Team timesheets" icon={<Users size={15} />}
-      actions={<Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>}
       toolbar={
         <div style={{ width: "100%" }}>
           <FilterBar value={filters} onChange={setStored} showRange={false} hide={["status"]}
             leading={<TimeRangeControl value={rangeSel} onChange={setRange} />}
+            trailing={<Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>}
             extra={{ sections: [{ key: "rows", label: "Rows", icon: <Rows3 size={13} />, single: true, required: true, defaultValue: "employee", options: GROUPS }], value: { rows: [groupBy] }, onChange: (v) => setGroupBy((v.rows?.[0] as GroupBy) ?? "employee") }} />
         </div>
       }

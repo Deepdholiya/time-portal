@@ -51,14 +51,14 @@ export default function Automations() {
           {data.map((a) => {
             const t = TRIGGERS[a.trigger];
             return (
-              <div key={a.id} className="list-row" style={{ height: "auto", minHeight: 52, padding: "8px 16px 8px 20px" }}>
+              <div key={a.id} className="list-row" style={{ height: "auto", minHeight: 52, padding: "8px var(--gutter)" }}>
                 <span className={s.icon}>{t?.icon ?? <Workflow size={14} />}</span>
                 <div className="grow col" style={{ gap: 2 }}>
-                  <span className="row"><span className="medium">{a.name}</span><Badge size="sm">{t?.label ?? a.trigger}</Badge></span>
+                  <span className="row wrap"><span className="medium">{a.name}</span><Badge size="sm">{t?.label ?? a.trigger}</Badge></span>
                   <span className="small muted ellipsis">{t?.describe(a.config) ?? ""}</span>
                 </div>
-                <span className="small faint num" style={{ width: 110, textAlign: "right" }}>{a.runs} {a.runs === 1 ? "run" : "runs"}</span>
-                <span className="small faint" style={{ width: 90, textAlign: "right" }}>{relTime(a.createdAt)}</span>
+                <span className="small faint num hide-sm" style={{ width: 110, textAlign: "right" }}>{a.runs} {a.runs === 1 ? "run" : "runs"}</span>
+                <span className="small faint hide-sm" style={{ width: 90, textAlign: "right" }}>{relTime(a.createdAt)}</span>
                 <Switch checked={a.enabled} onChange={(v) => toggle(a, v)} aria-label={`Enable ${a.name}`} />
                 <Menu placement="bottom-end" trigger={<IconButton label={`Actions for ${a.name}`} size="sm" icon={<MoreHorizontal size={15} />} />} items={[
                   { label: "Edit", icon: <Pencil size={14} />, onSelect: () => setEdit(a) },

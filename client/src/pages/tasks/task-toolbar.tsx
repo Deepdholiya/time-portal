@@ -1,12 +1,13 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { CalendarDays, CircleDashed, Flag, FolderKanban, LayoutList, Milestone, Search, SlidersHorizontal, Tag, UserRound, X, Columns3 } from "lucide-react";
+import { CalendarDays, CircleDashed, Flag, FolderKanban, LayoutList, Milestone, SlidersHorizontal, Tag, UserRound, X, Columns3 } from "lucide-react";
 import { FilterMenu } from "@/components/app/filter-menu";
-import { Avatar, Button, Input, Popover, SegmentedControl, Select, Switch } from "@/components/ui";
+import { Avatar, Button, Popover, SegmentedControl, Select, Switch } from "@/components/ui";
 import { PRIORITIES, PRIORITY_META, PriorityIcon, ProjectDot, STATUSES, STATUS_META, StatusIcon } from "@/components/app/icons";
 import { useDebounced } from "@/lib/hooks";
 import type { Options } from "@/lib/types";
 import { DUE_PRESETS, EMPTY_FILTERS, filtersActive, type GroupBy, type OrderBy, type TaskFilters } from "./lib";
 import s from "./tasks.module.css";
+import { SearchField } from "@/components/app/search-field";
 
 export interface Display { view: "list" | "board"; groupBy: GroupBy; orderBy: OrderBy; showDone: boolean; showSubtasks: boolean }
 export const DEFAULT_DISPLAY: Display = { view: "list", groupBy: "status", orderBy: "priority", showDone: true, showSubtasks: false };
@@ -32,7 +33,7 @@ export function TaskToolbar({ filters, setFilters, display, setDisplay, options,
 
   return (
     <div className={s.toolbar}>
-      <Input size="sm" className={s.search} icon={<Search size={14} />} placeholder="Search tasks…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search tasks" />
+      <SearchField placeholder="Search tasks…" value={q} onChange={setQ} />
       {active && <Button size="sm" variant="ghost" icon={<X size={13} />} onClick={() => { setQ(""); setFilters({ ...EMPTY_FILTERS }); }}>Clear</Button>}
       <span className="grow" />
       <FilterMenu

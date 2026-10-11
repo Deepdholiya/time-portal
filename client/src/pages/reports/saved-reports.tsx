@@ -52,7 +52,7 @@ export function SavedMenu({ list, current, onLoad, onChanged }: { list: SavedRep
 
 export function SaveDialog({ open, onClose, current, payload, onSaved }: {
   open: boolean; onClose: () => void; current: SavedReport | null;
-  payload: { filters: Record<string, string>; config: ReportConfig; preset: Preset }; onSaved: (id: number) => void;
+  payload: { filters: Record<string, string>; config: ReportConfig; preset: string }; onSaved: (id: number) => void;
 }) {
   const [name, setName] = useState("");
   const [schedule, setSchedule] = useState("");

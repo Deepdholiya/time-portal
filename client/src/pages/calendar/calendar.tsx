@@ -103,14 +103,14 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
           <Button size="sm" variant="ghost" onClick={() => set({ date: null })}>Today</Button>
           <span className={s.title}>{title}</span>
           {viewAll && <div style={{ width: 210 }}><Combobox size="sm" options={userOptions} value={who} onChange={(v) => set({ user: v && v !== String(me.user.id) ? v : null })} aria-label="Employee" searchPlaceholder="Search people…" /></div>}
-          <span className="grow" />
-          <span className="small muted num">{totalMin ? `${hm(totalMin)} logged` : ""}</span>
-          <FilterMenu
+          <FilterMenu placement="bottom-start"
             width={260}
             sections={[{ key: "show", label: "Show on the calendar", allByDefault: true, options: LAYERS.map((l) => ({ value: l.key, label: l.label, icon: <span className="dot" style={{ background: l.swatch, width: 7, height: 7 }} /> })) }]}
             value={{ show: LAYERS.filter((l) => layers[l.key]).map((l) => l.key) }}
             onApply={(v) => setLayers(Object.fromEntries(LAYERS.map((l) => [l.key, (v.show ?? []).includes(l.key)])) as unknown as Layers)}
           />
+          <span className="grow" />
+          <span className="small muted num">{totalMin ? `${hm(totalMin)} logged` : ""}</span>
           {approver && <Tooltip content="Add leave or holiday"><IconButton size="sm" variant="secondary" label="Add leave or holiday" icon={<CalendarPlus size={14} />} onClick={() => setLeaveOpen(true)} /></Tooltip>}
           <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ cal: v === "month" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
         </>

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Archive, Building2, CircleDot, FolderKanban, Lock, Plus, Receipt, Search, Tag, UserRound, X } from "lucide-react";
-import { Avatar, AvatarGroup, Button, EmptyState, ErrorState, Input, SkeletonRows } from "@/components/ui";
+import { Archive, Building2, CircleDot, FolderKanban, Lock, Plus, Receipt, Tag, UserRound, X } from "lucide-react";
+import { Avatar, AvatarGroup, Button, EmptyState, ErrorState, SkeletonRows } from "@/components/ui";
 import { FilterMenu } from "@/components/app/filter-menu";
 import { ProjectDot } from "@/components/app/icons";
 import { HealthBadge } from "./health-badge";
@@ -13,6 +13,7 @@ import { BILLING, BILLING_TYPES, PROJECT_STATUS, PROJECT_STATUSES, type Project 
 import { ProjectFormDialog } from "./project-form";
 import { ProjectActions } from "./project-actions";
 import s from "./projects.module.css";
+import { SearchField } from "@/components/app/search-field";
 
 interface Filters { status: string[]; clientId: number | null; managerId: number | null; archived: "false" | "true" | "all"; billing: string[]; tag: string | null }
 const EMPTY: Filters = { status: [], clientId: null, managerId: null, archived: "false", billing: [], tag: null };
@@ -37,10 +38,8 @@ export default function Projects() {
 
   const toolbar = (
     <>
-      <Input size="sm" style={{ width: 200 }} icon={<Search size={14} />} placeholder="Search projects…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search projects" />
-      {active ? <Button size="sm" variant="ghost" icon={<X size={13} />} onClick={() => { setQ(""); setF(EMPTY); }}>Clear</Button> : null}
-      <span className="grow" />
-      <FilterMenu
+      <SearchField placeholder="Search projects…" value={q} onChange={setQ} />
+      <FilterMenu placement="bottom-start"
         sections={[
           { key: "status", label: "Status", icon: <CircleDot size={13} />, options: PROJECT_STATUSES.map((x) => ({ value: x, label: PROJECT_STATUS[x].label })) },
           { key: "client", label: "Client", icon: <Building2 size={13} />, single: true, options: clients.map((c) => ({ value: String(c.id), label: c.name })) },
@@ -55,6 +54,8 @@ export default function Projects() {
           billing: v.billing ?? [], tag: v.tag?.[0] ?? null, archived: ((v.archived?.[0] as Filters["archived"]) ?? "false"),
         })}
       />
+      {active ? <Button size="sm" variant="ghost" icon={<X size={13} />} onClick={() => { setQ(""); setF(EMPTY); }}>Clear</Button> : null}
+      <span className="grow" />
     </>
   );
 

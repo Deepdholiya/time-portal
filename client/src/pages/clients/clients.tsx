@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Archive, ArchiveRestore, Briefcase, MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Briefcase, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { Page } from "@/components/app/page";
 import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, SegmentedControl, SkeletonRows, toast } from "@/components/ui";
 import { del, post, put } from "@/lib/api";
@@ -8,6 +8,7 @@ import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { hours, money } from "@/lib/format";
 import { numOrNull } from "../admin/shared";
+import { SearchField } from "@/components/app/search-field";
 
 export interface Client {
   id: number; name: string; email: string | null; contactName: string | null; phone: string | null; website: string | null; rate?: number | null; archived: boolean;
@@ -44,7 +45,7 @@ export default function Clients() {
 
   const toolbar = (
     <>
-      <Input size="sm" icon={<Search size={14} />} placeholder="Search clients" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 220 }} />
+      <SearchField placeholder="Search clients" value={q} onChange={setQ} />
       <SegmentedControl aria-label="Show" value={show} onChange={setShow} options={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }, { value: "all", label: "All" }]} />
       <div className="grow" />
       {data && <span className="small faint">{rows.length} of {data.length}</span>}

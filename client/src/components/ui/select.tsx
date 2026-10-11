@@ -27,9 +27,11 @@ const NONE = "__none__";
 export const Select = ownsField(function Select({ value, onChange, options, placeholder, size = "md", fullWidth = true, disabled, name, className, style, title, "aria-label": ariaLabel }: SelectProps) {
   const field = useField();
   const { label, hidden } = controlLabel(field, ariaLabel ?? placeholder);
-  const flat = options.flatMap((o) => ("group" in o ? o.options : [o])).map((o) => ({ value: String(o.value), label: o.label, disabled: o.disabled }));
-  const items = placeholder !== undefined ? [{ value: NONE, label: placeholder }, ...flat] : flat;
-  const current = value == null || value === "" ? (placeholder !== undefined ? NONE : undefined) : String(value);
+  // An explicit "" option ("All kinds") is the empty choice too, so it shows its own label instead of "Select…".
+  const flat = options.flatMap((o) => ("group" in o ? o.options : [o])).map((o) => ({ value: String(o.value) === "" ? NONE : String(o.value), label: o.label, disabled: o.disabled }));
+  const hasEmpty = flat.some((o) => o.value === NONE);
+  const items = placeholder !== undefined && !hasEmpty ? [{ value: NONE, label: placeholder }, ...flat] : flat;
+  const current = value == null || value === "" ? (placeholder !== undefined || hasEmpty ? NONE : undefined) : String(value);
   return (
     <div className={cx(hidden && s.srLabel, size === "sm" && s.sm, s.inputWrap, !fullWidth && s.inline)} style={style} title={title}>
       <ArcSelect

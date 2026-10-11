@@ -175,13 +175,13 @@ export default function Roadmap() {
           <Tooltip content={collapsed.length ? "Expand all" : "Collapse projects"}>
             <IconButton size="sm" variant="secondary" label="Expand or collapse all" icon={collapsed.length ? <ChevronsUpDown size={14} /> : <ChevronsDownUp size={14} />} onClick={collapsed.length ? expandAll : collapseAll} />
           </Tooltip>
+          <FilterMenu placement="bottom-start" sections={sections} value={fv} onApply={applyFilters} />
           {canEdit && <span className="small faint hide-sm">Drag a bar to move its dates, or its edge to change the length.</span>}
           <span className="grow" />
           <Menu trigger={<Button size="sm" variant="secondary" icon={<Rows3 size={14} />} iconRight={<ChevronDown size={13} />}>Group: {GROUPS.find((g) => g.value === groupBy)?.label}</Button>}
             items={GROUPS.map((g) => ({ label: g.label, icon: g.value === groupBy ? <Check size={14} /> : <span style={{ width: 14 }} />, onSelect: () => { setGroupBy(g.value); setCollapsed([]); } }))} />
           <Menu trigger={<Button size="sm" variant="secondary" icon={<ZoomIn size={14} />} iconRight={<ChevronDown size={13} />}>Zoom: {ZOOMS.find((z) => z.value === zoom)?.label}</Button>}
             items={ZOOMS.map((z) => ({ label: z.title, icon: z.value === zoom ? <Check size={14} /> : <span style={{ width: 14 }} />, onSelect: () => setZoom(z.value) }))} />
-          <FilterMenu sections={sections} value={fv} onApply={applyFilters} />
         </>
       }
     >
