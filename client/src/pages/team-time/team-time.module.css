@@ -8,3 +8,5 @@
 .weekend { background: var(--bg-subtle); }
 .cell { padding: 2px 4px; border-radius: var(--radius-sm); }
 .cell:hover { background: var(--accent-soft); color: var(--accent-text); }
+.filters { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-subtle); }
+.count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px; border-radius: var(--radius-pill); background: var(--sh-primary); color: var(--sh-primary-foreground); font-size: 11px; font-weight: 600; }

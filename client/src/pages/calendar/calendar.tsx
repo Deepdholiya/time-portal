@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Sheet as SheetIcon } from "lucide-react";
-import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, SegmentedControl, Sheet, toast } from "@/components/ui";
+import { CalendarPlus, Check, ChevronLeft, ChevronRight, ListFilter, Sheet as SheetIcon } from "lucide-react";
+import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, Popover, SegmentedControl, Sheet, Tooltip, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { patch } from "@/lib/api";
@@ -12,6 +12,8 @@ import { useOptions } from "../time/time-utils";
 import { bucketize, type CalData, type Layers } from "./calendar-data";
 import { CalendarGrid } from "./calendar-grid";
 import { DayDetail } from "./day-detail";
+import { RequestLeaveDialog } from "../leave/request-dialog";
+import { useHolidays } from "../time/time-utils";
 import s from "./calendar.module.css";
 
 type View = "month" | "week" | "day";
@@ -35,6 +37,10 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
   const isMe = who === String(me.user.id);
   const [layers, setLayers] = useLocal<Layers>("calendar.layers", { time: true, tasks: true, milestones: true, leave: true });
   const [openDay, setOpenDay] = useState<string | null>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const approver = can("leaveApprove", "yes");
+  const hol = useHolidays();
+  const holidaySet = useMemo(() => new Set((hol.data ?? []).map((h) => h.date)), [hol.data]);
   const { data: options } = useOptions();
 
   const days = useMemo(() => {
@@ -79,6 +85,7 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
 
   const title = view === "month" ? monthName(date) : view === "week" ? `${fmtDate(days[0])} – ${fmtDate(days[6], true)}` : `${fmtDay(date)}, ${monthName(date)}`;
   const totalMin = days.reduce((a, d) => a + (view === "month" && d.slice(0, 7) !== date.slice(0, 7) ? 0 : buckets[d].minutes), 0);
+  const hidden = LAYERS.filter((l) => !layers[l.key]).length;
   const userOptions = [
     ...(viewAll ? [{ value: "all", label: "Everyone" }] : []),
     ...(options?.users ?? []).map((u) => ({ value: String(u.id), label: u.id === me.user.id ? `${u.name} (you)` : u.name, icon: <Avatar name={u.name} size={16} />, keywords: u.email })),
@@ -88,23 +95,31 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
     <Page
       title="Timesheet"
       icon={<SheetIcon size={15} className="faint" />}
-      actions={<>{tabs}{canLog && <Button size="sm" className="hide-sm" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: view === "day" ? date : today(), userId: logFor }, reload)}>Log time</Button>}</>}
+      actions={tabs}
       toolbar={
         <>
           <IconButton size="sm" variant="secondary" label="Previous" icon={<ChevronLeft size={14} />} onClick={() => step(-1)} />
           <IconButton size="sm" variant="secondary" label="Next" icon={<ChevronRight size={14} />} onClick={() => step(1)} />
           <Button size="sm" variant="ghost" onClick={() => set({ date: null })}>Today</Button>
           <span className={s.title}>{title}</span>
-          <span className="small muted num">{totalMin ? `${hm(totalMin)} logged` : ""}</span>
+          {viewAll && <div style={{ width: 210 }}><Combobox size="sm" options={userOptions} value={who} onChange={(v) => set({ user: v && v !== String(me.user.id) ? v : null })} aria-label="Employee" searchPlaceholder="Search people…" /></div>}
           <span className="grow" />
-          <div className={s.legend}>
-            {LAYERS.map((l) => (
-              <button key={l.key} type="button" aria-pressed={layers[l.key]} className={`${s.toggle} ${layers[l.key] ? s.on : ""}`} onClick={() => setLayers({ ...layers, [l.key]: !layers[l.key] })}>
-                <span className="dot" style={{ background: layers[l.key] ? l.swatch : "var(--border-strong)", width: 6, height: 6 }} />{l.label}
-              </button>
-            ))}
-          </div>
-          {viewAll && <div style={{ width: 190 }}><Combobox size="sm" options={userOptions} value={who} onChange={(v) => set({ user: v && v !== String(me.user.id) ? v : null })} aria-label="Whose calendar" searchPlaceholder="Search people…" /></div>}
+          <span className="small muted num">{totalMin ? `${hm(totalMin)} logged` : ""}</span>
+          <Popover
+            placement="bottom-end" width={220} padded={false}
+            trigger={<Button size="sm" variant="secondary" icon={<ListFilter size={14} />}>Filter{hidden ? ` · ${LAYERS.length - hidden}/${LAYERS.length}` : ""}</Button>}
+          >
+            <div className={s.layerMenu} role="group" aria-label="Show on the calendar">
+              {LAYERS.map((l) => (
+                <button key={l.key} type="button" role="menuitemcheckbox" aria-checked={layers[l.key]} className={s.layerItem} onClick={() => setLayers({ ...layers, [l.key]: !layers[l.key] })}>
+                  <span className="dot" style={{ background: l.swatch, width: 7, height: 7 }} />
+                  <span className="grow">{l.label}</span>
+                  {layers[l.key] && <Check size={14} />}
+                </button>
+              ))}
+            </div>
+          </Popover>
+          {approver && <Tooltip content="Add leave or holiday"><IconButton size="sm" variant="secondary" label="Add leave or holiday" icon={<CalendarPlus size={14} />} onClick={() => setLeaveOpen(true)} /></Tooltip>}
           <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ cal: v === "month" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
         </>
       }
@@ -134,6 +149,12 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
           </div>
         )}
       </Sheet>
+      {approver && (
+        <RequestLeaveDialog
+          forOthers open={leaveOpen} onClose={() => setLeaveOpen(false)} workWeek={workDays} holidays={holidaySet}
+          onSaved={() => { reload(); hol.reload(); invalidate("/leave"); }}
+        />
+      )}
     </Page>
   );
 }

@@ -188,8 +188,9 @@ function DayCell({ row, date, ctx }: { row: Row; date: string; ctx: GridCtx }) {
 }
 
 function CellEditor({ row, date, list, ctx, editable, close }: { row: Row; date: string; list: TimeEntry[]; ctx: GridCtx; editable: boolean; close: () => void }) {
-  // With one entry (or none) the form opens straight away; with several, the list comes first.
-  const [picked, setPicked] = useState<TimeEntry | "new" | null>(list.length > 1 ? null : list[0] ?? "new");
+  // The form opens straight away: one entry opens for editing, otherwise it's a new entry. Earlier entries in the cell
+  // are one click away, not in the way.
+  const [picked, setPicked] = useState<TimeEntry | "new" | null>(list.length === 1 ? list[0] : editable ? "new" : list.length ? null : "new");
   const total = list.reduce((a, e) => a + e.minutes, 0);
   const head = <div className={s.popHead}><span className="medium ellipsis">{row.leafLabel}{row.taskLabel ? ` · ${row.taskLabel}` : ""}</span><span className="faint small">{dayName(date)} {fmtDate(date)}</span></div>;
   if (picked === null) {
@@ -213,8 +214,13 @@ function CellEditor({ row, date, list, ctx, editable, close }: { row: Row; date:
       </div>
     );
   }
-  return <EntryForm key={picked === "new" ? "new" : picked.id} entry={picked === "new" ? null : picked} row={row} date={date} ctx={ctx} editable={editable} head={head}
-    onBack={list.length > 1 ? () => setPicked(null) : undefined} close={close} />;
+  const earlier = picked === "new" && list.length > 1 && (
+    <button type="button" className={s.popEarlier} onClick={() => setPicked(null)}>
+      {hm(total, true)} already logged in {list.length} entries. <span className="link">Edit them</span>
+    </button>
+  );
+  return <EntryForm key={picked === "new" ? "new" : picked.id} entry={picked === "new" ? null : picked} row={row} date={date} ctx={ctx} editable={editable} head={<>{head}{earlier}</>}
+    onBack={list.length > 1 && picked !== "new" ? () => setPicked(null) : undefined} close={close} />;
 }
 
 /** Duration, description and tags for one entry in a timesheet cell. Enter saves. */

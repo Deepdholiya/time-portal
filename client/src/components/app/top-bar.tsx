@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Bell, Clock, CornerDownLeft, FolderKanban, Menu as MenuIcon, Moon, Plus, Search, Sparkles, SquarePen, X } from "lucide-react";
+import { ArrowRight, Bell, Clock, CornerDownLeft, FolderKanban, Menu as MenuIcon, Moon, Plus, Search, Sparkles, X } from "lucide-react";
 import { Button, IconButton, Kbd, Spinner, Tooltip } from "@/components/ui";
 import { get, post } from "@/lib/api";
 import { useDebounced } from "@/lib/hooks";
@@ -152,7 +152,6 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function 
       <div className={s.actions}>
         <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()} className={s.hideSm}>Log time</Button>
         <Tooltip content="Log time"><IconButton variant="primary" className={s.showSm} label="Log time" icon={<Plus size={16} />} onClick={() => shell.logTime()} /></Tooltip>
-        <Tooltip content="New task" shortcut="C"><IconButton variant="ghost" className={s.hideSm} label="New task" icon={<SquarePen size={15} />} onClick={() => shell.newTask()} /></Tooltip>
         <Tooltip content="Inbox"><IconButton variant="ghost" label="Inbox" icon={<Bell size={15} />} onClick={() => nav("/inbox")} /></Tooltip>
         <span className={`${s.company} ${s.hideSm}`}>{me?.company.name}</span>
       </div>
