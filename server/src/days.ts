@@ -2,9 +2,9 @@
 import type { Company } from "@prisma/client";
 import { prisma, companySettings, notify } from "./db.js";
 import { HttpError } from "./auth.js";
-import { addDays, zonedInstant, zonedNow } from "./weeks.js";
+import { addDays, zonedNow } from "./weeks.js";
 
-/** Days stay editable in these states; SUBMITTED and APPROVED are locked. */
+/** Days in these states still need the employee's attention before a manager reviews them. */
 export const OPEN_STATES = ["FAILED", "REJECTED", "REOPENED"];
 const LOOKBACK_DAYS = 31;
 
@@ -43,17 +43,14 @@ export async function dayProblems(company: Company, userId: number, date: string
 
 /**
  * Submits every day that reached its cutoff and has entries but no submission yet.
- * A day whose entries were changed after its cutoff waits for a manual submit instead, so late additions aren't locked away mid-edit.
  * Runs from the background job and before day statuses are read (serverless deployments have no long-running job).
  */
 export async function autoSubmitDue(company: Company, userId?: number) {
-  const settings = companySettings(company);
   const last = lastDueDate(company);
   const from = addDays(last, -LOOKBACK_DAYS);
   const groups = await prisma.timeEntry.groupBy({
     by: ["userId", "date"],
     where: { companyId: company.id, running: false, date: { gte: from, lte: last }, ...(userId ? { userId } : {}) },
-    _max: { updatedAt: true },
   });
   if (!groups.length) return 0;
   const existing = await prisma.timesheetDay.findMany({ where: { companyId: company.id, date: { gte: from, lte: last }, ...(userId ? { userId } : {}) }, select: { userId: true, date: true } });
@@ -61,8 +58,6 @@ export async function autoSubmitDue(company: Company, userId?: number) {
   let n = 0;
   for (const g of groups) {
     if (done.has(`${g.userId}:${g.date}`)) continue;
-    const cutoff = zonedInstant(g.date, settings.autoSubmitTime, company.timezone);
-    if (g._max.updatedAt && g._max.updatedAt.getTime() > cutoff.getTime() + 60_000) continue;
     const problems = await dayProblems(company, g.userId, g.date);
     try {
       await prisma.timesheetDay.create({
@@ -80,15 +75,31 @@ export async function autoSubmitDue(company: Company, userId?: number) {
   return n;
 }
 
-/** Submitted and approved days are read-only until the employee reopens them or a reviewer sends them back. */
+/**
+ * Time can be changed at any time. The one exception is an approved day when the company locks approved days
+ * (Company settings → Time); future dates are never allowed.
+ */
 export async function assertDayOpen(company: Company, userId: number, date: string) {
   const now = companyNow(company);
   if (date > now.date) throw new HttpError(400, "You can't log time on a future date");
   if (!companySettings(company).lockApprovedWeeks) return;
   const d = await prisma.timesheetDay.findUnique({ where: { companyId_userId_date: { companyId: company.id, userId, date } } });
-  if (d && !OPEN_STATES.includes(d.status)) {
-    throw new HttpError(409, d.status === "APPROVED"
-      ? `${date} is approved and locked. Ask your manager or an admin to unlock it.`
-      : `${date} is submitted. Reopen the day for corrections to change it.`);
+  if (d?.status === "APPROVED") throw new HttpError(409, `${date} is approved and locked. Ask an admin to unlock approved days.`);
+}
+
+/**
+ * Keeps a day's submission in step after its entries change. An approved day goes back to submitted so the change is
+ * reviewed again; a day that failed or was sent back is checked again and submitted once it has no problems.
+ */
+export async function afterEntryChange(company: Company, userId: number, dates: string[]) {
+  for (const date of new Set(dates)) {
+    const d = await prisma.timesheetDay.findUnique({ where: { companyId_userId_date: { companyId: company.id, userId, date } } });
+    if (!d) continue;
+    if (d.status === "APPROVED") {
+      await prisma.timesheetDay.update({ where: { id: d.id }, data: { status: "SUBMITTED", note: "Changed after approval", reviewedAt: null, reviewedById: null, submittedAt: new Date() } });
+    } else if (d.status !== "SUBMITTED") {
+      const problems = await dayProblems(company, userId, date);
+      await prisma.timesheetDay.update({ where: { id: d.id }, data: problems.length ? { status: "FAILED", note: problems.join(". ") } : { status: "SUBMITTED", note: null, submittedAt: new Date() } });
+    }
   }
 }

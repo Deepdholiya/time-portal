@@ -33,3 +33,14 @@ button.kpi:hover { background: var(--bg-hover); }
 .legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-2); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .kpi:nth-child(3) { border-right: 0; } .kpi:nth-child(-n+3) { border-bottom: 1px solid var(--border); } .cols { grid-template-columns: 1fr; } }
+/* Logged today */
+.todayTop { display: flex; align-items: baseline; gap: 10px; }
+.logBtn { width: 100%; justify-content: center; }
+.todayList { display: flex; flex-direction: column; padding: 4px; border-top: 1px solid var(--border); max-height: 260px; overflow: auto; }
+.todayItem { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 10px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text); text-align: left; cursor: pointer; font-size: 13px; min-width: 0; }
+.todayItem:hover, .todayItem:focus-visible { background: var(--sh-accent); outline: none; }
+.todayText { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.35; }
+.todayDur { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 12.5px; flex-shrink: 0; }
+.todayEdit { color: var(--text-3); flex-shrink: 0; opacity: 0; transition: opacity 0.1s; }
+.todayItem:hover .todayEdit, .todayItem:focus-visible .todayEdit { opacity: 1; }
+@media (hover: none) { .todayEdit { opacity: 1; } }

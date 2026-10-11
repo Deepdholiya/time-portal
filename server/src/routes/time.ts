@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma, audit, companySettings } from "../db.js";
 import { HttpError, can, cid, uid } from "../auth.js";
 import { accessibleProjectIds } from "../permissions.js";
-import { assertDayOpen } from "../days.js";
+import { afterEntryChange, assertDayOpen } from "../days.js";
 import { DATE } from "../scope.js";
 
 export const timeRouter = Router();
@@ -149,6 +149,7 @@ timeRouter.post("/", async (req, res) => {
     data: { companyId: cid(req), userId, projectId: d.projectId, taskId: d.taskId ?? null, date: d.date, ...t, description: d.description, billable: d.billable, tags: { create: tagIds.map((tagId) => ({ tagId })) } },
     include: timeInclude,
   });
+  await afterEntryChange(req.company!, userId, [d.date]);
   await audit(req, "time_created", "timeEntry", entry.id, { new: { ...snapshot(entry), userId, tagIds } });
   await taskActivity(entry.taskId, uid(req), `${t.minutes} min logged`);
   res.status(201).json(flatTags(entry));
@@ -178,6 +179,7 @@ timeRouter.put("/:id", async (req, res) => {
     data: { projectId: d.projectId, taskId: d.taskId ?? null, date: d.date, ...t, description: d.description, billable: d.billable, tags: { deleteMany: {}, create: tagIds.map((tagId) => ({ tagId })) } },
     include: timeInclude,
   });
+  await afterEntryChange(req.company!, existing.userId, [existing.date, d.date]);
   await audit(req, "time_edited", "timeEntry", entry.id, { old: { ...snapshot(existing), userId: existing.userId, tagIds: oldTags }, new: { ...snapshot(entry), tagIds }, reason });
   res.json(flatTags(entry));
 });
@@ -186,6 +188,7 @@ timeRouter.delete("/:id", async (req, res) => {
   const existing = await findEntry(req, Number(req.params.id));
   await assertDayOpen(req.company!, existing.userId, existing.date);
   await prisma.timeEntry.delete({ where: { id: existing.id } });
+  await afterEntryChange(req.company!, existing.userId, [existing.date]);
   await audit(req, "time_deleted", "timeEntry", existing.id, { old: { ...snapshot(existing), userId: existing.userId }, reason: typeof req.query.reason === "string" ? req.query.reason : undefined });
   res.json({ ok: true });
 });
@@ -211,6 +214,7 @@ timeRouter.post("/copy", async (req, res) => {
       } catch { skipped++; }
     }
   }
+  await afterEntryChange(req.company!, userId, d.pairs.map((p) => p[1]));
   await audit(req, "time_copied", "timeEntry", null, { new: { userId, created, skipped, pairs: d.pairs } });
   res.json({ created, skipped });
 });

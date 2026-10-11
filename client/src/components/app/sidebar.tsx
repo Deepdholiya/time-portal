@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, LogOut, Moon, Sun, Settings, Plus, UserRound, SquarePen, Clock } from "lucide-react";
+import { ChevronDown, LogOut, Moon, Sun, Settings, Plus, UserRound, SquarePen } from "lucide-react";
 import { Avatar, IconButton, Menu, Tooltip } from "@/components/ui";
 import { get } from "@/lib/api";
 import { useLocal } from "@/lib/hooks";
@@ -114,7 +114,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <h2>{active.label}</h2>
           <span className="grow" />
           {active.id === "time"
-            ? <Tooltip content="Log time"><IconButton label="Log time" icon={<Clock size={15} />} onClick={() => shell.logTime()} /></Tooltip>
+            ? <Tooltip content="Log time"><IconButton label="Log time" icon={<Plus size={16} />} onClick={() => shell.logTime()} /></Tooltip>
             : <Tooltip content="New task" shortcut="C"><IconButton label="New task" icon={<SquarePen size={15} />} onClick={() => shell.newTask()} /></Tooltip>}
         </div>
         <div className={s.scroll}>

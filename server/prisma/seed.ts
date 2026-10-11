@@ -37,7 +37,7 @@ async function main() {
   const bux = await prisma.company.create({
     data: {
       name: "Bridge UX", slug: "bridge-ux", color: "#5e6ad2", country: "India", timezone: "Asia/Kolkata", currency: "INR",
-      settings: JSON.stringify({ taskKey: "BUX", overloadPct: 100, healthyPct: 80, underPct: 60, tempPasswordHours: 72, sessionTimeoutMinutes: 480, enforceAdminMfa: false, aiEnabled: true, allowOverlappingTimers: false, lockApprovedWeeks: true, invitationDays: 7 }),
+      settings: JSON.stringify({ taskKey: "BUX", overloadPct: 100, healthyPct: 80, underPct: 60, tempPasswordHours: 72, sessionTimeoutMinutes: 480, enforceAdminMfa: false, aiEnabled: true, allowOverlappingTimers: false, lockApprovedWeeks: false, invitationDays: 7 }),
     },
   });
   const teamDefs = [["Design", "#bb87fc"], ["Engineering", "#26b5ce"], ["QA", "#4cb782"], ["Marketing", "#f2994a"]] as const;

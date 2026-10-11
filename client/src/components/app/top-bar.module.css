@@ -27,9 +27,14 @@
 .answerHead { display: flex; align-items: center; gap: 6px; color: var(--accent-text); font-size: 12.5px; }
 .answerText { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text); }
 .actions { display: flex; align-items: center; gap: 4px; }
+.showSm { display: none !important; }
 .company { font-size: 12px; color: var(--text-3); margin-left: 6px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 900px) {
   .bar { padding: 0 8px; border-bottom: 1px solid var(--border); background: var(--bg-sidebar); }
+  .bar { gap: 6px; }
+  .searchWrap { width: auto; flex: 1 1 0; min-width: 0; }
+  .actions { flex-shrink: 0; }
   .menuBtn { display: inline-flex !important; }
   .hideSm { display: none !important; }
+  .showSm { display: inline-flex !important; }
 }

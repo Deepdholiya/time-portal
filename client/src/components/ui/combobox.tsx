@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactElement, type ReactNode } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Plus } from "lucide-react";
 import { Combobox as ArcCombobox } from "../arc/combobox/combobox";
 import { MultiSelect } from "../arc/multi-select/multi-select";
 import { Popover } from "./popover";
@@ -22,6 +22,11 @@ interface Base {
   emptyText?: string;
   className?: string;
   "aria-label"?: string;
+  /** Lets the person add what they typed as a new option. Resolves to the new option's value. */
+  onCreate?: (label: string) => Promise<string | number | null | undefined>;
+  createLabel?: (label: string) => string;
+  /** Always use the compact popover list, even inside a Field. */
+  picker?: boolean;
 }
 interface Single extends Base { multiple?: false; value: string | number | null | undefined; onChange: (value: string | null) => void; clearable?: boolean; clearLabel?: string }
 interface Multi extends Base { multiple: true; value: (string | number)[]; onChange: (value: string[]) => void }
@@ -34,7 +39,7 @@ export type ComboboxProps = Single | Multi;
 export const Combobox = ownsField(function Combobox(props: ComboboxProps) {
   const field = useField();
   // Toolbar filters (a fixed width outside any Field) keep the compact picker too.
-  if (props.appearance === "chip" || props.trigger || (props.width && !field)) return <Picker {...props} />;
+  if (props.appearance === "chip" || props.trigger || props.onCreate || props.picker || (props.width && !field)) return <Picker {...props} />;
   const { label, hidden } = controlLabel(field, props["aria-label"] ?? props.placeholder);
   const options = props.options.map((o) => ({ value: String(o.value), label: o.label, keywords: [o.keywords, o.group, textOf(o.hint)].filter(Boolean) as string[] }));
   const wrap = cx(hidden && s.srLabel, props.size === "sm" && s.sm, s.inputWrap);
@@ -75,6 +80,22 @@ function Picker(props: ComboboxProps) {
     return t ? options.filter((o) => `${o.label} ${o.keywords ?? ""} ${o.group ?? ""}`.toLowerCase().includes(t)) : options;
   }, [q, options]);
   const clearRow = !props.multiple && props.clearable ? 1 : 0;
+  const [creating, setCreating] = useState(false);
+  const typed = q.trim();
+  const canCreate = !!props.onCreate && !!typed && !options.some((o) => o.label.toLowerCase() === typed.toLowerCase());
+  const createIndex = clearRow + filtered.length;
+  const create = async (close: () => void) => {
+    if (!props.onCreate || creating) return;
+    setCreating(true);
+    try {
+      const v = await props.onCreate(typed);
+      if (v != null) {
+        if (props.multiple) props.onChange([...selected, String(v)]);
+        else { props.onChange(String(v)); close(); }
+      }
+      setQ("");
+    } catch { /* the caller shows the error */ } finally { setCreating(false); }
+  };
 
   const choose = (v: string | null, close: () => void) => {
     if (props.multiple) {
@@ -110,13 +131,14 @@ function Picker(props: ComboboxProps) {
             value={q}
             onChange={(e) => { setQ(e.target.value); setHi(0); }}
             onKeyDown={(e) => {
-              const n = filtered.length + clearRow;
+              const n = filtered.length + clearRow + (canCreate ? 1 : 0);
               if (e.key === "ArrowDown") { e.preventDefault(); setHi((h) => (h + 1) % Math.max(1, n)); }
               else if (e.key === "ArrowUp") { e.preventDefault(); setHi((h) => (h - 1 + n) % Math.max(1, n)); }
               else if (e.key === "Enter") {
                 e.preventDefault();
                 if (clearRow && hi === 0) choose(null, close);
-                else { const o = filtered[hi - clearRow]; if (o) choose(String(o.value), close); }
+                else if (canCreate && hi === createIndex) create(close);
+                else { const o = filtered[hi - clearRow]; if (o) choose(String(o.value), close); else if (canCreate) create(close); }
               }
             }}
           />
@@ -144,7 +166,14 @@ function Picker(props: ComboboxProps) {
                 </div>
               );
             })}
-            {!filtered.length && <div className={s.empty}>{emptyText}</div>}
+            {!filtered.length && !canCreate && <div className={s.empty}>{emptyText}</div>}
+            {canCreate && (
+              <div role="option" aria-selected={false} className={cx(s.option, hi === createIndex && s.hi)} onMouseEnter={() => setHi(createIndex)} onClick={() => create(close)}>
+                <Plus size={14} className="faint" />
+                <span className={s.label}>{props.createLabel ? props.createLabel(typed) : `Create “${typed}”`}</span>
+                {creating && <span className={s.optHint}>Adding…</span>}
+              </div>
+            )}
           </div>
           {props.multiple && selected.length > 0 && (
             <div className={s.pickerFooter}>

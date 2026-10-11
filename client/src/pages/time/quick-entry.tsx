@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { DollarSign, Plus, Tag as TagIcon } from "lucide-react";
-import { Button, Combobox, DatePicker, IconButton, Tooltip, toast } from "@/components/ui";
+import { Button, DatePicker, IconButton, Tooltip, toast } from "@/components/ui";
 import { useCompanyDay } from "@/components/app/time-range";
 import { post } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
@@ -9,6 +9,7 @@ import { fmtDate, fromMin, hm, parseDuration, toMin } from "@/lib/format";
 import type { Options, TimeEntry } from "@/lib/types";
 import { ProjectTaskPicker, type Pick } from "./project-task-picker";
 import { afterTimeChange, defaultBillable, tagOptions, useTags } from "./time-utils";
+import { TagPicker } from "./tag-picker";
 import s from "./time.module.css";
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -74,8 +75,8 @@ export function QuickEntry({ options, onAdded }: { options: Options | undefined;
           options={options} value={pick} width={400} placeholder="Project or task"
           onChange={(v) => { setPick(v); const p = options?.projects.find((x) => x.id === v.projectId); if (p) setBillable(defaultBillable(p)); const t = p?.tasks.find((x) => x.id === v.taskId); if (t && !desc.trim()) setDesc(t.title); }}
         />
-        <Combobox
-          multiple options={tagOpts} value={tagIds} onChange={(v) => setTagIds(v.map(Number))} width={240} searchPlaceholder="Search tags…" emptyText="No tags for your team"
+        <TagPicker
+          value={tagIds} onChange={setTagIds}
           trigger={
             <button type="button" className={s.pickTrigger} aria-label="Tags">
               <TagIcon size={14} className={selectedTags.length ? undefined : "faint"} />

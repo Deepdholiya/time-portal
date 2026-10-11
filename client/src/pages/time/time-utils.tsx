@@ -3,6 +3,7 @@ import type { BadgeTone, ComboboxOption } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { invalidate, useApi } from "@/lib/hooks";
 import { weekday } from "@/lib/format";
+import { useMe } from "@/lib/session";
 import type { DayStatus, DaysResponse, Options, ProjectOption, Tag, TagLite, TimeEntry } from "@/lib/types";
 
 export const useOptions = () => useApi<Options>("/options");
@@ -92,7 +93,13 @@ export const DAY_STATUS: Record<DayStatus, { label: string; tone: BadgeTone; hin
   FAILED: { label: "Needs fixes", tone: "orange", hint: "The automatic submission found problems. Fix them and submit." },
   REOPENED: { label: "Correcting", tone: "yellow", hint: "Reopened for corrections. Submit it again when you're done." },
 };
-export const LOCKED: DayStatus[] = ["SUBMITTED", "APPROVED"];
+
+/** Whether a day is read-only. Time stays editable unless the company locks approved days and this day is approved. */
+export function useDayLock() {
+  const { settings } = useMe();
+  const lock = !!settings.lockApprovedWeeks;
+  return (status?: DayStatus) => lock && status === "APPROVED";
+}
 
 /** Day statuses for a range, keyed by date. */
 export function useDays(from: string, to: string, userId?: number) {

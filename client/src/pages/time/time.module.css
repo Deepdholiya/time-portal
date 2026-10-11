@@ -50,32 +50,51 @@
 .list { margin: 16px 20px 32px; border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); overflow: hidden; }
 .rangeFoot { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; background: var(--bg-subtle); font-size: 12.5px; color: var(--text-2); }
 .weekHead { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; background: var(--bg-subtle); border-bottom: 1px solid var(--border); font-weight: 500; }
-.dayHead { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 8px 4px 16px; border-bottom: 1px solid var(--border); font-size: 12.5px; color: var(--text-2); background: var(--bg-subtle); position: sticky; top: 0; z-index: 1; }
+/* Entry rows share one column grid so every column lines up: description, project, tags, billable, times, duration, actions. */
+.entry {
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 170px 20px 100px 60px 72px; align-items: center; column-gap: 12px;
+  height: 40px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--border); min-width: 0;
+}
+.entry:hover { background: var(--bg-hover); }
+.entryHeader { height: 34px; background: var(--bg); font-size: 12px; font-weight: 500; color: var(--text-2); }
+.entryHeader:hover { background: var(--bg); }
+.dayHead { height: 40px; background: var(--bg-subtle); font-size: 12.5px; color: var(--text-2); position: sticky; top: 0; z-index: 1; }
+.dayHead:hover { background: var(--bg-subtle); }
 .dayHead .today { color: var(--accent-text); font-weight: 600; }
 .dayName { color: var(--text); font-weight: 600; }
-.dayNote { color: var(--orange); font-size: 12px; max-width: 360px; }
-.dayTotal { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); min-width: 56px; text-align: right; padding-right: 8px; }
-.entry { display: flex; align-items: center; gap: 12px; height: 36px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--border); min-width: 0; }
-.entry:hover { background: var(--bg-hover); }
-.entryDesc { flex: 1; min-width: 80px; cursor: pointer; border: 0; background: none; padding: 0; text-align: left; color: var(--text); font-size: 13px; }
+.entryDesc { min-width: 0; cursor: pointer; border: 0; background: none; padding: 0; text-align: left; color: var(--text); font-size: 13px; }
 .entryDesc:disabled { cursor: default; }
 .entryDesc:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--focus); border-radius: var(--radius-sm); }
 .noDesc { color: var(--orange); font-style: italic; }
 .locked .entryDur, .locked .entryDesc { color: var(--text-2); }
-.entryTags { display: flex; gap: 4px; flex-shrink: 0; max-width: 200px; overflow: hidden; }
+.entryTags { display: flex; gap: 4px; min-width: 0; overflow: hidden; }
 .tag { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; border-radius: var(--radius-pill); border: 1px solid var(--border); font-size: 11.5px; color: var(--text-2); white-space: nowrap; }
-.entryProject { display: flex; align-items: center; gap: 6px; min-width: 0; width: 34%; max-width: 420px; flex-shrink: 0; font-size: 12.5px; color: var(--text-2); }
-.entryKey { font-size: 12px; color: var(--text-3); width: 58px; flex-shrink: 0; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.entryTimes { font-family: var(--mono); font-size: 12px; color: var(--text-2); width: 96px; text-align: right; flex-shrink: 0; }
-.entryDur { font-weight: 600; font-family: var(--mono); font-variant-numeric: tabular-nums; width: 56px; text-align: right; flex-shrink: 0; }
-.entryBill { width: 16px; flex-shrink: 0; display: flex; justify-content: center; }
-.entryActions { display: flex; gap: 2px; width: 84px; justify-content: flex-end; flex-shrink: 0; opacity: 0; transition: opacity 0.1s; }
-.entry:hover .entryActions, .entry:focus-within .entryActions { opacity: 1; }
+.entryProject { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12.5px; color: var(--text-2); }
+.projText { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.taskText { font-size: 11.5px; }
+.entryTimes { font-family: var(--mono); font-size: 12px; color: var(--text-2); text-align: right; white-space: nowrap; }
+.entryDur { font-weight: 600; font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; color: var(--text); }
+.entryBill { display: flex; justify-content: center; }
+.entryActions { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+.lockCell { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-3); }
+@media (hover: hover) { .entry:not(.dayHead) .entryActions { opacity: 0; transition: opacity 0.1s; } .entry:hover .entryActions, .entry:focus-within .entryActions { opacity: 1; } }
 .loadMore { display: flex; justify-content: center; padding: 10px; }
-@media (max-width: 900px) { .entryKey, .entryTimes, .entryTags { display: none; } .entryProject { max-width: 160px; } .entryActions { opacity: 1; width: auto; } .entry { gap: 8px; padding-right: 4px; } .entryProject { width: 28%; } .quickWrap { margin: 12px; } .list, .summary { margin-left: 12px; margin-right: 12px; } .dayHead { flex-wrap: wrap; position: static; } .dayNote { flex-basis: 100%; order: 9; } }
+@media (max-width: 900px) {
+  .entry { grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) 16px 52px 68px; column-gap: 8px; padding-right: 4px; }
+  .colTags, .colTimes { display: none !important; }
+  .quickWrap { margin: 12px; } .list, .summary { margin-left: 12px; margin-right: 12px; }
+}
 
 /* Entry dialog */
 .modeRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .timeRow { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: start; }
 .reason { padding: 10px 12px; border-radius: var(--radius); background: var(--yellow-soft); display: flex; flex-direction: column; gap: 8px; }
 .serverError { padding: 8px 10px; border-radius: var(--radius); background: var(--red-soft); color: var(--red); font-size: 12.5px; }
+/* Entry dialog: the project line shown when the project is already known. */
+.ctxProject { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-subtle); color: var(--text); text-align: left; cursor: pointer; min-width: 0; }
+.ctxProject:hover { border-color: var(--sh-input); background: var(--sh-accent); }
+.ctxProject:focus-visible { outline: none; border-color: var(--sh-ring); box-shadow: 0 0 0 3px var(--focus-ring); }
+.ctxText { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.3; }
+.ctxChange { font-size: 12px; color: var(--text-2); font-weight: 500; flex-shrink: 0; }
+.ctxProject:hover .ctxChange { color: var(--text); }
+@media (max-width: 520px) { .timeRow { grid-template-columns: 1fr 1fr; } }

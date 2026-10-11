@@ -36,7 +36,7 @@ Import the repository at vercel.com/new and keep the defaults; `vercel.json` bui
 ### Time logging rules
 
 - Time is logged by hand, in the Time tracker or straight into Timesheet cells: a duration plus a start gives the end (the start defaults to where the day's last entry ended). Overlaps, future dates and entries past midnight are rejected.
-- Entries save immediately. Each day is submitted automatically at the company's cutoff (Admin → Company settings → Time, default 23:59 in the company timezone); a day with problems (a missing description or tag, or overlaps) is marked "Needs fixes" and the employee is notified. Days can also be submitted by hand, reopened for corrections while waiting for approval, and sent back by a manager.
+- Entries save immediately and can be edited at any time. Each day is submitted automatically at the company's cutoff (Admin → Company settings → Time, default 23:59 in the company timezone), so employees never submit by hand and don't see day statuses. Editing a day after it was approved sends it back for review; a day with problems (a missing description or tag, or overlaps) is checked again after each edit. Admins can turn on "Lock approved days" to stop changes once a manager approves.
 - Tags are managed under Admin → Time tags, can be limited to teams, and can be required.
 
 ### Optional settings (`server/.env`)

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Trash2 } from "lucide-react";
+import { Clock, Copy, Trash2 } from "lucide-react";
 import { Avatar, Button, Combobox, ConfirmDialog, DatePicker, Dialog, Field, Input, Loading, Switch, Textarea, toast, type ComboboxOption } from "@/components/ui";
 import type { EntryFocus, NewEntryDefaults } from "@/components/app/shell-context";
 import { useCompanyDay } from "@/components/app/time-range";
@@ -9,15 +9,16 @@ import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { fromMin, hm, parseDuration, toMin } from "@/lib/format";
 import type { TimeEntry } from "@/lib/types";
-import { afterTimeChange, defaultBillable, tagOptions, useOptions, useTags } from "./time-utils";
+import { afterTimeChange, defaultBillable, optionPath, pickValue, projectTaskOptions, resolvePick, useOptions } from "./time-utils";
+import { TagPicker } from "./tag-picker";
 import s from "./time.module.css";
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /**
  * The one time entry editor, used by the Time tracker, the Timesheet and anywhere else time is logged.
- * Duration and start give the end time; changing the end changes the duration. Description and tags can be filled in later,
- * the company's rules are checked when the day is submitted.
+ * When the project is already known (opened from a project, task or row, or editing) it shows as a line that can be changed,
+ * so the form is just duration, description and tags. Start and end times and the employee are under "More options".
  */
 export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: { id?: number; defaults?: NewEntryDefaults; focus?: EntryFocus; onClose: () => void; onSaved?: () => void }) {
   const { me, can, settings } = useMe();
@@ -28,8 +29,9 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
 
   const [userId, setUserId] = useState<number>(defaults?.userId ?? me.user.id);
   const [date, setDate] = useState(defaults?.date && defaults.date <= today ? defaults.date : today);
-  const [topId, setTopId] = useState<number | null>(null);
-  const [subId, setSubId] = useState<number | null>(null);
+  const [projectId, setProjectId] = useState<number | null>(null);
+  const [pickOpen, setPickOpen] = useState(false);
+  const [more, setMore] = useState(false);
   const [taskId, setTaskId] = useState<number | null>(defaults?.taskId ?? null);
   const [duration, setDuration] = useState(defaults?.minutes ? hm(defaults.minutes) : "");
   const [start, setStart] = useState("");
@@ -47,14 +49,13 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
 
   const projects = options?.projects ?? [];
   const byId = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
-  const tags = useTags(userId !== me.user.id ? userId : undefined);
   // The day's other entries, so a new entry starts where the last one ended.
   const sameDay = useApi<TimeEntry[]>("/time", { from: date, to: date, userId: userId !== me.user.id ? userId : undefined });
 
   const placeProject = (pid: number | null | undefined) => {
     const p = pid ? byId.get(pid) : undefined;
-    if (!p) { setTopId(null); setSubId(null); return; }
-    if (p.parentId) { setTopId(p.parentId); setSubId(p.id); } else { setTopId(p.id); setSubId(null); }
+    setProjectId(p ? p.id : null);
+    setPickOpen(!p || focus === "project");
   };
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
       setTaskId(entry.taskId ?? null);
       setDuration(hm(entry.minutes));
       if (entry.startTime) { setStart(entry.startTime); setStartTouched(true); }
+      if (entry.userId !== me.user.id) setMore(true);
       if (entry.endTime) setEnd(entry.endTime);
       setDescription(entry.description);
       setBillable(entry.billable);
@@ -120,29 +122,27 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
     }
   };
 
-  const clients = new Map((options?.clients ?? []).map((c) => [c.id, c.name]));
   const loggable = (pid: number) => !!byId.get(pid)?.canLog;
-  const topOptions: ComboboxOption[] = projects
-    .filter((p) => !p.parentId && (p.canLog || projects.some((c) => c.parentId === p.id && c.canLog) || p.id === topId))
-    .map((p) => ({ value: p.id, label: p.name, icon: <ProjectDot color={p.color} />, group: (p.clientId && clients.get(p.clientId)) || "No client", keywords: p.code ?? "" }))
-    .sort((a, b) => a.group!.localeCompare(b.group!) || a.label.localeCompare(b.label));
-  const children = topId ? projects.filter((p) => p.parentId === topId && (p.canLog || p.id === subId)) : [];
-  const subOptions: ComboboxOption[] = children.map((p) => ({ value: p.id, label: p.name, icon: <ProjectDot color={p.color} /> }));
-  const projectId = subId ?? topId;
   const project = projectId ? byId.get(projectId) : undefined;
-  const taskOptions: ComboboxOption[] = (project?.tasks ?? []).map((t) => ({ value: t.id, label: t.title, hint: t.key }));
-  if (entry?.task && taskId === entry.taskId && !taskOptions.some((o) => o.value === taskId)) taskOptions.unshift({ value: entry.task.id, label: entry.task.title, hint: "Done" });
+  const task = project?.tasks.find((x) => x.id === taskId) ?? (entry?.task && entry.taskId === taskId ? entry.task : undefined);
+  // Projects and their tasks in one picker; an entry on a closed task keeps that task listed.
+  const pickOptions: ComboboxOption[] = projectTaskOptions(options);
+  if (entry?.task && taskId === entry.taskId && !pickOptions.some((o) => o.value === `t${taskId}`)) pickOptions.unshift({ value: `t${entry.task.id}`, label: entry.task.title, hint: "Done" });
 
   const forOther = id ? !!entry && entry.userId !== me.user.id : userId !== me.user.id;
   const canPickUser = !id && can("editOthersTime", "yes");
   const userOptions: ComboboxOption[] = (options?.users ?? []).map((u) => ({ value: u.id, label: u.id === me.user.id ? `${u.name} (you)` : u.name, icon: <Avatar name={u.name} size={16} />, keywords: u.email }));
 
-  const pickTop = (v: string | null) => {
-    const pid = v ? Number(v) : null;
-    setTopId(pid);
-    setSubId(null);
-    setTaskId(null); // a task belongs to one project, so changing the project clears it
-    if (pid && !billTouched) setBillable(defaultBillable(byId.get(pid)));
+  const pick = (v: string | null) => {
+    if (v && v[0] === "t" && entry?.taskId === Number(v.slice(1)) && !resolvePick(options, v).projectId) { setProjectId(entry.projectId); setTaskId(entry.taskId); return; }
+    const r = resolvePick(options, v);
+    setProjectId(r.projectId);
+    setTaskId(r.taskId);
+    const p = r.projectId ? byId.get(r.projectId) : undefined;
+    if (p && !billTouched) setBillable(defaultBillable(p));
+    const title = p?.tasks.find((x) => x.id === r.taskId)?.title;
+    if (title && !description.trim()) setDescription(title);
+    if (r.projectId) setPickOpen(false);
   };
 
   const durationError = duration && !minutes ? "Use a duration like 5h, 2h 30m, 45m or 1:30" : minutes && minutes > 24 * 60 ? "An entry can't be longer than 24 hours" : null;
@@ -151,7 +151,7 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
   const save = async (keepOpen = false) => {
     setError(null);
     if (!projectId) return setError("Pick a project.");
-    if (!loggable(projectId)) return setError(children.length ? "Pick a sub-project you can log time on." : "You can't log time on this project.");
+    if (!loggable(projectId)) { setPickOpen(true); return setError("You can't log time on this project. Pick another one."); }
     if (!minutes || durationError) return setError(durationError ?? "Enter how long you worked, like 1h 30m.");
     if (startError) return setError(startError);
     if (date > today) return setError("You can't log time on a future date.");
@@ -234,67 +234,73 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
     >
       {loadError ? <div className={s.serverError}>{loadError}</div> : loading ? <Loading /> : (
         <div className="form-grid">
-          {canPickUser && (
-            <Field label="Employee" className="full">
-              <Combobox options={userOptions} value={userId} onChange={(v) => { setUserId(v ? Number(v) : me.user.id); setTagIds([]); }} searchPlaceholder="Search people…" aria-label="Employee" />
-            </Field>
+          {pickOpen ? (
+            <div data-entry-focus="project" className="full">
+              <Field label="Project or task" required>
+                <Combobox options={pickOptions} value={pickValue(projectId, taskId)} onChange={pick} placeholder="Select a project or task" searchPlaceholder="Search projects, tasks or clients…" aria-label="Project or task" />
+              </Field>
+            </div>
+          ) : (
+            <button type="button" className={`full ${s.ctxProject}`} onClick={() => setPickOpen(true)} title="Change project or task">
+              <ProjectDot color={project?.color ?? "var(--text-3)"} />
+              <span className={s.ctxText}>
+                <span className="medium ellipsis">{optionPath(options, projectId) || entry?.project?.name}</span>
+                {task && <span className="muted small ellipsis">{task.title}</span>}
+              </span>
+              <span className={s.ctxChange}>Change</span>
+            </button>
           )}
-          <div data-entry-focus="date">
-            <Field label="Date" required>
-              <DatePicker value={date} max={today} onChange={(v) => v && setDate(v > today ? today : v)} clearable={false} fullWidth aria-label="Date" />
-            </Field>
-          </div>
-          {settings.billableEnabled !== false ? (
-            <Field label="Billable">
-              <div style={{ height: 30, display: "flex", alignItems: "center" }}>
-                <Switch checked={billable} onChange={(v) => { setBillable(v); setBillTouched(true); }} label={billable ? "Billable" : "Non-billable"} aria-label="Billable" />
-              </div>
-            </Field>
-          ) : <div />}
-          <div data-entry-focus="project" className={children.length ? undefined : "full"}>
-            <Field label="Project" required>
-              <Combobox options={topOptions} value={topId} onChange={pickTop} placeholder="Select project" searchPlaceholder="Search projects or clients…" aria-label="Project" />
-            </Field>
-          </div>
-          {children.length > 0 && (
-            <Field label="Sub-project">
-              <Combobox
-                options={subOptions} value={subId} clearable clearLabel={byId.get(topId!)?.canLog ? "No sub-project" : "Select a sub-project"}
-                onChange={(v) => { setSubId(v ? Number(v) : null); setTaskId(null); }} placeholder={byId.get(topId!)?.canLog ? "Optional" : "Select sub-project"} aria-label="Sub-project"
-              />
-            </Field>
-          )}
-          <Field label="Task" className="full">
-            <Combobox
-              options={taskOptions} value={taskId} clearable clearLabel="No task"
-              onChange={(v) => {
-                const t = v ? Number(v) : null;
-                setTaskId(t);
-                const title = project?.tasks.find((x) => x.id === t)?.title;
-                if (title && !description.trim()) setDescription(title);
-              }}
-              placeholder={project ? (taskOptions.length ? "Optional" : "No open tasks") : "Pick a project first"} disabled={!project} aria-label="Task"
-            />
-          </Field>
-          <div className={`full ${s.timeRow}`} data-entry-focus="duration">
-            <Field label="Duration" required error={durationError ?? undefined} hint={!durationError ? "5h, 2h 30m, 45m or 1:30" : undefined}>
-              <Input aria-label="Duration" placeholder="e.g. 1h 30m" value={duration} onChange={(e) => setDuration(e.target.value)} onBlur={() => minutes && !durationError && setDuration(hm(minutes))} invalid={!!durationError} />
-            </Field>
-            <Field label="Start" error={startError ?? undefined} hint={!startTouched ? "After your last entry" : undefined}>
-              <Input type="time" aria-label="Start time" value={effectiveStart} onChange={(e) => { setStart(e.target.value); setStartTouched(true); }} invalid={!!startError} />
-            </Field>
-            <Field label="End" hint="Set by the duration">
-              <Input type="time" aria-label="End time" value={end} onChange={(e) => changeEnd(e.target.value)} />
-            </Field>
+          <div className={`full ${s.timeRow}`}>
+            <div data-entry-focus="duration">
+              <Field label="Duration" required error={durationError ?? undefined}>
+                <Input aria-label="Duration" placeholder="e.g. 1h 30m" autoFocus={!pickOpen} value={duration} onChange={(e) => setDuration(e.target.value)} onBlur={() => minutes && !durationError && setDuration(hm(minutes))} invalid={!!durationError} />
+              </Field>
+            </div>
+            <div data-entry-focus="date">
+              <Field label="Date" required>
+                <DatePicker value={date} max={today} onChange={(v) => v && setDate(v > today ? today : v)} clearable={false} fullWidth aria-label="Date" />
+              </Field>
+            </div>
+            {settings.billableEnabled !== false ? (
+              <Field label="Billable">
+                <div style={{ height: 36, display: "flex", alignItems: "center" }}>
+                  <Switch checked={billable} onChange={(v) => { setBillable(v); setBillTouched(true); }} label={billable ? "Yes" : "No"} aria-label="Billable" />
+                </div>
+              </Field>
+            ) : <div />}
           </div>
           <div className="full" data-entry-focus="description">
-            <Field label="Description" hint={settings.requireDescription !== false ? "Needed before the day is submitted" : undefined}>
-              <Textarea aria-label="Description" placeholder="What did you work on?" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} style={{ minHeight: 64 }} />
+            <Field label="Description">
+              <Textarea
+                aria-label="Description" placeholder="What did you work on?" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} style={{ minHeight: 56 }}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); save(); } }}
+              />
             </Field>
           </div>
-          <Field label="Tags" className="full" hint={settings.requireTags ? "At least one tag is needed before the day is submitted" : "Only tags your team can use are listed"}>
-            <Combobox multiple options={tagOptions(tags.data, keep)} value={tagIds} onChange={(v) => setTagIds(v.map(Number))} placeholder="Add tags" aria-label="Tags" />
+          <Field label="Tags" className="full">
+            <TagPicker value={tagIds} onChange={setTagIds} userId={userId !== me.user.id ? userId : undefined} keep={keep} />
           </Field>
+          {more ? (
+            <>
+              {canPickUser && (
+                <Field label="Employee" className="full">
+                  <Combobox options={userOptions} value={userId} onChange={(v) => { setUserId(v ? Number(v) : me.user.id); setTagIds([]); }} searchPlaceholder="Search people…" aria-label="Employee" />
+                </Field>
+              )}
+              <Field label="Start" error={startError ?? undefined} hint={!startTouched ? "After your last entry" : undefined}>
+                <Input type="time" aria-label="Start time" value={effectiveStart} onChange={(e) => { setStart(e.target.value); setStartTouched(true); }} invalid={!!startError} />
+              </Field>
+              <Field label="End" hint="Set by the duration">
+                <Input type="time" aria-label="End time" value={end} onChange={(e) => changeEnd(e.target.value)} />
+              </Field>
+            </>
+          ) : (
+            <div className="full">
+              <Button size="sm" variant="ghost" icon={<Clock size={14} />} onClick={() => setMore(true)}>
+                {canPickUser ? "Start and end time, or log for someone else" : "Set start and end time"}
+              </Button>
+            </div>
+          )}
           {id && forOther && (
             <div className={`full ${s.reason}`}>
               <div className="small">You're changing {entry?.user?.name ?? "someone else"}'s time. The old and new values and your reason are recorded in the audit log.</div>

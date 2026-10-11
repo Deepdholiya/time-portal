@@ -1,16 +1,14 @@
 import { useState } from "react";
-import { CalendarDays, Clock3, Copy, DollarSign, FolderKanban, Lock, MoreHorizontal, Pencil, Plus, Send, Trash2, Undo2 } from "lucide-react";
-import { Badge, Button, ConfirmDialog, IconButton, Menu, Tooltip, toast } from "@/components/ui";
+import { CalendarDays, Clock3, Copy, DollarSign, FolderKanban, Lock, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { ConfirmDialog, IconButton, Menu, Tooltip, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { useCompanyDay } from "@/components/app/time-range";
 import { del, post } from "@/lib/api";
 import { addDays, fmtDate, fmtDay, hm } from "@/lib/format";
 import type { DayState, Options, TimeEntry } from "@/lib/types";
-import { DAY_STATUS, LOCKED, afterTimeChange, projectPath, taskKeyOf } from "./time-utils";
-import { reopenDay, submitDays } from "./day-actions";
+import { afterTimeChange, projectPath, taskKeyOf, useDayLock } from "./time-utils";
 import s from "./time.module.css";
-
 
 /** "Today", "Yesterday", or "Mon 6". */
 export function dayLabel(d: string, today: string) {
@@ -19,45 +17,39 @@ export function dayLabel(d: string, today: string) {
   return fmtDay(d);
 }
 
-export function DayBadge({ day }: { day?: DayState }) {
-  if (!day) return null;
-  const st = DAY_STATUS[day.status];
-  const hint = day.status === "SAVED" && day.overdue ? "Changed after the cutoff, so it wasn't submitted automatically. Submit it when you're ready." : st.hint;
-  return (
-    <Tooltip content={day.note ? `${hint} ${day.note}` : hint}>
-      <span><Badge size="sm" tone={day.status === "SAVED" && day.overdue ? "orange" : st.tone} icon={LOCKED.includes(day.status) ? <Lock size={10} /> : undefined}>{day.status === "SAVED" && day.overdue ? "Not submitted" : st.label}</Badge></span>
-    </Tooltip>
-  );
-}
-
-/** Entries grouped by date, newest first, with a total and the submission state for each day. */
+/**
+ * Entries grouped by date, newest first, with a total per day. Every row uses the same column grid
+ * (description, project, tags, billable, times, duration, actions) so the columns line up down the page.
+ */
 export function EntryList({ entries, days, options, onChanged, readOnly }: {
   entries: TimeEntry[]; days: Map<string, DayState>; options: Options | undefined; onChanged: () => void; readOnly?: boolean;
 }) {
   const shell = useShell();
   const { today } = useCompanyDay();
+  const isLocked = useDayLock();
   const dates = [...new Set(entries.map((e) => e.date))].sort().reverse();
   return (
     <>
+      <div className={`${s.entry} ${s.entryHeader}`} aria-hidden>
+        <span>Description</span><span>Project</span><span className={s.colTags}>Tags</span><span />
+        <span className={`${s.colTimes} right`}>Time</span><span className="right">Duration</span><span />
+      </div>
       {dates.map((d) => {
         const list = entries.filter((e) => e.date === d).sort((a, b) => (b.startTime ?? "").localeCompare(a.startTime ?? ""));
-        const day = days.get(d);
-        const locked = !!day && LOCKED.includes(day.status);
-        const canSubmit = !readOnly && day && !locked;
+        const locked = !!readOnly || isLocked(days.get(d)?.status);
         return (
           <section key={d} aria-label={`${fmtDay(d)} entries`}>
-            <div className={s.dayHead}>
-              <span className={d === today ? s.today : s.dayName}>{dayLabel(d, today)}</span>
-              <span className="faint">{fmtDate(d)}</span>
-              <DayBadge day={day} />
-              {day?.note && !locked && <span className={`${s.dayNote} ellipsis`} title={day.note}>{day.note}</span>}
-              <span className="grow" />
-              {!readOnly && !locked && <IconButton size="sm" label={`Add entry on ${fmtDate(d)}`} icon={<Plus size={13} />} onClick={() => shell.logTime({ date: d }, onChanged)} />}
-              {canSubmit && <Button size="sm" variant="ghost" icon={<Send size={12} />} onClick={() => submitDays([d]).then(onChanged)}>{day.status === "SAVED" ? "Submit day" : "Resubmit"}</Button>}
-              {!readOnly && day?.status === "SUBMITTED" && <Button size="sm" variant="ghost" icon={<Undo2 size={12} />} onClick={() => reopenDay(d).then(onChanged)}>Reopen to correct</Button>}
-              <span className={s.dayTotal}>{hm(list.reduce((a, e) => a + e.minutes, 0))}</span>
+            <div className={`${s.entry} ${s.dayHead}`}>
+              <span className="row gap-4" style={{ gridColumn: "1 / -3" }}>
+                <span className={d === today ? s.today : s.dayName}>{dayLabel(d, today)}</span>
+                <span className="faint">{fmtDate(d)}</span>
+              </span>
+              <span className={s.entryDur}>{hm(list.reduce((a, e) => a + e.minutes, 0))}</span>
+              <span className={s.entryActions}>
+                {!locked && <IconButton size="sm" label={`Add entry on ${fmtDate(d)}`} icon={<Plus size={14} />} onClick={() => shell.logTime({ date: d }, onChanged)} />}
+              </span>
             </div>
-            {list.map((e) => <EntryRow key={e.id} entry={e} options={options} locked={locked || !!readOnly} today={today} onChanged={onChanged} />)}
+            {list.map((e) => <EntryRow key={e.id} entry={e} options={options} locked={locked} today={today} onChanged={onChanged} />)}
           </section>
         );
       })}
@@ -97,12 +89,14 @@ function EntryRow({ entry: e, options, locked, today, onChanged }: { entry: Time
       <button type="button" className={`${s.entryDesc} ellipsis`} onClick={() => (locked ? undefined : edit("description"))} title={e.description || "No description"} disabled={locked}>
         {e.description || <span className={s.noDesc}>No description</span>}
       </button>
-      <span className={s.entryProject}>
+      <span className={s.entryProject} title={[projectPath(e.project), e.task?.title].filter(Boolean).join(" · ")}>
         <ProjectDot color={e.project?.color} />
-        <span className="ellipsis" style={{ flexShrink: 0, maxWidth: "60%" }}>{projectPath(e.project)}</span>
-        {e.task && <span className="ellipsis faint" title={e.task.title}>· {key ? `${key} ` : ""}{e.task.title}</span>}
+        <span className={s.projText}>
+          <span className="ellipsis">{projectPath(e.project)}</span>
+          {e.task && <span className={`ellipsis faint ${s.taskText}`}>{key ? `${key} ` : ""}{e.task.title}</span>}
+        </span>
       </span>
-      <span className={s.entryTags}>
+      <span className={`${s.entryTags} ${s.colTags}`}>
         {e.tags.map((t) => <span key={t.id} className={s.tag} title={t.name}><span className="dot" style={{ background: t.color }} />{t.name}</span>)}
       </span>
       <span className={s.entryBill}>
@@ -110,10 +104,10 @@ function EntryRow({ entry: e, options, locked, today, onChanged }: { entry: Time
           <DollarSign size={13} color={e.billable ? "var(--accent-text)" : "var(--border-strong)"} strokeWidth={2} aria-label={e.billable ? "Billable" : "Non-billable"} />
         </Tooltip>
       </span>
-      <span className={s.entryTimes}>{e.startTime && e.endTime ? `${e.startTime}–${e.endTime}` : <span className="faint">—</span>}</span>
+      <span className={`${s.entryTimes} ${s.colTimes}`}>{e.startTime && e.endTime ? `${e.startTime}–${e.endTime}` : <span className="faint">—</span>}</span>
       <span className={s.entryDur}>{hm(e.minutes, true)}</span>
       <span className={s.entryActions}>
-        {locked ? <Tooltip content="This day is submitted. Reopen it to make changes."><Lock size={13} className="faint" style={{ margin: "0 7px" }} aria-label="Locked" /></Tooltip>
+        {locked ? <Tooltip content="This day is approved and locked."><span className={s.lockCell}><Lock size={13} aria-label="Locked" /></span></Tooltip>
           : <IconButton size="sm" label="Edit entry" icon={<Pencil size={13} />} onClick={() => edit()} />}
         <Menu
           placement="bottom-end"

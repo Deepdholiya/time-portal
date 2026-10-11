@@ -110,7 +110,7 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function 
               else if (e.key === "Enter") { e.preventDefault(); results[hi]?.run(); }
             }}
           />
-          {q ? <button type="button" className={s.clear} aria-label="Clear search" onClick={() => { setQ(""); setAnswer(null); input.current?.focus(); }}><X size={13} /></button> : <Kbd>⌘K</Kbd>}
+          {q ? <button type="button" className={s.clear} aria-label="Clear search" onClick={() => { setQ(""); setAnswer(null); input.current?.focus(); }}><X size={13} /></button> : <span className={s.hideSm}><Kbd>⌘K</Kbd></span>}
         </div>
         {open && (
           <div className={s.dropdown} id="top-search-results" role="listbox" aria-label="Search results">
@@ -150,7 +150,8 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function 
       </div>
       <span className="grow" />
       <div className={s.actions}>
-        <Button size="sm" variant="secondary" icon={<Clock size={14} />} onClick={() => shell.logTime()} className={s.hideSm}>Log time</Button>
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()} className={s.hideSm}>Log time</Button>
+        <Tooltip content="Log time"><IconButton variant="primary" className={s.showSm} label="Log time" icon={<Plus size={16} />} onClick={() => shell.logTime()} /></Tooltip>
         <Tooltip content="New task" shortcut="C"><IconButton variant="ghost" className={s.hideSm} label="New task" icon={<SquarePen size={15} />} onClick={() => shell.newTask()} /></Tooltip>
         <Tooltip content="Inbox"><IconButton variant="ghost" label="Inbox" icon={<Bell size={15} />} onClick={() => nav("/inbox")} /></Tooltip>
         <span className={`${s.company} ${s.hideSm}`}>{me?.company.name}</span>

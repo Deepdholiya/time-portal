@@ -4,7 +4,9 @@
   position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0;
 }
 .fieldSlot { display: block; min-width: 0; }
-.fieldSlot > div > label:first-child, .fieldSlot > div > div > label:first-child { font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 0; }
+/* Every control's label gets the same size and the same 6px gap, so fields side by side line up. */
+.fieldSlot > div > label:first-child, .fieldSlot > div > div > label:first-child { font-size: 12px; font-weight: 500; line-height: 16px; color: var(--text-2); margin-bottom: 6px; }
+.fieldSlot > div:has(> label:first-child), .fieldSlot > div > div:has(> label:first-child) { gap: 0; }
 
 /* Buttons: Linear uses the indigo accent for the primary action and compact text buttons. */
 .btn { gap: 6px; font-size: 13px; }
@@ -35,7 +37,7 @@
 .bare { width: 100%; border: 0; background: transparent; outline: none; padding: 0; color: var(--text); font: inherit; }
 .bare::placeholder { color: var(--text-3); }
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.field > label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+.field > label { font-size: 12px; font-weight: 500; line-height: 16px; color: var(--text-2); }
 .hint { font-size: 12px; color: var(--text-3); }
 .error { font-size: 12px; color: var(--danger); }
 .inline { display: inline-block; }
@@ -60,7 +62,9 @@
 .placeholder { color: var(--text-3); }
 .overdue { color: var(--danger); }
 .pop { padding: 0; min-width: 0; max-width: min(28rem, calc(100vw - 20px)); overflow: hidden; }
-.padded { padding: 12px; }
+/* Doubled selectors so these win over Arc's own content padding whatever order the stylesheets load in. */
+.pop.pop:not(.padded) { padding: 0; }
+.pop.padded { padding: 12px; }
 .panel { display: flex; flex-direction: column; min-width: 220px; }
 .search { border: 0; border-bottom: 1px solid var(--border); background: transparent; height: 36px; padding: 0 12px; outline: none; font: inherit; font-size: 13px; color: var(--text); flex-shrink: 0; }
 .search::placeholder { color: var(--text-3); }
