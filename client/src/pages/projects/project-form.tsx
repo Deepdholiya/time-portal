@@ -25,7 +25,7 @@ const num = (v: string) => (v.trim() === "" ? null : Number(v));
 const validUrl = (u: string) => { try { const x = new URL(u); return x.protocol === "http:" || x.protocol === "https:"; } catch { return false; } };
 
 /** Create / edit project (and sub-project) form per MGR-P10..P12, with "from template" when creating. */
-export function ProjectFormDialog({ project, parentId, withDates, onClose, onSaved }: { project?: Project; parentId?: number; withDates?: boolean; onClose: () => void; onSaved: (id: number) => void }) {
+export function ProjectFormDialog({ project, parentId, withDates, initiativeId, onClose, onSaved }: { project?: Project; parentId?: number; withDates?: boolean; initiativeId?: number; onClose: () => void; onSaved: (id: number) => void }) {
   const { me, can, isAdmin } = useMe();
   // Billing is set and seen by admins only.
   const fin = isAdmin && can("financials", "view");
@@ -99,7 +99,7 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
       clientEmail: f.clientEmail.trim() || undefined, contactName: f.contactName.trim() || undefined, phone: f.phone.trim() || undefined,
       managerId: f.managerId, teamId: f.teamId, memberIds: f.memberIds,
       ...(parentId ? { parentId } : {}),
-      ...(project?.initiative ? { initiativeId: project.initiative.id } : {}),
+      ...(project?.initiative ? { initiativeId: project.initiative.id } : initiativeId ? { initiativeId } : {}),
     };
     setBusy(true);
     try {

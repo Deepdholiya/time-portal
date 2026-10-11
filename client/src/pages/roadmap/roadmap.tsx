@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { Activity, Briefcase, CalendarDays, CheckCircle2, ChevronsDownUp, ChevronsUpDown, Eye, Map as MapIcon, Plus, Target, User, Users } from "lucide-react";
-import { Badge, Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/ui";
+import { Activity, Briefcase, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronsDownUp, ChevronsUpDown, Eye, Map as MapIcon, Plus, Rows3, Target, User, Users, ZoomIn } from "lucide-react";
+import { Badge, Button, EmptyState, IconButton, Menu, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { FilterMenu, type FilterSection, type FilterValues } from "@/components/app/filter-menu";
 import { Page } from "@/components/app/page";
 import { HEALTH_META, ProjectDot } from "@/components/app/icons";
@@ -11,11 +11,15 @@ import { addDays, fmtDate, today } from "@/lib/format";
 import type { Options } from "@/lib/types";
 import { useMe } from "@/lib/session";
 import { ProjectFormDialog } from "../projects/project-form";
+import { PROJECT_STATUS } from "../projects/lib";
 import { LoadError } from "../analytics/entries";
 import { Gantt, type Target as BarTarget } from "./gantt";
 import { ImpactDialog } from "./impact-dialog";
 import { ZOOMS, type Zoom } from "./scale";
 import type { Impact, RoadmapData, RProject, RTask, Row } from "./types";
+
+type GroupBy = "initiative" | "status" | "lead" | "health" | "none";
+const GROUPS: { value: GroupBy; label: string }[] = [{ value: "initiative", label: "Initiative" }, { value: "status", label: "Status" }, { value: "lead", label: "Lead" }, { value: "health", label: "Health" }, { value: "none", label: "No grouping" }];
 
 interface RFilters { projectId: string[]; userId: string; teamId: string; health: string[]; status: string[]; initiativeId: string }
 const EMPTY: RFilters = { projectId: [], userId: "", teamId: "", health: [], status: [], initiativeId: "" };
@@ -38,25 +42,39 @@ export default function Roadmap() {
   const { data: opts } = useApi<Options>("/options");
   const { can } = useMe();
   const manage = can("projects", "manage");
-  const [creating, setCreating] = useState(false);
+  const canCreateTask = can("tasks", "create");
+  const [groupBy, setGroupBy] = useLocal<GroupBy>("roadmap.groupBy", "initiative");
+  const [creating, setCreating] = useState<boolean | string>(false);
   const [impact, setImpact] = useState<{ task: RTask; items: Impact[] } | null>(null);
 
   const projects = useMemo(() => (data?.projects ?? []).filter((p) => !filters.projectId.length || filters.projectId.includes(String(p.id))), [data, filters.projectId]);
   const closed = new Set(collapsed);
   const toggle = (k: string) => setCollapsed(closed.has(k) ? collapsed.filter((x) => x !== k) : [...collapsed, k]);
 
-  // Flatten initiative → project → (milestones, project tasks, sub-project → tasks) into visible rows.
+  // Group (by initiative, status, lead or health, like GitHub's roadmap Group by) → project → (milestones, tasks, sub-project → tasks),
+  // with an "Add" row closing each project and each group.
   const rows = useMemo(() => {
     const out: Row[] = [];
     if (!data) return out;
-    const byInit = new Map<string, { id: number | null; name: string; color: string; list: RProject[] }>();
+    const STATUS_C: Record<string, string> = { PLANNING: "var(--text-3)", ACTIVE: "var(--blue)", ON_HOLD: "var(--yellow)", COMPLETED: "var(--green)" };
+    const HEALTH_C: Record<string, string> = { ON_TRACK: "var(--green)", AT_RISK: "var(--yellow)", DELAYED: "var(--red)" };
+    const groupOf = (p: RProject): { k: string; id: number | null; name: string; color: string; order: string } => {
+      switch (groupBy) {
+        case "status": return { k: `g${p.status}`, id: null, name: PROJECT_STATUS[p.status as keyof typeof PROJECT_STATUS]?.label ?? p.status, color: STATUS_C[p.status] ?? "var(--text-3)", order: String(["ACTIVE", "PLANNING", "ON_HOLD", "COMPLETED"].indexOf(p.status)) };
+        case "lead": return { k: `g${p.manager?.id ?? 0}`, id: p.manager?.id ?? null, name: p.manager?.name ?? "No lead", color: "var(--text-3)", order: p.manager ? p.manager.name : "~" };
+        case "health": return { k: `g${p.health}`, id: null, name: HEALTH_META[p.health]?.label ?? p.health, color: HEALTH_C[p.health] ?? "var(--text-3)", order: String(["DELAYED", "AT_RISK", "ON_TRACK"].indexOf(p.health)) };
+        case "none": return { k: "gall", id: null, name: "All projects", color: "var(--text-3)", order: "" };
+        default: return { k: p.initiative ? `i${p.initiative.id}` : "i0", id: p.initiative?.id ?? null, name: p.initiative?.name ?? "No initiative", color: p.initiative?.color ?? "var(--text-3)", order: p.initiative ? p.initiative.name : "~" };
+      }
+    };
+    const groups = new Map<string, { id: number | null; name: string; color: string; order: string; list: RProject[] }>();
     for (const p of projects) {
-      const k = p.initiative ? `i${p.initiative.id}` : "i0";
-      const g = byInit.get(k) ?? { id: p.initiative?.id ?? null, name: p.initiative?.name ?? "No initiative", color: p.initiative?.color ?? "var(--text-3)", list: [] };
-      g.list.push(p); byInit.set(k, g);
+      const g0 = groupOf(p);
+      const g = groups.get(g0.k) ?? { ...g0, list: [] };
+      g.list.push(p); groups.set(g0.k, g);
     }
     const tasksOf = (pid: number) => data.tasks.filter((t) => t.projectId === pid);
-    for (const [k, g] of [...byInit.entries()].sort((a, b) => (a[1].id === null ? 1 : b[1].id === null ? -1 : a[1].name.localeCompare(b[1].name)))) {
+    for (const [k, g] of [...groups.entries()].sort((a, b) => a[1].order.localeCompare(b[1].order))) {
       const open = !closed.has(k);
       out.push({ kind: "initiative", key: k, id: g.id, name: g.name, color: g.color, count: g.list.length, start: minD(g.list.map((p) => p.startDate)) ?? null, end: maxD(g.list.map((p) => p.endDate)) ?? null, open });
       if (!open) continue;
@@ -72,11 +90,13 @@ export default function Roadmap() {
           out.push({ kind: "sub", key: sk, sub: c, parent: p, open: sopen, count: ts.length });
           if (sopen) for (const t of ts) out.push({ kind: "task", key: `t${t.id}`, task: t, color: p.color, depth: 1 });
         }
+        if (canCreateTask && showTasks) out.push({ kind: "add", key: `at${p.id}`, what: "task", projectId: p.id, depth: 1 });
       }
+      if (manage) out.push({ kind: "add", key: `ap${k}`, what: "project", groupId: groupBy === "initiative" && g.id ? String(g.id) : undefined, depth: 0 });
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, projects, collapsed]);
+  }, [data, projects, collapsed, groupBy, showTasks]);
 
   // Timeline domain: everything visible plus some air, always including today.
   const { start, end } = useMemo(() => {
@@ -157,8 +177,11 @@ export default function Roadmap() {
           </Tooltip>
           {canEdit && <span className="small faint hide-sm">Drag a bar to move its dates, or its edge to change the length.</span>}
           <span className="grow" />
+          <Menu trigger={<Button size="sm" variant="secondary" icon={<Rows3 size={14} />} iconRight={<ChevronDown size={13} />}>Group: {GROUPS.find((g) => g.value === groupBy)?.label}</Button>}
+            items={GROUPS.map((g) => ({ label: g.label, icon: g.value === groupBy ? <Check size={14} /> : <span style={{ width: 14 }} />, onSelect: () => { setGroupBy(g.value); setCollapsed([]); } }))} />
+          <Menu trigger={<Button size="sm" variant="secondary" icon={<ZoomIn size={14} />} iconRight={<ChevronDown size={13} />}>Zoom: {ZOOMS.find((z) => z.value === zoom)?.label}</Button>}
+            items={ZOOMS.map((z) => ({ label: z.title, icon: z.value === zoom ? <Check size={14} /> : <span style={{ width: 14 }} />, onSelect: () => setZoom(z.value) }))} />
           <FilterMenu sections={sections} value={fv} onApply={applyFilters} />
-          <SegmentedControl aria-label="Zoom" value={zoom} onChange={setZoom} options={ZOOMS.map((z) => ({ value: z.value, label: z.label, title: z.title }))} />
         </>
       }
     >
@@ -167,9 +190,10 @@ export default function Roadmap() {
           action={active ? <Button size="sm" variant="secondary" onClick={() => setF(EMPTY)}>Clear filters</Button> : manage ? <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>Add project</Button> : undefined} />
       ) : (
         <Gantt rows={rows} zoom={zoom} start={start} end={end} canEdit={canEdit} deps={data?.dependencies ?? []} scrollToToday={todayTick}
-          onToggle={toggle} onCommit={commit} onOpenTask={(id) => shell.openTask(id)} />
+          onToggle={toggle} onCommit={commit} onOpenTask={(id) => shell.openTask(id)}
+          onAdd={(r) => { if (r.what === "task") shell.newTask({ projectId: r.projectId }, () => reload()); else setCreating(r.groupId ?? true); }} />
       )}
-      {creating && <ProjectFormDialog withDates onClose={() => setCreating(false)} onSaved={() => { setCreating(false); reload(); }} />}
+      {creating && <ProjectFormDialog withDates initiativeId={typeof creating === "string" ? Number(creating) : undefined} onClose={() => setCreating(false)} onSaved={() => { setCreating(false); reload(); }} />}
       <ImpactDialog value={impact} onClose={() => setImpact(null)} onShifted={() => { reload(); invalidate("/tasks"); }} />
     </Page>
   );
