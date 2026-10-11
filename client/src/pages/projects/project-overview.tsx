@@ -38,7 +38,8 @@ export function MilestoneTimeline({ milestones, start, end }: { milestones: Mile
 }
 
 export function ProjectProperties({ p }: { p: ProjectDetail }) {
-  const { me } = useMe();
+  const { me, isAdmin } = useMe();
+  const cur = p.currency || me.company.currency;
   const row = (label: string, v: React.ReactNode) => <div className="prop-row"><span className="prop-label">{label}</span><div>{v ?? <span className="faint">—</span>}</div></div>;
   const links = [
     p.links.figma && { icon: <PenTool size={13} />, label: "Figma", url: p.links.figma },
@@ -57,9 +58,9 @@ export function ProjectProperties({ p }: { p: ProjectDetail }) {
         {row("Team", p.team?.name)}
         {row("Start", p.startDate && fmtDate(p.startDate, true))}
         {row("Target", p.endDate && fmtDate(p.endDate, true))}
-        {row("Billing", BILLING[p.billingType])}
-        {p.hourlyRate != null && row("Rate", `${money(p.hourlyRate, me.company.currency)}/h`)}
-        {p.budget != null && row("Budget", money(p.budget, me.company.currency))}
+        {isAdmin && row("Billing", BILLING[p.billingType])}
+        {isAdmin && p.hourlyRate != null && row("Rate", `${money(p.hourlyRate, cur)}/h`)}
+        {isAdmin && p.budget != null && row("Budget", money(p.budget, cur))}
         {p.initiative && row("Initiative", <span className="row gap-4"><ProjectDot color={p.initiative.color} />{p.initiative.name}</span>)}
         {row("Tags", p.tags.length ? p.tags.map((t) => <Badge key={t} size="sm" variant="outline">{t}</Badge>) : null)}
         {row("Members", p.members.length ? <AvatarGroup names={p.members.map((m) => m.name)} max={6} size={20} /> : null)}
@@ -86,12 +87,13 @@ export function ProjectProperties({ p }: { p: ProjectDetail }) {
 }
 
 export function Overview({ p }: { p: ProjectDetail }) {
-  const { me } = useMe();
+  const { me, isAdmin } = useMe();
+  const cur = p.currency || me.company.currency;
   const st = p.stats;
   const tracked = st?.trackedMinutes ?? 0;
   const est = p.estimatedHours;
   const variance = est != null ? tracked / 60 - est : null;
-  const showMoney = st?.revenue !== undefined;
+  const showMoney = isAdmin && st?.revenue !== undefined;
   return (
     <div className={s.overview}>
       <div className={s.mainCol}>
@@ -105,7 +107,7 @@ export function Overview({ p }: { p: ProjectDetail }) {
             <Stat label="Tracked" value={`${hours(tracked, 0)}h`} sub={`${hm(st.billableMinutes)} billable`} />
             <Stat label="Estimate" value={est != null ? `${est}h` : "—"} sub={variance != null ? `${Math.abs(variance).toFixed(0)}h ${variance > 0 ? "over estimate" : "remaining"}` : `${st.tasks.estimateHours}h in task estimates`} tone={variance != null && variance > 0 ? "danger" : undefined} />
             {showMoney
-              ? <Stat label="Revenue" value={money(st.revenue, me.company.currency)} sub={st.budgetRemaining != null ? `${money(st.budgetRemaining, me.company.currency)} of budget left` : `Cost ${money(st.cost, me.company.currency)}`} tone={st.budgetRemaining != null && st.budgetRemaining < 0 ? "danger" : undefined} />
+              ? <Stat label="Revenue" value={money(st.revenue, cur)} sub={st.budgetRemaining != null ? `${money(st.budgetRemaining, cur)} of budget left` : `Cost ${money(st.cost, cur)}`} tone={st.budgetRemaining != null && st.budgetRemaining < 0 ? "danger" : undefined} />
               : <Stat label="Open issues" value={String(st.tasks.overdue + st.tasks.blocked)} sub={`${st.tasks.overdue} overdue · ${st.tasks.blocked} blocked`} tone={st.tasks.overdue ? "danger" : undefined} />}
           </div>
         )}

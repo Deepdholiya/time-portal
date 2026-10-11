@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Gauge, Plane } from "lucide-react";
-import { Avatar, Badge, Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip } from "@/components/ui";
+import { Avatar, Badge, Button, EmptyState, IconButton, SkeletonRows, Tooltip } from "@/components/ui";
 import { FilterMenu } from "@/components/app/filter-menu";
 import { Page } from "@/components/app/page";
 import { get } from "@/lib/api";
@@ -74,12 +74,6 @@ export default function Workload() {
           <span className={s.period}>{fmtDate(from)} – {fmtDate(to, true)}</span>
           <IconButton size="sm" label="Next" icon={<ChevronRight size={15} />} onClick={() => setAnchor(addDays(anchor, 7 * weeks))} />
           <Button size="sm" variant="ghost" onClick={() => setAnchor(weekStart(today(), ws))}>This week</Button>
-          <SegmentedControl aria-label="Weeks" value={String(weeks)} onChange={(v) => setWeeks(Number(v) as Span)}
-            options={[{ value: "1", label: "1 wk" }, { value: "2", label: "2 wks" }, { value: "4", label: "4 wks" }, { value: "6", label: "6 wks" }]} />
-          <SegmentedControl aria-label="Columns" value={effGrain} onChange={(g) => { setGrain(g); if (g === "day" && weeks > 2) setWeeks(2); }}
-            options={[{ value: "week", label: "By week" }, { value: "day", label: "By day" }]} />
-          <SegmentedControl aria-label="Metric" value={metric} onChange={setMetric}
-            options={[{ value: "planned", label: "Planned" }, { value: "tracked", label: "Logged" }]} />
           <div className="grow" />
           <div className={s.legend}>
             {(Object.keys(STATUS) as WRow["status"][]).map((k) => (
@@ -88,8 +82,18 @@ export default function Workload() {
               </Tooltip>
             ))}
           </div>
-          <FilterMenu sections={[{ key: "team", label: "Team", single: true, options: (opts?.teams ?? []).map((x) => ({ value: String(x.id), label: x.name })) }]}
-            value={{ team: teamId ? [teamId] : [] }} onApply={(v) => setTeamId(v.team?.[0] ?? "")} />
+          <FilterMenu
+            sections={[
+              { key: "weeks", label: "Period", single: true, required: true, defaultValue: "4", options: [{ value: "1", label: "1 week" }, { value: "2", label: "2 weeks" }, { value: "4", label: "4 weeks" }, { value: "6", label: "6 weeks" }] },
+              { key: "grain", label: "Columns", single: true, required: true, defaultValue: "week", options: [{ value: "week", label: "By week" }, { value: "day", label: "By day (up to 2 weeks)" }] },
+              { key: "metric", label: "Show", single: true, required: true, defaultValue: "planned", options: [{ value: "planned", label: "Planned" }, { value: "tracked", label: "Logged" }] },
+              { key: "team", label: "Team", single: true, options: (opts?.teams ?? []).map((x) => ({ value: String(x.id), label: x.name })) },
+            ]}
+            value={{ weeks: [String(weeks)], grain: [effGrain], metric: [metric], team: teamId ? [teamId] : [] }}
+            onApply={(v) => {
+              const w = Number(v.weeks?.[0] ?? 4) as Span; const g = (v.grain?.[0] ?? "week") as Grain;
+              setGrain(g); setWeeks(g === "day" && w > 2 ? 2 : w); setMetric((v.metric?.[0] ?? "planned") as Metric); setTeamId(v.team?.[0] ?? "");
+            }} />
         </div>
       }
     >

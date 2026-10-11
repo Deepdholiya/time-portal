@@ -1,12 +1,12 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { BarChart3, FileSpreadsheet, Info, X } from "lucide-react";
+import { BarChart3, Download, Info, X } from "lucide-react";
 import { Button, SegmentedControl, SkeletonRows, Tabs } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { ProjectDot } from "@/components/app/icons";
 import { useApi, useLocal } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
-import { download } from "@/lib/api";
+import { ExportDialog } from "@/components/app/export-dialog";
 import { addDays, fmtDate, hm, pct } from "@/lib/format";
 import { emptyFilters, filterQuery, FilterBar, type Filters } from "./filter-bar";
 import { BarList, ChartCard, Kpi, SERIES, TimeChart, UtilBar } from "./chart-kit";
@@ -33,6 +33,7 @@ export default function Analytics() {
   const q = filterQuery(filters);
   const { data, error, loading, reload } = useApi<AnalyticsData>("/analytics", q);
   const [drill, setDrill] = useState<Drill>(null);
+  const [exporting, setExporting] = useState(false);
 
   const focusProject = (id: number) => { setFilters({ ...filters, projectId: [String(id)], subProjectId: [], taskId: [] }); setTab("overview"); };
   const focused = filters.projectId.length === 1 ? data?.byProject.find((p) => String(p.id) === filters.projectId[0]) : undefined;
@@ -47,7 +48,7 @@ export default function Analytics() {
   return (
     <Page
       title="Analytics" icon={<BarChart3 size={15} />}
-      actions={<Button size="sm" variant="secondary" icon={<FileSpreadsheet size={14} />} onClick={() => download("/reports/export.xlsx", q)}>Export Excel</Button>}
+      actions={can("export", "own") && <Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>}
       toolbar={<FilterBar value={filters} onChange={setFilters} hide={own ? ["team", "employee"] : []} presets={["Today", "This week", "Last week", "This month", "Last month", "Last 30 days", "This quarter", "Last quarter", "This year"]} />}
     >
       <div className={s.tabsRow}>
@@ -73,6 +74,7 @@ export default function Analytics() {
         )}
       </div>
       <EntriesSheet open={!!drill} onClose={() => setDrill(null)} title={drill?.title} query={drill?.query ?? null} showUser={!own} onChanged={reload} />
+      <ExportDialog open={exporting} onClose={() => setExporting(false)} query={q} />
     </Page>
   );
 }

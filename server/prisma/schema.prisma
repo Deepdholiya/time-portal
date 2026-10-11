@@ -241,6 +241,7 @@ model Project {
   endDate          String?
   estimatedHours   Float?
   budget           Float?
+  currency         String? // Budget and rate currency; the company currency when empty
   billingType      String          @default("HOURLY") // HOURLY | FIXED | NON_BILLABLE
   hourlyRate       Float?
   tags             String          @default("[]") // JSON array

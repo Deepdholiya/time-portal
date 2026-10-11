@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, FileDown, FileSpreadsheet, FileText, Mail, Printer, Save, Table2 } from "lucide-react";
-import { Button, DateRangePicker, IconButton, Menu, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/ui";
+import { ChevronLeft, ChevronRight, Download, Mail, Save, Table2 } from "lucide-react";
+import { Button, DateRangePicker, IconButton, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
-import { download, post } from "@/lib/api";
+import { post } from "@/lib/api";
 import { useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { today } from "@/lib/format";
 import { emptyFilters, filterQuery, FilterBar, type Filters } from "../analytics/filter-bar";
+import { ExportDialog } from "@/components/app/export-dialog";
 import { LoadError } from "../analytics/entries";
 import { ConfigBar, DEFAULT_CONFIG, type ReportConfig } from "./report-config";
 import { ResultView, type ReportResult } from "./report-result";
@@ -106,10 +107,10 @@ export default function Reports() {
     setParams((p) => { p.delete("saved"); return p; }, { replace: true });
   }, [savedParam, saved.data, loadSaved, setParams]);
 
-  const exportQ = { ...fq, config: JSON.stringify(config) };
   const singleProject = filters.projectId.length === 1 ? Number(filters.projectId[0]) : null;
   const [emailOpen, setEmailOpen] = useState(false);
   const canExport = can("export", "own");
+  const [exporting, setExporting] = useState(false);
 
   return (
     <Page
@@ -119,18 +120,7 @@ export default function Reports() {
           {singleProject && can("clientEmail", "yes") && <Button size="sm" variant="ghost" icon={<Mail size={14} />} onClick={() => setEmailOpen(true)}>Draft client update</Button>}
           <SavedMenu list={saved.data ?? []} current={current} onLoad={loadSaved} onChanged={() => { saved.reload(); setCurrent(null); }} />
           <Button size="sm" variant="ghost" icon={<Save size={14} />} onClick={() => setSaving(true)}>Save</Button>
-          {canExport && (
-            <>
-              <Button size="sm" variant="secondary" icon={<FileSpreadsheet size={14} />} onClick={() => download("/reports/export.xlsx", exportQ)}>Excel</Button>
-              <Menu placement="bottom-end" trigger={<IconButton size="sm" variant="secondary" label="More exports" icon={<FileDown size={14} />} />}
-                items={[
-                  { label: "Export CSV", icon: <FileText size={14} />, onSelect: () => download("/reports/export.csv", exportQ) },
-                  { label: "Export PDF", icon: <FileText size={14} />, onSelect: () => download("/reports/export.pdf", exportQ) },
-                  { type: "separator" },
-                  { label: "Print", icon: <Printer size={14} />, onSelect: () => window.print() },
-                ]} />
-            </>
-          )}
+          {canExport && <Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>}
         </div>
       }
       toolbar={
@@ -162,6 +152,7 @@ export default function Reports() {
       </div>
       <SaveDialog open={saving} onClose={() => setSaving(false)} current={current}
         payload={{ filters: fq, config, preset }} onSaved={(id) => { setPendingId(id); saved.reload(); }} />
+      <ExportDialog open={exporting} onClose={() => setExporting(false)} query={fq} initial={config.groupBy.filter((g) => ["employee", "project", "subProject", "client", "task", "team"].includes(g))} />
       <ClientEmailDialog open={emailOpen} onClose={() => setEmailOpen(false)} projectId={singleProject} />
     </Page>
   );

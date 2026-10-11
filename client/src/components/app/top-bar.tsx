@@ -24,9 +24,9 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function 
   const nav = useNavigate();
   const shell = useShell();
   const { can } = useSession();
-  // Log time lives where time is: Home and the Time pages (not Leave, Work, Insights or Admin).
+  // Home is the only page without its own way to log time (the tracker has its bar, the timesheet its own button).
   const { pathname } = useLocation();
-  const showLog = pathname === "/" || ["/time", "/timesheet", "/team-time", "/calendar", "/my-tasks"].some((x) => pathname === x || pathname.startsWith(x + "/"));
+  const showLog = pathname === "/" || pathname === "/my-tasks";
   const input = useRef<HTMLInputElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");

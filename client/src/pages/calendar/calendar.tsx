@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CalendarPlus, ChevronLeft, ChevronRight, Sheet as SheetIcon } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, Plus, Sheet as SheetIcon } from "lucide-react";
 import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, SegmentedControl, Sheet, Tooltip, toast } from "@/components/ui";
 import { FilterMenu } from "@/components/app/filter-menu";
 import { Page } from "@/components/app/page";
@@ -95,7 +95,7 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
     <Page
       title="Timesheet"
       icon={<SheetIcon size={15} className="faint" />}
-      actions={tabs}
+      actions={<div className="row gap-4">{tabs}<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button></div>}
       toolbar={
         <>
           <IconButton size="sm" variant="secondary" label="Previous" icon={<ChevronLeft size={14} />} onClick={() => step(-1)} />

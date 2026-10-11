@@ -1,7 +1,8 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { AlertCircle, Sheet as SheetIcon } from "lucide-react";
-import { Avatar, Combobox, ErrorState, Input, SkeletonRows, Tabs } from "@/components/ui";
+import { AlertCircle, Plus, Sheet as SheetIcon } from "lucide-react";
+import { Avatar, Button, Combobox, ErrorState, Input, SkeletonRows, Tabs } from "@/components/ui";
 import { Page } from "@/components/app/page";
+import { useShell } from "@/components/app/shell-context";
 import { TimeRangeControl, useCompanyDay, useRangeParam } from "@/components/app/time-range";
 import { useSearchParams } from "react-router-dom";
 import { useApi } from "@/lib/hooks";
@@ -34,6 +35,7 @@ export default function Timesheet() {
  */
 function TableView({ tabs }: { tabs: ReactNode }) {
   const { me, can } = useMe();
+  const shell = useShell();
   const { today } = useCompanyDay();
   const [params, setParams] = useSearchParams();
   const [range, setRange] = useRangeParam("This week");
@@ -91,7 +93,7 @@ function TableView({ tabs }: { tabs: ReactNode }) {
     <Page
       title="Timesheet"
       icon={<SheetIcon size={15} className="faint" />}
-      actions={tabs}
+      actions={<div className="row gap-4">{tabs}<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button></div>}
       toolbar={
         <>
           <TimeRangeControl value={range} onChange={setRange} />

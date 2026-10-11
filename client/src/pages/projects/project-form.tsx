@@ -10,13 +10,14 @@ import { useOptions } from "../tasks/lib";
 import { BILLING, BILLING_TYPES, PROJECT_STATUS, PROJECT_STATUSES, cleanLinks, type BillingType, type Links, type Project, type ProjectStatus } from "./lib";
 import s from "./projects.module.css";
 
+const CURRENCIES = ["INR", "USD", "EUR", "GBP", "AED", "SAR", "AUD", "CAD", "SGD", "JPY"];
 const COLORS = ["#5e6ad2", "#26b5ce", "#4cb782", "#f2c94c", "#f2994a", "#eb5757", "#bb87fc", "#95a2b3"];
 
 interface Form {
   name: string; code: string; description: string; color: string; status: ProjectStatus; priority: string;
   clientMode: "existing" | "new"; clientId: number | null; clientName: string; clientEmail: string; contactName: string; phone: string;
   managerId: number | null; teamId: number | null; memberIds: number[]; startDate: string | null; endDate: string | null;
-  estimatedHours: string; budget: string; billingType: BillingType; hourlyRate: string; tags: string[]; links: Required<Pick<Links, "figma" | "document" | "drive">> & { other: { label: string; url: string }[] };
+  estimatedHours: string; budget: string; currency: string; billingType: BillingType; hourlyRate: string; tags: string[]; links: Required<Pick<Links, "figma" | "document" | "drive">> & { other: { label: string; url: string }[] };
   subprojects: string[];
 }
 
@@ -25,8 +26,9 @@ const validUrl = (u: string) => { try { const x = new URL(u); return x.protocol 
 
 /** Create / edit project (and sub-project) form per MGR-P10..P12, with "from template" when creating. */
 export function ProjectFormDialog({ project, parentId, withDates, onClose, onSaved }: { project?: Project; parentId?: number; withDates?: boolean; onClose: () => void; onSaved: (id: number) => void }) {
-  const { me, can } = useMe();
-  const fin = can("financials", "view");
+  const { me, can, isAdmin } = useMe();
+  // Billing is set and seen by admins only.
+  const fin = isAdmin && can("financials", "view");
   const opts = useOptions();
   const editing = !!project;
   const sub = !!parentId || (!!project && (project as { parentId?: number | null }).parentId != null);
@@ -38,7 +40,7 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
     priority: project?.priority ?? "MEDIUM", clientMode: "existing", clientId: project?.client?.id ?? null, clientName: "", clientEmail: project?.client?.email ?? "",
     contactName: project?.client?.contactName ?? "", phone: project?.client?.phone ?? "", managerId: project?.manager?.id ?? (editing || sub ? null : me.user.id), teamId: project?.team?.id ?? null,
     memberIds: project?.members.map((m) => m.id) ?? [], startDate: project?.startDate ?? null, endDate: project?.endDate ?? null,
-    estimatedHours: project?.estimatedHours != null ? String(project.estimatedHours) : "", budget: project?.budget != null ? String(project.budget) : "", billingType: project?.billingType ?? "HOURLY",
+    estimatedHours: project?.estimatedHours != null ? String(project.estimatedHours) : "", budget: project?.budget != null ? String(project.budget) : "", currency: project?.currency || me.company.currency, billingType: project?.billingType ?? "HOURLY",
     hourlyRate: project?.hourlyRate != null ? String(project.hourlyRate) : "", tags: project?.tags ?? [],
     links: { figma: project?.links.figma ?? "", document: project?.links.document ?? "", drive: project?.links.drive ?? "", other: project?.links.other ?? [] },
     subprojects: [],
@@ -81,7 +83,7 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
     const body = {
       name: f.name.trim(), code: f.code.trim() || null, description: f.description.trim() || null, color: f.color, status: f.status, priority: f.priority,
       startDate: f.startDate, endDate: f.endDate, estimatedHours: num(f.estimatedHours), billingType: f.billingType,
-      ...(fin ? { budget: num(f.budget), hourlyRate: f.billingType === "HOURLY" ? num(f.hourlyRate) : null } : {}),
+      ...(fin ? { budget: num(f.budget), currency: f.currency, hourlyRate: f.billingType === "HOURLY" ? num(f.hourlyRate) : null } : {}),
       tags: f.tags, links: cleanLinks(f.links),
       ...(f.clientMode === "existing" ? { clientId: f.clientId } : { clientId: null, clientName: f.clientName.trim() || undefined }),
       clientEmail: f.clientEmail.trim() || undefined, contactName: f.contactName.trim() || undefined, phone: f.phone.trim() || undefined,
@@ -131,7 +133,7 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
             </div>
           )}
           <button type="button" className={`${s.moreLink} link`} onClick={() => setMore(true)}>
-            <ChevronDown size={14} /> More options: client, members, {withDates ? "" : "dates, "}billing{templates.length && !sub ? ", templates" : ""}
+            <ChevronDown size={14} /> More options: client, members, {withDates ? "" : "dates"}{isAdmin ? ", billing" : ""}{templates.length && !sub ? ", templates" : ""}
           </button>
         </div>
       ) : mode === "template" ? (
@@ -190,15 +192,15 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
             </div>
           </section>
 
-          <section>
+          {isAdmin && <section>
             <div className="section-title">Billing</div>
             <div className="form-grid">
               <Field label="Billing type" className={fin ? undefined : "full"}><Select value={f.billingType} onChange={(v) => set("billingType", v as BillingType)} options={BILLING_TYPES.map((b) => ({ value: b, label: BILLING[b] }))} /></Field>
-              {fin && <Field label="Budget" error={errors.budget}><Input inputMode="decimal" value={f.budget} onChange={(e) => set("budget", e.target.value)} suffix={me.company.currency} /></Field>}
-              {fin && f.billingType === "HOURLY" && <Field label="Hourly rate" error={errors.hourlyRate} hint="Overrides each person's default rate"><Input inputMode="decimal" value={f.hourlyRate} onChange={(e) => set("hourlyRate", e.target.value)} suffix={`${me.company.currency}/h`} /></Field>}
-              {!fin && <p className="small faint full">Budgets and rates are managed by people with financial access.</p>}
+              {fin && <Field label="Currency"><Select value={f.currency} onChange={(v) => set("currency", v)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} /></Field>}
+              {fin && <Field label="Budget" error={errors.budget}><Input inputMode="decimal" value={f.budget} onChange={(e) => set("budget", e.target.value)} suffix={f.currency} /></Field>}
+              {fin && f.billingType === "HOURLY" && <Field label="Hourly rate" error={errors.hourlyRate} hint="Overrides each person's default rate"><Input inputMode="decimal" value={f.hourlyRate} onChange={(e) => set("hourlyRate", e.target.value)} suffix={`${f.currency}/h`} /></Field>}
             </div>
-          </section>
+          </section>}
 
           <section>
             <div className="section-title">Tags and links</div>

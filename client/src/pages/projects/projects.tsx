@@ -20,7 +20,7 @@ const EMPTY: Filters = { status: [], clientId: null, managerId: null, archived: 
 
 /** Linear-style projects list with health, progress and tracked-vs-estimate. */
 export default function Projects() {
-  const { can } = useMe();
+  const { can, isAdmin } = useMe();
   const nav = useNavigate();
   const manage = can("projects", "manage");
   const opts = useOptions();
@@ -45,7 +45,7 @@ export default function Projects() {
           { key: "status", label: "Status", icon: <CircleDot size={13} />, options: PROJECT_STATUSES.map((x) => ({ value: x, label: PROJECT_STATUS[x].label })) },
           { key: "client", label: "Client", icon: <Building2 size={13} />, single: true, options: clients.map((c) => ({ value: String(c.id), label: c.name })) },
           { key: "manager", label: "Manager", icon: <UserRound size={13} />, single: true, options: users.filter((u) => u.role !== "EMPLOYEE").map((u) => ({ value: String(u.id), label: u.name, icon: <Avatar name={u.name} size={16} /> })) },
-          { key: "billing", label: "Billing", icon: <Receipt size={13} />, options: BILLING_TYPES.map((b) => ({ value: b, label: BILLING[b] })) },
+          ...(isAdmin ? [{ key: "billing", label: "Billing", icon: <Receipt size={13} />, options: BILLING_TYPES.map((b) => ({ value: b, label: BILLING[b] })) }] : []),
           ...((opts.data?.tags.length ?? 0) > 0 ? [{ key: "tag", label: "Tag", icon: <Tag size={13} />, single: true, options: (opts.data?.tags ?? []).map((x) => ({ value: x, label: x })) }] : []),
           ...(manage ? [{ key: "archived", label: "Show", icon: <Archive size={13} />, single: true, required: true, defaultValue: "false", options: [{ value: "false", label: "Active projects" }, { value: "true", label: "Archived" }, { value: "all", label: "All projects" }] }] : []),
         ]}
