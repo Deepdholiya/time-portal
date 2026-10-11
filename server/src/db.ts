@@ -46,6 +46,6 @@ export type CompanySettings = {
 export const DEFAULT_SETTINGS: CompanySettings = {
   overloadPct: 100, healthyPct: 80, underPct: 60, tempPasswordHours: 72, sessionTimeoutMinutes: 480, enforceAdminMfa: false,
   aiEnabled: true, allowOverlappingTimers: false, lockApprovedWeeks: false, invitationDays: 7, taskKey: "TP",
-  autoSubmitTime: "23:59", workdayStart: "09:00", requireDescription: true, requireTags: false, billableEnabled: true,
+  autoSubmitTime: "23:59", workdayStart: "09:30", requireDescription: true, requireTags: false, billableEnabled: true,
 };
 export const companySettings = (c: { settings: string }): CompanySettings => ({ ...DEFAULT_SETTINGS, ...parseJson<Partial<CompanySettings>>(c.settings, {}) });

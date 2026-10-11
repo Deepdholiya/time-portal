@@ -161,7 +161,7 @@ export default function Home() {
               <div className={s.panelBody} style={{ paddingTop: 6, paddingBottom: 8 }}>{d ? <HoursByProject groups={d.byProject} onOpen={(g) => nav(`/projects/${g.id}`)} /> : <Skeleton height={90} />}</div>
             </section>
             <section className={s.panel}>
-              <div className={s.panelHead}>Coming up<span className="grow" /><a className="link small" onClick={() => nav("/calendar")}>Calendar</a></div>
+              <div className={s.panelHead}>Coming up<span className="grow" /><a className="link small" onClick={() => nav("/timesheet?view=calendar")}>Calendar</a></div>
               {d?.schedule.leave.length ? (
                 <div className={s.schedRow}><Palmtree size={13} color="var(--green)" /><span className="grow small">Out today: {d.schedule.leave.map((l) => l.user.name).join(", ")}</span></div>
               ) : null}

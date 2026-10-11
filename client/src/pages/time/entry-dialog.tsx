@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Clock, Copy, Trash2 } from "lucide-react";
+import { Copy, Trash2, UserRound } from "lucide-react";
 import { Avatar, Button, Combobox, ConfirmDialog, DatePicker, Dialog, Field, Input, Loading, Switch, Textarea, toast, type ComboboxOption } from "@/components/ui";
 import type { EntryFocus, NewEntryDefaults } from "@/components/app/shell-context";
 import { useCompanyDay } from "@/components/app/time-range";
@@ -18,7 +18,7 @@ const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 /**
  * The one time entry editor, used by the Time tracker, the Timesheet and anywhere else time is logged.
  * When the project is already known (opened from a project, task or row, or editing) it shows as a line that can be changed,
- * so the form is just duration, description and tags. Start and end times and the employee are under "More options".
+ * so the form is date, duration with its start and end, description and tags.
  */
 export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: { id?: number; defaults?: NewEntryDefaults; focus?: EntryFocus; onClose: () => void; onSaved?: () => void }) {
   const { me, can, settings } = useMe();
@@ -250,25 +250,32 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
               <span className={s.ctxChange}>Change</span>
             </button>
           )}
+          <div data-entry-focus="date">
+            <Field label="Date" required>
+              <DatePicker value={date} max={today} onChange={(v) => v && setDate(v > today ? today : v)} clearable={false} fullWidth aria-label="Date" />
+            </Field>
+          </div>
+          {settings.billableEnabled !== false ? (
+            <Field label="Billable">
+              <div style={{ height: 36, display: "flex", alignItems: "center" }}>
+                <Switch checked={billable} onChange={(v) => { setBillable(v); setBillTouched(true); }} label={billable ? "Yes" : "No"} aria-label="Billable" />
+              </div>
+            </Field>
+          ) : <div />}
           <div className={`full ${s.timeRow}`}>
             <div data-entry-focus="duration">
               <Field label="Duration" required error={durationError ?? undefined}>
                 <Input aria-label="Duration" placeholder="e.g. 1h 30m" autoFocus={!pickOpen} value={duration} onChange={(e) => setDuration(e.target.value)} onBlur={() => minutes && !durationError && setDuration(hm(minutes))} invalid={!!durationError} />
               </Field>
             </div>
-            <div data-entry-focus="date">
-              <Field label="Date" required>
-                <DatePicker value={date} max={today} onChange={(v) => v && setDate(v > today ? today : v)} clearable={false} fullWidth aria-label="Date" />
-              </Field>
-            </div>
-            {settings.billableEnabled !== false ? (
-              <Field label="Billable">
-                <div style={{ height: 36, display: "flex", alignItems: "center" }}>
-                  <Switch checked={billable} onChange={(v) => { setBillable(v); setBillTouched(true); }} label={billable ? "Yes" : "No"} aria-label="Billable" />
-                </div>
-              </Field>
-            ) : <div />}
+            <Field label="Start" error={startError ?? undefined}>
+              <Input type="time" aria-label="Start time" value={effectiveStart} onChange={(e) => { setStart(e.target.value); setStartTouched(true); }} invalid={!!startError} />
+            </Field>
+            <Field label="End">
+              <Input type="time" aria-label="End time" value={end} onChange={(e) => changeEnd(e.target.value)} />
+            </Field>
           </div>
+          {!startTouched && !id && <div className={`full ${s.timeHint}`}>Starts after your last entry that day, or at {settings.workdayStart ?? "09:30"} when it's the first. Change the start or end to set your own range.</div>}
           <div className="full" data-entry-focus="description">
             <Field label="Description">
               <Textarea
@@ -280,27 +287,15 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
           <Field label="Tags" className="full">
             <TagPicker value={tagIds} onChange={setTagIds} userId={userId !== me.user.id ? userId : undefined} keep={keep} />
           </Field>
-          {more ? (
-            <>
-              {canPickUser && (
-                <Field label="Employee" className="full">
-                  <Combobox options={userOptions} value={userId} onChange={(v) => { setUserId(v ? Number(v) : me.user.id); setTagIds([]); }} searchPlaceholder="Search people…" aria-label="Employee" />
-                </Field>
-              )}
-              <Field label="Start" error={startError ?? undefined} hint={!startTouched ? "After your last entry" : undefined}>
-                <Input type="time" aria-label="Start time" value={effectiveStart} onChange={(e) => { setStart(e.target.value); setStartTouched(true); }} invalid={!!startError} />
-              </Field>
-              <Field label="End" hint="Set by the duration">
-                <Input type="time" aria-label="End time" value={end} onChange={(e) => changeEnd(e.target.value)} />
-              </Field>
-            </>
+          {canPickUser && (more ? (
+            <Field label="Employee" className="full">
+              <Combobox options={userOptions} value={userId} onChange={(v) => { setUserId(v ? Number(v) : me.user.id); setTagIds([]); }} searchPlaceholder="Search people…" aria-label="Employee" />
+            </Field>
           ) : (
             <div className="full">
-              <Button size="sm" variant="ghost" icon={<Clock size={14} />} onClick={() => setMore(true)}>
-                {canPickUser ? "Start and end time, or log for someone else" : "Set start and end time"}
-              </Button>
+              <Button size="sm" variant="ghost" icon={<UserRound size={14} />} onClick={() => setMore(true)}>Log time for someone else</Button>
             </div>
-          )}
+          ))}
           {id && forOther && (
             <div className={`full ${s.reason}`}>
               <div className="small">You're changing {entry?.user?.name ?? "someone else"}'s time. The old and new values and your reason are recorded in the audit log.</div>

@@ -57,11 +57,16 @@ tagsRouter.put("/:id", admin, async (req, res) => {
   res.json(shape(updated));
 });
 
-// Only unused tags can be deleted; tags already on entries are deactivated instead so history keeps its labels.
+// Unused tags are deleted; tags already on entries are deactivated instead so history keeps its labels.
 tagsRouter.delete("/:id", admin, async (req, res) => {
   const t = await prisma.tag.findFirst({ where: { id: Number(req.params.id), companyId: cid(req) }, include: { _count: { select: { entries: true } } } });
   if (!t) throw new HttpError(404, "Tag not found");
-  if (t._count.entries) throw new HttpError(409, `"${t.name}" is on ${t._count.entries} entries. Deactivate it instead.`);
+  if (t._count.entries) {
+    // Entries keep the label; the tag just stops being offered.
+    await prisma.tag.update({ where: { id: t.id }, data: { active: false } });
+    await audit(req, "tag_updated", "tag", t.id, { old: { active: t.active }, new: { active: false } });
+    return res.json({ ok: true, deactivated: true });
+  }
   await prisma.tag.delete({ where: { id: t.id } });
   await audit(req, "tag_deleted", "tag", t.id, { old: shape(t) });
   res.json({ ok: true });

@@ -36,7 +36,8 @@ Import the repository at vercel.com/new and keep the defaults; `vercel.json` bui
 ### Time logging rules
 
 - Time is logged by hand, in the Time tracker or straight into Timesheet cells: a duration plus a start gives the end (the start defaults to where the day's last entry ended). Overlaps, future dates and entries past midnight are rejected.
-- Entries save immediately and can be edited at any time. Each day is submitted automatically at the company's cutoff (Admin → Company settings → Time, default 23:59 in the company timezone), so employees never submit by hand and don't see day statuses. Editing a day after it was approved sends it back for review; a day with problems (a missing description or tag, or overlaps) is checked again after each edit. Admins can turn on "Lock approved days" to stop changes once a manager approves.
+- Entries save immediately and can be edited at any time. Each day is submitted automatically at the company's cutoff (Admin → Company settings → Time, default 23:59 in the company timezone); there's no timesheet approval step, so Approvals only handles leave. An entry logged without a start time starts after the day's last entry, or at the working day's start (default 09:30, set under Admin → Company settings → Time). The Timesheet has a Table view and a Calendar view of the same time; click a cell or a day to log time. Admins can turn on "Lock approved days" to stop changes to days a manager approved.
+- Approvers can add leave or a holiday for any employee from the Leave page (approved straight away), and admins can add company holidays there by picking Everyone. Tags can be created, renamed, recoloured and deleted straight from the tag picker by admins; a tag already on entries is hidden rather than deleted.
 - Tags are managed under Admin → Time tags, can be limited to teams, and can be required.
 
 ### Optional settings (`server/.env`)

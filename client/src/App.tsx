@@ -18,7 +18,6 @@ const ClientStatus = p(() => import("./pages/client-status"));
 const Home = p(() => import("./pages/home/home"));
 const TimeTracker = p(() => import("./pages/time/time-tracker"));
 const Timesheet = p(() => import("./pages/timesheet/timesheet"));
-const CalendarPage = p(() => import("./pages/calendar/calendar"));
 const Leave = p(() => import("./pages/leave/leave"));
 // Work
 const MyTasks = p(() => import("./pages/my-tasks/my-tasks"));
@@ -110,7 +109,7 @@ export function App() {
         <Route path="my-tasks" element={<MyTasks />} />
         <Route path="time" element={<TimeTracker />} />
         <Route path="timesheet" element={<Timesheet />} />
-        <Route path="calendar" element={<CalendarPage />} />
+        <Route path="calendar" element={<Navigate to="/timesheet?view=calendar" replace />} />
         <Route path="leave" element={<Leave />} />
         <Route path="tasks" element={<Tasks />} />
         <Route path="tasks/:id" element={<Tasks />} />
@@ -125,7 +124,7 @@ export function App() {
         <Route path="reports" element={g(["export", "own"], <Reports />)} />
         <Route path="workload" element={g(["analytics", "all"], <Workload />)} />
         <Route path="team-time" element={g(["timesheetsView", "all"], <TeamTime />)} />
-        <Route path="approvals" element={<Guard any={[["approveTimesheets", "yes"], ["leaveApprove", "yes"]]}><Approvals /></Guard>} />
+        <Route path="approvals" element={<Guard any={[["leaveApprove", "yes"]]}><Approvals /></Guard>} />
         <Route path="admin/users" element={g(["people", "invite"], <Users />)} />
         <Route path="admin/roles" element={g(["settings", "yes"], <Roles />)} />
         <Route path="admin/companies" element={g(["companies", "yes"], <Companies />)} />

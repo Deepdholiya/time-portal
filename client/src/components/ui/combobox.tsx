@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactElement, type ReactNode } from "react";
-import { Check, ChevronDown, Plus } from "lucide-react";
+import { Check, ChevronDown, Pencil, Plus } from "lucide-react";
 import { Combobox as ArcCombobox } from "../arc/combobox/combobox";
 import { MultiSelect } from "../arc/multi-select/multi-select";
 import { Popover } from "./popover";
@@ -25,6 +25,8 @@ interface Base {
   /** Lets the person add what they typed as a new option. Resolves to the new option's value. */
   onCreate?: (label: string) => Promise<string | number | null | undefined>;
   createLabel?: (label: string) => string;
+  /** Adds an edit button to each option that swaps the list for this editor, inside the same popover; `done` returns to the list. */
+  renderEditor?: (option: ComboboxOption, done: () => void) => ReactNode;
   /** Always use the compact popover list, even inside a Field. */
   picker?: boolean;
 }
@@ -39,7 +41,7 @@ export type ComboboxProps = Single | Multi;
 export const Combobox = ownsField(function Combobox(props: ComboboxProps) {
   const field = useField();
   // Toolbar filters (a fixed width outside any Field) keep the compact picker too.
-  if (props.appearance === "chip" || props.trigger || props.onCreate || props.picker || (props.width && !field)) return <Picker {...props} />;
+  if (props.appearance === "chip" || props.trigger || props.onCreate || props.renderEditor || props.picker || (props.width && !field)) return <Picker {...props} />;
   const { label, hidden } = controlLabel(field, props["aria-label"] ?? props.placeholder);
   const options = props.options.map((o) => ({ value: String(o.value), label: o.label, keywords: [o.keywords, o.group, textOf(o.hint)].filter(Boolean) as string[] }));
   const wrap = cx(hidden && s.srLabel, props.size === "sm" && s.sm, s.inputWrap);
@@ -81,6 +83,7 @@ function Picker(props: ComboboxProps) {
   }, [q, options]);
   const clearRow = !props.multiple && props.clearable ? 1 : 0;
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<ComboboxOption | null>(null);
   const typed = q.trim();
   const canCreate = !!props.onCreate && !!typed && !options.some((o) => o.label.toLowerCase() === typed.toLowerCase());
   const createIndex = clearRow + filtered.length;
@@ -122,8 +125,10 @@ function Picker(props: ComboboxProps) {
 
   let lastGroup: string | undefined;
   return (
-    <Popover trigger={t} padded={false} width={width} open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQ(""); setHi(0); }}>
-      {(close) => (
+    <Popover trigger={t} padded={false} width={width} open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setQ(""); setEditing(null); } setHi(0); }}>
+      {(close) => editing && props.renderEditor ? (
+        <div className={s.panel}>{props.renderEditor(editing, () => setEditing(null))}</div>
+      ) : (
         <div className={s.panel}>
           <input
             className={s.search}
@@ -161,6 +166,12 @@ function Picker(props: ComboboxProps) {
                     {o.icon}
                     <span className={s.label}>{o.label}</span>
                     {o.hint && <span className={s.optHint}>{o.hint}</span>}
+                    {props.renderEditor && (
+                      <button type="button" className={s.optEdit} aria-label={`Edit ${o.label}`} title="Edit or delete"
+                        onClick={(e) => { e.stopPropagation(); setEditing(o); }}>
+                        <Pencil size={12} />
+                      </button>
+                    )}
                     {!props.multiple && on && <Check size={14} className={s.check} />}
                   </div>
                 </div>

@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AlertCircle, Sheet as SheetIcon } from "lucide-react";
-import { Avatar, Combobox, ErrorState, Input, SkeletonRows } from "@/components/ui";
+import { Avatar, Combobox, ErrorState, Input, SkeletonRows, Tabs } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { TimeRangeControl, useCompanyDay, useRangeParam } from "@/components/app/time-range";
 import { useSearchParams } from "react-router-dom";
@@ -11,19 +11,34 @@ import type { TimeEntry } from "@/lib/types";
 import { afterTimeChange, expectedMinutes, useDayLock, useDays, useHolidays, useOptions } from "../time/time-utils";
 import { TimesheetGrid, type GridCtx } from "./grid";
 import { buildRows, draftRow, type Row } from "./rows";
+import { CalendarView } from "../calendar/calendar";
 import s from "./timesheet.module.css";
+
+/** Timesheet with two views of the same time: the table and the calendar. The person picked carries across both. */
+export default function Timesheet() {
+  const [params, setParams] = useSearchParams();
+  const view = params.get("view") === "calendar" ? "calendar" : "table";
+  const pick = (v: string) => {
+    const p = new URLSearchParams(params);
+    if (v === "calendar") p.set("view", "calendar"); else p.delete("view");
+    p.delete("cal");
+    setParams(p, { replace: true });
+  };
+  const tabs = <Tabs value={view} onChange={pick} items={[{ value: "table", label: "Table" }, { value: "calendar", label: "Calendar" }]} />;
+  return view === "calendar" ? <CalendarView tabs={tabs} /> : <TableView tabs={tabs} />;
+}
 
 /**
  * Spreadsheet view of the same time entries the Time tracker shows: rows are project + task, columns are days.
  * Click a cell to log or edit time in one step. Days are submitted automatically at the company's cutoff and stay editable.
  */
-export default function Timesheet() {
+function TableView({ tabs }: { tabs: ReactNode }) {
   const { me, can } = useMe();
   const { today } = useCompanyDay();
   const [params, setParams] = useSearchParams();
   const [range, setRange] = useRangeParam("This week");
   const viewAll = can("timesheetsView", "all");
-  const userId = viewAll && params.get("user") ? Number(params.get("user")) : me.user.id;
+  const userId = viewAll && params.get("user") && params.get("user") !== "all" ? Number(params.get("user")) : me.user.id; // "all" is the calendar's everyone view
   const forOther = userId !== me.user.id;
   const days = useMemo(() => daysOf(range.from, range.to), [range.from, range.to]);
 
@@ -76,6 +91,7 @@ export default function Timesheet() {
     <Page
       title="Timesheet"
       icon={<SheetIcon size={15} className="faint" />}
+      actions={tabs}
       toolbar={
         <>
           <TimeRangeControl value={range} onChange={setRange} />

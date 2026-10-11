@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Sheet as SheetIcon } from "lucide-react";
 import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, SegmentedControl, Sheet, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
@@ -22,11 +22,12 @@ const LAYERS: { key: keyof Layers; label: string; swatch: string }[] = [
   { key: "leave", label: "Leave & holidays", swatch: "var(--green)" },
 ];
 
-export default function CalendarPage() {
+/** The Timesheet's calendar view: logged time, tasks, milestones, leave and holidays by month, week or day. Click a day to log time. */
+export function CalendarView({ tabs }: { tabs: ReactNode }) {
   const { me, can } = useMe();
   const shell = useShell();
   const [params, setParams] = useSearchParams();
-  const view = (["month", "week", "day"].includes(params.get("view") ?? "") ? params.get("view") : "month") as View;
+  const view = (["month", "week", "day"].includes(params.get("cal") ?? "") ? params.get("cal") : "month") as View;
   const date = params.get("date") || today();
   const startsOn = me.company.weekStartsOn || 1;
   const viewAll = can("timesheetsView", "all");
@@ -85,9 +86,9 @@ export default function CalendarPage() {
 
   return (
     <Page
-      title="Calendar"
-      icon={<CalendarDays size={15} className="faint" />}
-      actions={canLog ? <Button size="sm" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: view === "day" ? date : today(), userId: logFor }, reload)}>Log time</Button> : undefined}
+      title="Timesheet"
+      icon={<SheetIcon size={15} className="faint" />}
+      actions={<>{tabs}{canLog && <Button size="sm" className="hide-sm" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: view === "day" ? date : today(), userId: logFor }, reload)}>Log time</Button>}</>}
       toolbar={
         <>
           <IconButton size="sm" variant="secondary" label="Previous" icon={<ChevronLeft size={14} />} onClick={() => step(-1)} />
@@ -104,7 +105,7 @@ export default function CalendarPage() {
             ))}
           </div>
           {viewAll && <div style={{ width: 190 }}><Combobox size="sm" options={userOptions} value={who} onChange={(v) => set({ user: v && v !== String(me.user.id) ? v : null })} aria-label="Whose calendar" searchPlaceholder="Search people…" /></div>}
-          <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ view: v === "month" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
+          <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ cal: v === "month" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
         </>
       }
     >
@@ -118,12 +119,14 @@ export default function CalendarPage() {
           <CalendarGrid
             days={days} view={view} month={view === "month" ? date.slice(0, 7) : undefined} buckets={buckets} layers={layers} workDays={workDays}
             canReschedule={canReschedule} showUser={showUser} onOpenDay={setOpenDay} onMoveTask={moveTask}
+            onLog={canLog ? (d) => shell.logTime({ date: d, userId: logFor }, reload) : undefined}
+            onEditEntry={canEdit ? (id) => shell.editEntry(id, reload) : undefined}
           />
         )}
       <Sheet
         open={!!openDay} onClose={() => setOpenDay(null)} width={520}
         title={openDay ? `${fmtDay(openDay)}, ${monthName(openDay)}` : ""}
-        actions={openDay ? <Button size="sm" variant="ghost" onClick={() => { set({ view: "day", date: openDay }); setOpenDay(null); }}>Open day view</Button> : undefined}
+        actions={openDay ? <Button size="sm" variant="ghost" onClick={() => { set({ cal: "day", date: openDay }); setOpenDay(null); }}>Open day view</Button> : undefined}
       >
         {openDay && buckets[openDay] && (
           <div style={{ padding: "4px 0" }}>

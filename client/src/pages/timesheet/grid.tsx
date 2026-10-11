@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { ChevronLeft, DollarSign, Lock, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ClockPlus, DollarSign, Lock, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { Button, ConfirmDialog, Field, IconButton, Input, Menu, Popover, Textarea, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useMe } from "@/lib/session";
 import { del, post, put } from "@/lib/api";
-import { dayName, fmtDate, hm, parseDate, parseDuration } from "@/lib/format";
+import { dayName, fmtDate, fromMin, hm, parseDate, parseDuration, toMin } from "@/lib/format";
 import type { Options, TimeEntry } from "@/lib/types";
 import { ProjectTaskPicker, type Pick } from "../time/project-task-picker";
 import { TagPicker } from "../time/tag-picker";
 import { entryBody, type Row } from "./rows";
 import s from "./timesheet.module.css";
+
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export interface GridCtx {
   days: string[];
@@ -169,16 +171,16 @@ function DayCell({ row, date, ctx }: { row: Row; date: string; ctx: GridCtx }) {
   const summary = list.length ? `${list.length} ${list.length === 1 ? "entry" : "entries"}, ${hm(minutes)}` : "no time";
   const tip = list.length === 1 ? [list[0].startTime && list[0].endTime ? `${list[0].startTime}–${list[0].endTime}` : "", list[0].description].filter(Boolean).join(" · ") : undefined;
   const cell = (
-    <button type="button" data-row={row.key} data-date={date} className={`${s.cellBtn} ${minutes ? s.cellFilled : ""} ${locked ? s.cellLocked : ""}`} disabled={!editable && !list.length}
+    <button type="button" data-row={row.key} data-date={date} className={`${s.cellBtn} ${editable ? s.cellOpen : ""} ${minutes ? s.cellFilled : ""} ${locked ? s.cellLocked : ""}`} disabled={!editable && !list.length}
       aria-label={`${label}: ${summary}${locked ? ", locked" : ""}. ${editable ? "Edit" : "View"}`} title={tip || undefined}>
-      {minutes ? hm(minutes, true) : <span className={s.cellEmpty}>{editable ? "+" : ""}</span>}
+      {minutes ? hm(minutes, true) : editable ? <span className={s.cellEmpty}><ClockPlus size={15} /></span> : null}
       {list.length > 1 && <sup>{list.length}</sup>}
       {locked && <Lock size={10} className={s.cellLock} />}
     </button>
   );
   return (
     <td className={cls}>
-      <Popover trigger={cell} open={open} onOpenChange={setOpen} padded={false} width={340} placement="bottom-start">
+      <Popover trigger={cell} open={open} onOpenChange={setOpen} padded={false} width={400} placement="bottom-start">
         {(close) => <CellEditor row={row} date={date} list={list} ctx={ctx} editable={editable} close={() => { close(); setOpen(false); }} />}
       </Popover>
     </td>
@@ -221,21 +223,44 @@ function EntryForm({ entry, row, date, ctx, editable, head, onBack, close }: {
 }) {
   const { settings } = useMe();
   const [dur, setDur] = useState(entry ? hm(entry.minutes, true) : "");
+  const [start, setStart] = useState(entry?.startTime ?? "");
+  const [end, setEnd] = useState(entry?.endTime ?? "");
   const [desc, setDesc] = useState(entry?.description ?? "");
   const [tagIds, setTagIds] = useState<number[]>(entry?.tags.map((t) => t.id) ?? []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
 
+  // Duration and start give the end; changing the end changes the duration. With no start, the server starts the entry
+  // after the day's last entry, or at the working day's start that an admin sets.
+  const mins = parseDuration(dur.trim());
+  const changeDur = (v: string) => {
+    setDur(v);
+    const m = parseDuration(v.trim());
+    if (TIME.test(start) && m && toMin(start) + m <= 24 * 60) setEnd(fromMin(Math.min(toMin(start) + m, 24 * 60 - 1)));
+  };
+  const changeStart = (v: string) => {
+    setStart(v);
+    if (TIME.test(v) && mins && toMin(v) + mins <= 24 * 60) setEnd(fromMin(Math.min(toMin(v) + mins, 24 * 60 - 1)));
+    else if (TIME.test(v) && TIME.test(end) && toMin(end) > toMin(v)) setDur(hm(toMin(end) - toMin(v), true));
+  };
+  const changeEnd = (v: string) => {
+    setEnd(v);
+    if (TIME.test(v) && TIME.test(start) && toMin(v) > toMin(start)) setDur(hm(toMin(v) - toMin(start), true));
+  };
+
   const save = async () => {
-    const m = parseDuration(dur.trim());
-    if (!m || m <= 0 || m > 24 * 60) { setError("Enter a duration like 2, 1.5, 1:30, 2h 30m or 45m"); return; }
+    const m = mins || (TIME.test(start) && TIME.test(end) && toMin(end) > toMin(start) ? toMin(end) - toMin(start) : null);
+    if (!m || m <= 0 || m > 24 * 60) { setError("Enter a duration like 2, 1.5, 1:30, 2h 30m or 45m, or a start and end time"); return; }
+    if (start && !TIME.test(start)) { setError("Use HH:MM for the start time"); return; }
+    if (TIME.test(start) && toMin(start) + m > 24 * 60) { setError("This runs past midnight. Pick an earlier start or a shorter duration."); return; }
+    const startTime = TIME.test(start) ? start : null;
     setBusy(true); setError(null);
     try {
       guard(ctx);
-      if (entry) await put(`/time/${entry.id}`, withReason(ctx, { ...entryBody(entry, { minutes: m }), description: desc.trim(), tagIds }));
+      if (entry) await put(`/time/${entry.id}`, withReason(ctx, { ...entryBody(entry, { minutes: m }), startTime, description: desc.trim(), tagIds }));
       else {
-        await post("/time", { projectId: row.projectId, taskId: row.taskId, date, minutes: m, billable: row.billable, description: desc.trim(), tagIds, ...(ctx.forOther ? { userId: ctx.userId } : {}) });
+        await post("/time", { projectId: row.projectId, taskId: row.taskId, date, minutes: m, startTime, billable: row.billable, description: desc.trim(), tagIds, ...(ctx.forOther ? { userId: ctx.userId } : {}) });
         if (row.draft) ctx.onRemoveDraft(row.key);
       }
       toast.success(entry ? "Entry saved" : `Logged ${hm(m)} on ${dayName(date)}`);
@@ -274,9 +299,19 @@ function EntryForm({ entry, row, date, ctx, editable, head, onBack, close }: {
     <form className={s.pop} onSubmit={(e) => { e.preventDefault(); save(); }}>
       {head}
       <div className={s.popBody}>
-        <Field label="Duration" error={error ?? undefined}>
-          <Input autoFocus value={dur} onChange={(e) => setDur(e.target.value)} onKeyDown={onEnter} placeholder="e.g. 2 or 1h 30m" inputMode="decimal" className="num" />
-        </Field>
+        <div className={s.timeFields}>
+          <Field label="Duration">
+            <Input autoFocus value={dur} onChange={(e) => changeDur(e.target.value)} onKeyDown={onEnter} placeholder="1h 30m" className="num" />
+          </Field>
+          <Field label="Start">
+            <Input type="time" value={start} onChange={(e) => changeStart(e.target.value)} aria-label="Start time" />
+          </Field>
+          <Field label="End">
+            <Input type="time" value={end} onChange={(e) => changeEnd(e.target.value)} aria-label="End time" />
+          </Field>
+        </div>
+        {!start && <div className={s.timeHint}>No start time? It starts after your last entry that day, or at {settings.workdayStart ?? "09:30"}.</div>}
+        {error && <div className="field-error" role="alert">{error}</div>}
         <Field label="Description">
           <Textarea rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} onKeyDown={onEnter} placeholder="What did you work on?" />
         </Field>

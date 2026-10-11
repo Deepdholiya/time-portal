@@ -16,12 +16,11 @@ function useCounts() {
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      const [n, ts, lv] = await Promise.all([
+      const [n, lv] = await Promise.all([
         get<{ unread: number }>("/notifications/count").catch(() => ({ unread: 0 })),
-        can("approveTimesheets", "yes") ? get<unknown[]>("/timesheets/approvals").catch(() => []) : Promise.resolve([]),
         can("leaveApprove", "yes") ? get<unknown[]>("/leave/approvals").catch(() => []) : Promise.resolve([]),
       ]);
-      if (alive) setCounts({ inbox: n.unread, approvals: ts.length + lv.length });
+      if (alive) setCounts({ inbox: n.unread, approvals: lv.length });
     };
     load();
     const i = setInterval(load, 45_000);

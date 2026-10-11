@@ -12,6 +12,14 @@
 
 .cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4px 4px 6px; display: flex; flex-direction: column; gap: 2px; min-width: 0; position: relative; cursor: pointer; }
 .cell:nth-child(7n) { border-right: 0; }
+.month .cell { overflow: hidden; }
+@media (max-width: 760px) {
+  .month { grid-auto-rows: minmax(84px, 1fr); }
+  .month .hours { display: none; }
+  .cellHead { padding: 0 2px; gap: 2px; }
+  .chip { font-size: 10.5px; padding: 0 3px; gap: 3px; }
+  .chip .meta, .chip svg { display: none; }
+}
 .cell:hover { background: var(--bg-subtle); }
 .cell.outside { background: color-mix(in srgb, var(--bg-subtle) 70%, transparent); }
 .cell.outside .num { color: var(--text-3); }
@@ -23,6 +31,12 @@
 .num.today { background: var(--accent); color: #fff; border-radius: var(--radius-pill); min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
 .hours { margin-left: auto; font-size: 11px; color: var(--text-3); font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .hours.has { color: var(--text-2); font-weight: 500; }
+/* Log time on a day: a small boxed button that's always there, so it's clear every past day can take time. */
+.logBtn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; flex-shrink: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-2); cursor: pointer; box-shadow: var(--shadow-xs); }
+.hours + .logBtn { margin-left: 4px; }
+.num + .logBtn { margin-left: auto; }
+.logBtn:hover { color: var(--text); border-color: var(--border-strong); background: var(--sh-accent); }
+.logBtn:focus-visible { outline: none; border-color: var(--sh-ring); box-shadow: 0 0 0 3px var(--focus-ring); }
 
 .chip { display: flex; align-items: center; gap: 5px; height: 20px; padding: 0 5px; border-radius: var(--radius-sm); font-size: 12px; min-width: 0; white-space: nowrap; color: var(--text); line-height: 1; }
 .chip:hover { background: var(--bg-hover); }

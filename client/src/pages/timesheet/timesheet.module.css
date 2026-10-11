@@ -33,8 +33,12 @@
 .cellBtn[data-state="open"] { border-color: var(--sh-ring); box-shadow: 0 0 0 3px var(--focus-ring); }
 .cellBtn:disabled { cursor: default; }
 .cellBtn sup { font-size: 9px; color: var(--text-3); }
-.cellEmpty { color: var(--border-strong); font-family: var(--font); font-size: 15px; opacity: 0; transition: opacity 0.1s; }
-.cellBtn:hover .cellEmpty, .cellBtn:focus-visible .cellEmpty { opacity: 1; }
+/* Every day you can log time on is a visible box; empty ones carry the log-time icon. */
+.cellOpen { border-color: var(--border); background: var(--bg); box-shadow: var(--shadow-xs); }
+.cellEmpty { display: inline-flex; color: var(--text-3); transition: color 0.1s; }
+.cellBtn:hover .cellEmpty, .cellBtn:focus-visible .cellEmpty { color: var(--text); }
+.timeFields { display: grid; grid-template-columns: 84px minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.timeHint { font-size: 11.5px; color: var(--text-3); margin-top: -4px; }
 .cellLocked { color: var(--text-2); }
 .cellLock { position: absolute; top: 4px; right: 5px; color: var(--text-3); }
 .futureCell { background: repeating-linear-gradient(135deg, transparent 0 6px, var(--bg-subtle) 6px 7px) !important; }
@@ -65,5 +69,4 @@ tr:hover .rowActions, tr:focus-within .rowActions { opacity: 1; }
   .foot { margin-left: 12px; margin-right: 12px; }
   .colProject { width: 190px; }
   .rowActions { opacity: 1; }
-  .cellEmpty { opacity: 1; }
 }
