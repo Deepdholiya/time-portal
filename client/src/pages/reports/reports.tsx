@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Download, Mail, Save, Table2 } from "lucide-react";
-import { Button, DateRangePicker, IconButton, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/ui";
+import { Button, DateRangePicker, IconButton, SegmentedControl, SkeletonRows, Tabs, Tooltip, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { post } from "@/lib/api";
 import { useLocal } from "@/lib/hooks";
@@ -40,6 +40,7 @@ export default function Reports() {
   const [custom, setCustom] = useLocal("reports.custom", { from: today().slice(0, 8) + "01", to: today() });
   const [stored, setStored] = useLocal<Filters>("reports.filters", emptyFilters());
   const [config, setConfig] = useLocal<ReportConfig>("reports.config", DEFAULT_CONFIG);
+  const [view, setView] = useLocal<"summary" | "detailed">("reports.view", "summary");
   const range = preset === "custom" ? custom : periodRange(preset, anchor, me.company.weekStartsOn);
   const filters: Filters = { ...emptyFilters(), ...stored, range: { ...range, preset: "Custom" } };
   const fq = filterQuery(filters);
@@ -124,29 +125,31 @@ export default function Reports() {
         </div>
       }
       toolbar={
-        <div className="col" style={{ width: "100%", gap: 8 }}>
-          <div className="row wrap">
-            <SegmentedControl aria-label="Period" value={preset} onChange={(p) => { setPreset(p); setAnchor(today()); }} options={PRESETS.map((p) => ({ value: p, label: PRESET_LABEL[p] }))} />
-            {preset === "custom" ? (
-              <DateRangePicker size="sm" value={{ ...custom, preset: "Custom" }} onChange={(r) => setCustom({ from: r.from, to: r.to })} />
-            ) : (
-              <div className="row gap-4">
-                <IconButton size="sm" label="Previous period" icon={<ChevronLeft size={15} />} onClick={() => setAnchor(shiftAnchor(preset, anchor, -1))} />
-                <span className={s.period}>{periodLabel(preset, range)}</span>
-                <IconButton size="sm" label="Next period" icon={<ChevronRight size={15} />} onClick={() => setAnchor(shiftAnchor(preset, anchor, 1))} />
-                {anchor !== today() && <Tooltip content="Back to the current period"><Button size="sm" variant="ghost" onClick={() => setAnchor(today())}>Today</Button></Tooltip>}
-              </div>
-            )}
-          </div>
-          <FilterBar value={filters} onChange={(f) => setStored(f)} showRange={false} hide={can("analytics", "all") ? [] : ["team", "employee"]} />
+        <div className="row wrap" style={{ width: "100%" }}>
+          <Tabs variant="underline" value={view} onChange={(v) => setView(v as "summary" | "detailed")} items={[{ value: "summary", label: "Summary" }, { value: "detailed", label: "Detailed" }]} />
+          <div className="grow" />
+          <SegmentedControl aria-label="Period" value={preset} onChange={(p) => { setPreset(p); setAnchor(today()); }} options={PRESETS.map((p) => ({ value: p, label: PRESET_LABEL[p] }))} />
+          {preset === "custom" ? (
+            <DateRangePicker size="sm" value={{ ...custom, preset: "Custom" }} onChange={(r) => setCustom({ from: r.from, to: r.to })} />
+          ) : (
+            <div className="row gap-4">
+              <IconButton size="sm" label="Previous period" icon={<ChevronLeft size={15} />} onClick={() => setAnchor(shiftAnchor(preset, anchor, -1))} />
+              <span className={s.period}>{periodLabel(preset, range)}</span>
+              <IconButton size="sm" label="Next period" icon={<ChevronRight size={15} />} onClick={() => setAnchor(shiftAnchor(preset, anchor, 1))} />
+              {anchor !== today() && <Tooltip content="Back to the current period"><Button size="sm" variant="ghost" onClick={() => setAnchor(today())}>Today</Button></Tooltip>}
+            </div>
+          )}
         </div>
       }
     >
-      <div className={s.configWrap}><ConfigBar value={config} onChange={setConfig} /></div>
+      <div className={s.configWrap}>
+        <FilterBar value={filters} onChange={(f) => setStored(f)} showRange={false} hide={can("analytics", "all") ? [] : ["team", "employee"]}
+          leading={<ConfigBar value={config} onChange={setConfig} view={view} />} />
+      </div>
       <div className="page-pad">
         {error ? <LoadError error={error} onRetry={run} what="reports" /> : !data ? <SkeletonRows rows={10} /> : (
           <div style={{ opacity: loading ? 0.6 : 1, transition: "opacity .15s" }}>
-            <ResultView data={data} config={config} onMore={loadMore} loadingMore={more} />
+            <ResultView data={data} config={config} view={view} onMore={loadMore} loadingMore={more} />
           </div>
         )}
       </div>

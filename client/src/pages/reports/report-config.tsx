@@ -35,7 +35,7 @@ export const DEFAULT_CONFIG: ReportConfig = {
 
 const SORTS = [{ value: "date", label: "Date" }, { value: "hours", label: "Hours" }, { value: "employee", label: "Employee" }, { value: "project", label: "Project" }, { value: "client", label: "Client" }, { value: "task", label: "Task" }];
 
-export function ConfigBar({ value, onChange }: { value: ReportConfig; onChange: (c: ReportConfig) => void }) {
+export function ConfigBar({ value, onChange, view }: { value: ReportConfig; onChange: (c: ReportConfig) => void; view: "summary" | "detailed" }) {
   const set = (p: Partial<ReportConfig>) => onChange({ ...value, ...p });
   const g1 = value.groupBy[0] ?? "";
   const g2 = value.groupBy[1] ?? "";
@@ -51,11 +51,14 @@ export function ConfigBar({ value, onChange }: { value: ReportConfig; onChange: 
             options={[{ value: "", label: "Nothing" }, ...GROUP_OPTIONS.filter((o) => o.value !== g1)]} />
         </>
       )}
+      {view === "detailed" && <>
       <span className={s.sep} />
       <span className={s.cfgLabel}>Sort</span>
       <Select size="sm" fullWidth={false} value={value.sort.by} aria-label="Sort by" onChange={(by) => set({ sort: { ...value.sort, by } })} options={SORTS} />
       <IconButton size="sm" label={value.sort.dir === "asc" ? "Ascending" : "Descending"} icon={value.sort.dir === "asc" ? <ArrowUpNarrowWide size={14} /> : <ArrowDownWideNarrow size={14} />}
         onClick={() => set({ sort: { ...value.sort, dir: value.sort.dir === "asc" ? "desc" : "asc" } })} />
+      </>}
+      {view === "summary" && <>
       <span className={s.sep} />
       <span className={s.cfgLabel}>Chart</span>
       <SegmentedControl aria-label="Chart type" value={value.chart} onChange={(chart) => set({ chart })}
@@ -64,6 +67,8 @@ export function ConfigBar({ value, onChange }: { value: ReportConfig; onChange: 
         <Select size="sm" fullWidth={false} value={value.chartBy} aria-label="Chart by" onChange={(v) => set({ chartBy: v as GroupKey })}
           options={GROUP_OPTIONS.map((o) => ({ value: o.value, label: `by ${o.label.toLowerCase()}` }))} />
       )}
+      </>}
+      {view === "detailed" && <>
       <span className={s.sep} />
       <Popover trigger={<Button size="sm" variant="ghost" icon={<Columns3 size={14} />}>Columns <span className="faint">{value.columns.length}</span></Button>} width={220}>
         <div className="col gap-4">
@@ -73,6 +78,7 @@ export function ConfigBar({ value, onChange }: { value: ReportConfig; onChange: 
           ))}
         </div>
       </Popover>
+      </>}
     </div>
   );
 }

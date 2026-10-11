@@ -219,6 +219,8 @@ analyticsRouter.get("/", async (req, res) => {
     byDay: aggregate(req, entries, "day", false),
     byWeek: aggregate(req, entries, "week", false),
     matrix: [...matrix.values()],
+    byDayProject: dayProject(entries),
+    activities: activities(entries),
     health: projects.map((p) => {
       const s = stats.get(p.id);
       return {
@@ -230,6 +232,30 @@ analyticsRouter.get("/", async (req, res) => {
     }).sort((a, b) => ({ DELAYED: 0, AT_RISK: 1, ON_TRACK: 2 })[a.health] - ({ DELAYED: 0, AT_RISK: 1, ON_TRACK: 2 })[b.health]),
   });
 });
+
+// Minutes per day per top-level project, for the stacked daily chart.
+function dayProject(entries: RichEntry[]) {
+  const m = new Map<string, { day: string; projectId: number; minutes: number }>();
+  for (const e of entries) {
+    const p = topProject(e), k = `${e.date}:${p.id}`;
+    const r = m.get(k) ?? { day: e.date, projectId: p.id, minutes: 0 };
+    r.minutes += e.minutes; m.set(k, r);
+  }
+  return [...m.values()];
+}
+
+// The most tracked pieces of work: the task, or the description when no task was picked, within its project.
+function activities(entries: RichEntry[]) {
+  const m = new Map<string, { key: string; name: string; project: string; projectId: number; color: string; taskId: number | null; minutes: number; entries: number }>();
+  for (const e of entries) {
+    const p = topProject(e);
+    const name = e.task?.title ?? (e.description?.trim() || "(no description)");
+    const k = `${p.id}:${e.task ? `t${e.task.id}` : name.toLowerCase()}`;
+    const r = m.get(k) ?? { key: k, name, project: p.name, projectId: p.id, color: p.color, taskId: e.task?.id ?? null, minutes: 0, entries: 0 };
+    r.minutes += e.minutes; r.entries++; m.set(k, r);
+  }
+  return [...m.values()].sort((a, b) => b.minutes - a.minutes).slice(0, 10);
+}
 
 // One level of drill-down: group the filtered time by a dimension. Add the group's id as a filter to go deeper.
 analyticsRouter.get("/group", async (req, res) => {
