@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, FileStack, Plus, X } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, ChevronRight, FileStack, Plus, X } from "lucide-react";
 import { Avatar, Button, Combobox, DatePicker, Dialog, Field, IconButton, Input, SegmentedControl, Select, Textarea, toast } from "@/components/ui";
 import { PRIORITIES, PRIORITY_META, PriorityIcon } from "@/components/app/icons";
 import { post, put } from "@/lib/api";
@@ -34,7 +34,17 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
   const sub = !!parentId || (!!project && (project as { parentId?: number | null }).parentId != null);
   const [mode, setMode] = useState<"blank" | "template">("blank");
   // New projects start with just a name, description and colour; everything else is optional and can be added later.
-  const [more, setMore] = useState(editing);
+  const [more, setMore] = useState(editing || !sub);
+  // Creating a project walks through short steps; any step after Basics can be skipped with Create project.
+  const stepping = !project && !sub && mode === "blank";
+  const STEPS = [
+    { key: "basics", label: "Basics" }, { key: "client", label: "Client" }, { key: "people", label: "People & dates" },
+    ...(isAdmin ? [{ key: "billing", label: "Billing" }] : []), { key: "extras", label: "Links & sub-projects" },
+  ];
+  const [step, setStep] = useState(0);
+  const at = (k: string) => !stepping || STEPS[step]?.key === k;
+  const last = step === STEPS.length - 1;
+  const next = () => { if (!f.name.trim()) { setErrors({ name: "Give the project a name" }); setStep(0); return; } setErrors({}); setStep((i) => Math.min(STEPS.length - 1, i + 1)); };
   const [f, setF] = useState<Form>(() => ({
     name: project?.name ?? "", code: project?.code ?? "", description: project?.description ?? "", color: project?.color ?? COLORS[0], status: project?.status ?? (sub ? "ACTIVE" : "PLANNING"),
     priority: project?.priority ?? "MEDIUM", clientMode: "existing", clientId: project?.client?.id ?? null, clientName: "", clientEmail: project?.client?.email ?? "",
@@ -109,11 +119,30 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
   const title = project ? `Edit ${project.name}` : sub ? "New sub-project" : "New project";
   return (
     <Dialog
-      open onClose={onClose} size={more || mode === "template" ? "lg" : "md"} title={title} onSubmit={submit}
-      description={!project && !sub && !more ? "Give it a name to get started. Client, people, dates and billing are optional and can be added any time from the project's Edit." : undefined}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{project ? "Save changes" : mode === "template" ? "Create from template" : sub ? "Create sub-project" : "Create project"}</Button></>}
+      open onClose={onClose} size={more || mode === "template" ? "lg" : "md"} title={title} onSubmit={stepping && !last ? next : submit}
+      description={stepping ? "Only the name is required. Everything else can be skipped and added later from Edit." : undefined}
+      footer={stepping ? (
+        <>
+          {step > 0 && <Button variant="ghost" icon={<ChevronLeft size={14} />} onClick={() => setStep(step - 1)}>Back</Button>}
+          <span className="grow" />
+          {!last && <Button variant="ghost" loading={busy} onClick={() => (f.name.trim() ? submit() : next())}>Create now</Button>}
+          {last ? <Button type="submit" variant="primary" loading={busy}>Create project</Button> : <Button type="submit" variant="primary" iconRight={<ChevronRight size={14} />}>Next</Button>}
+        </>
+      ) : <><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{project ? "Save changes" : mode === "template" ? "Create from template" : sub ? "Create sub-project" : "Create project"}</Button></>}
     >
-      {!project && !sub && more && templates.length > 0 && (
+      {stepping && (
+        <ol className={s.stepper} aria-label="Steps">
+          {STEPS.map((x, i) => (
+            <li key={x.key}>
+              <button type="button" className={`${s.step} ${i === step ? s.stepOn : ""} ${i < step ? s.stepDone : ""}`} aria-current={i === step ? "step" : undefined}
+                onClick={() => (i <= step || f.name.trim() ? setStep(i) : next())}>
+                <span className={s.stepNum}>{i < step ? <Check size={11} /> : i + 1}</span>{x.label}
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+      {!project && !sub && (mode === "template" || at("basics")) && templates.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <SegmentedControl value={mode} onChange={setMode} aria-label="Start from"
             options={[{ value: "blank", label: "Blank project" }, { value: "template", label: "From template", icon: <FileStack size={13} /> }]} />
@@ -148,7 +177,7 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
         </div>
       ) : (
         <div className="col" style={{ gap: 20 }}>
-          <div className="form-grid">
+          {at("basics") && <div className="form-grid">
             <Field label="Name" required error={errors.name}><Input autoFocus value={f.name} onChange={(e) => set("name", e.target.value)} placeholder={sub ? "e.g. iOS App" : "e.g. Website Redesign"} /></Field>
             <Field label="Project code" hint="Short reference used in reports"><Input value={f.code} maxLength={20} onChange={(e) => set("code", e.target.value.toUpperCase())} placeholder="e.g. WEB" /></Field>
             <Field label="Description" className="full"><Textarea rows={3} value={f.description} onChange={(e) => set("description", e.target.value)} placeholder="What is this project about?" /></Field>
@@ -159,9 +188,9 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
             <Field label="Colour" className="full">
               <div className="row gap-4">{COLORS.map((c) => <button key={c} type="button" aria-label={`Colour ${c}`} aria-pressed={f.color === c} className={`${s.colorSwatch} ${f.color === c ? s.colorOn : ""}`} style={{ background: c }} onClick={() => set("color", c)} />)}</div>
             </Field>
-          </div>
+          </div>}
 
-          {!sub && (
+          {!sub && at("client") && (
             <section>
               <div className="section-title">Client</div>
               <div className="form-grid">
@@ -178,11 +207,11 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
             </section>
           )}
 
-          <section>
+          {at("people") && <section>
             <div className="section-title">People and schedule</div>
             <div className="form-grid">
               <Field label="Manager"><Combobox value={f.managerId} clearable clearLabel="No manager" placeholder="No manager" onChange={(v) => set("managerId", v ? Number(v) : null)} options={users.map((u) => ({ value: u.id, label: u.name, icon: <Avatar name={u.name} size={16} /> }))} /></Field>
-              <Field label="Team"><Select value={f.teamId ?? ""} onChange={(v) => set("teamId", v ? Number(v) : null)} options={[{ value: "", label: "No team" }, ...(opts.data?.teams ?? []).map((t) => ({ value: t.id, label: t.name }))]} /></Field>
+              <Field label="Team"><Select value={f.teamId ?? ""} placeholder="No team" onChange={(v) => set("teamId", v ? Number(v) : null)} options={[{ value: "", label: "No team" }, ...(opts.data?.teams ?? []).map((t) => ({ value: t.id, label: t.name }))]} /></Field>
               <Field label="Members" hint="Members can log time and see the project's tasks." className="full">
                 <Combobox multiple value={f.memberIds} placeholder="Add members" onChange={(v) => set("memberIds", v.map(Number))} options={users.map((u) => ({ value: u.id, label: u.name, icon: <Avatar name={u.name} size={16} /> }))} />
               </Field>
@@ -190,9 +219,9 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
               <Field label="Target date" error={errors.endDate}><DatePicker value={f.endDate} onChange={(v) => set("endDate", v)} fullWidth placeholder="No target date" /></Field>
               <Field label="Estimated hours" error={errors.estimatedHours}><Input inputMode="decimal" value={f.estimatedHours} onChange={(e) => set("estimatedHours", e.target.value)} suffix="h" /></Field>
             </div>
-          </section>
+          </section>}
 
-          {isAdmin && <section>
+          {isAdmin && at("billing") && <section>
             <div className="section-title">Billing</div>
             <div className="form-grid">
               <Field label="Billing type" className={fin ? undefined : "full"}><Select value={f.billingType} onChange={(v) => set("billingType", v as BillingType)} options={BILLING_TYPES.map((b) => ({ value: b, label: BILLING[b] }))} /></Field>
@@ -202,7 +231,7 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
             </div>
           </section>}
 
-          <section>
+          {at("extras") && <section>
             <div className="section-title">Tags and links</div>
             <div className="form-grid">
               <Field label="Tags" className="full">
@@ -228,9 +257,9 @@ export function ProjectFormDialog({ project, parentId, withDates, onClose, onSav
                 <Button size="sm" variant="ghost" icon={<Plus size={13} />} style={{ alignSelf: "flex-start" }} onClick={() => set("links", { ...f.links, other: [...f.links.other, { label: "", url: "" }] })}>Add link</Button>
               </div>
             </div>
-          </section>
+          </section>}
 
-          {!project && !sub && (
+          {!project && !sub && at("extras") && (
             <section>
               <div className="section-title">Sub-projects</div>
               <div className="col">

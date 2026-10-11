@@ -5,8 +5,8 @@
 }
 .fieldSlot { display: block; min-width: 0; }
 /* Every control's label gets the same size and the same 6px gap, so fields side by side line up. */
-.fieldSlot > div > label:first-child, .fieldSlot > div > div > label:first-child { font-size: 12px; font-weight: 500; line-height: 16px; color: var(--text-2); margin-bottom: 6px; }
-.fieldSlot > div:has(> label:first-child), .fieldSlot > div > div:has(> label:first-child) { gap: 0; }
+.fieldSlot > div > label:first-child, .fieldSlot > div > div > label:first-child, .fieldSlot > div > div > div > label:first-child { font-size: 12px; font-weight: 500; line-height: 16px; color: var(--text-2); margin-bottom: 6px; }
+.fieldSlot > div:has(> label:first-child), .fieldSlot > div > div:has(> label:first-child), .fieldSlot > div > div > div:has(> label:first-child) { gap: 0; }
 
 /* Buttons: Linear uses the indigo accent for the primary action and compact text buttons. */
 .btn { gap: 6px; font-size: 13px; }
@@ -122,3 +122,11 @@
 .avatarMore { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg-active); color: var(--text-2); font-weight: 500; }
 .sheet.sheet[data-side="right"] { border-radius: 0; }
 .tabList [role="tab"] { flex: 0 0 auto; padding-inline: 12px; }
+/* Form side sheet: floats inset from the right edge with rounded corners; the footer stays at the bottom. */
+.formSheet.formSheet[data-side] { --drawer-size: min(var(--sheet-w, 520px), calc(100vw - 24px)); width: var(--drawer-size); max-width: var(--drawer-size); inset: 12px 12px 12px auto; max-height: calc(100dvh - 24px); border-width: 1px; border-radius: 16px; }
+.formSheet > div:last-child { display: flex; flex-direction: column; flex: 1; padding-bottom: 0; }
+.sheetForm { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.sheetFooter { position: sticky; bottom: 0; z-index: 2; display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: auto calc(var(--space-6) * -1) 0; padding: 14px var(--space-6); border-top: 1px solid var(--border); background: var(--surface-raised, var(--bg)); }
+.sheetForm > :not(.sheetFooter) { flex-shrink: 0; }
+.sheetForm > :nth-last-child(2) { margin-bottom: 20px; }
+@media (max-width: 640px) { .formSheet.formSheet[data-side] { inset: 6px 6px 6px auto; max-height: calc(100dvh - 12px); --drawer-size: calc(100vw - 12px); } }

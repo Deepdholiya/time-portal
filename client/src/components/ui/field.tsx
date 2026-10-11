@@ -32,9 +32,12 @@ export const Input = ownsField(forwardRef<HTMLInputElement, InputProps>(function
   );
   return (
     <div className={cx(hidden && s.srLabel, !adorned && !style && s.contents, size !== "md" && s[size], adorned && s.inputWrap, !!icon && s.withIcon, suffix != null && s.withSuffix)} style={style}>
-      {control}
-      {icon && <span className={cx(s.adorn, s.adornStart)} style={{ top: "auto", height: `var(--control-height-${size})` }}>{icon}</span>}
-      {suffix != null && <span className={cx(s.adorn, s.adornEnd)} style={{ top: "auto", height: `var(--control-height-${size})` }}>{suffix}</span>}
+      {/* Adornments sit in their own box so a hint or error under the field doesn't push them down. */}
+      <div className={adorned ? s.inputWrap : s.contents}>
+        {control}
+        {icon && <span className={cx(s.adorn, s.adornStart)} style={{ top: "auto", height: `var(--control-height-${size})` }}>{icon}</span>}
+        {suffix != null && <span className={cx(s.adorn, s.adornEnd)} style={{ top: "auto", height: `var(--control-height-${size})` }}>{suffix}</span>}
+      </div>
       {adorned && field?.error && <div className={s.error}>{field.error}</div>}
       {adorned && !field?.error && field?.description && <div className={s.hint}>{field.description}</div>}
     </div>

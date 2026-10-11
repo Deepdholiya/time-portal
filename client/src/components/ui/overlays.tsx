@@ -29,8 +29,38 @@ function focusFirstField(e: Event) {
   (first ?? root)?.focus();
 }
 
-/** Arc Dialog with the app's footer and form handling. */
+const SHEET_WIDTH = { sm: 440, md: 520, lg: 640, xl: 760 };
+
+/**
+ * Forms open as a side sheet from the right (title, scrolling body, footer pinned to the bottom) so the page stays in
+ * view behind them. Short confirmations use ConfirmDialog, which stays centered.
+ */
 export function Dialog({ open, onClose, title, description, children, footer, size = "md", onSubmit, dismissable = true }: DialogProps) {
+  const body = <>{children}{footer && <div className={s.sheetFooter}>{footer}</div>}</>;
+  return (
+    <Drawer open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DrawerContent
+        title={textOf(title)}
+        description={description ? textOf(description) : undefined}
+        side="right"
+        className={s.formSheet}
+        style={{ "--sheet-w": `${SHEET_WIDTH[size]}px` } as CSSProperties}
+        onOpenAutoFocus={focusFirstField}
+        onPointerDownOutside={dismissable ? undefined : (e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => {
+          // Escape inside a text field leaves the field first; a second Escape closes the sheet.
+          const t = document.activeElement as HTMLElement | null;
+          if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA") && t.getAttribute("role") !== "combobox") { e.preventDefault(); t.blur(); }
+        }}
+      >
+        {onSubmit ? <form className={s.sheetForm} onSubmit={(e: FormEvent) => { e.preventDefault(); onSubmit(); }}>{body}</form> : <div className={s.sheetForm}>{body}</div>}
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+/** Centered Arc dialog, kept for short confirmations. */
+function CenterDialog({ open, onClose, title, description, children, footer, size = "md", onSubmit, dismissable = true }: DialogProps) {
   const body = <>{children}{footer && <div className={s.footer}>{footer}</div>}</>;
   return (
     <ArcDialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -53,7 +83,7 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, description, co
   open: boolean; onClose: () => void; onConfirm: () => void; title: ReactNode; description?: ReactNode; confirmLabel?: string; danger?: boolean; loading?: boolean; children?: ReactNode;
 }) {
   return (
-    <Dialog
+    <CenterDialog
       open={open} onClose={onClose} title={title} description={description} size="sm" onSubmit={onConfirm}
       footer={<>
         <Button variant="ghost" onClick={onClose}>Cancel</Button>
@@ -61,7 +91,7 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, description, co
       </>}
     >
       {children}
-    </Dialog>
+    </CenterDialog>
   );
 }
 
