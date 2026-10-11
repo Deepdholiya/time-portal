@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, Bell, Clock, CornerDownLeft, FolderKanban, Menu as MenuIcon, Moon, Plus, Search, Sparkles, X } from "lucide-react";
 import { Button, IconButton, Kbd, Spinner, Tooltip } from "@/components/ui";
 import { get, post } from "@/lib/api";
@@ -23,7 +23,10 @@ export interface TopBarHandle { focus: () => void }
 export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function TopBar({ onMenu }, ref) {
   const nav = useNavigate();
   const shell = useShell();
-  const { can, me } = useSession();
+  const { can } = useSession();
+  // Log time lives where time is: Home and the Time pages (not Leave, Work, Insights or Admin).
+  const { pathname } = useLocation();
+  const showLog = pathname === "/" || ["/time", "/timesheet", "/team-time", "/calendar", "/my-tasks"].some((x) => pathname === x || pathname.startsWith(x + "/"));
   const input = useRef<HTMLInputElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
@@ -150,10 +153,9 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function 
       </div>
       <span className="grow" />
       <div className={s.actions}>
-        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()} className={s.hideSm}>Log time</Button>
-        <Tooltip content="Log time"><IconButton variant="primary" className={s.showSm} label="Log time" icon={<Plus size={16} />} onClick={() => shell.logTime()} /></Tooltip>
+        {showLog && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()} className={s.hideSm}>Log time</Button>}
+        {showLog && <Tooltip content="Log time"><IconButton variant="primary" className={s.showSm} label="Log time" icon={<Plus size={16} />} onClick={() => shell.logTime()} /></Tooltip>}
         <Tooltip content="Inbox"><IconButton variant="ghost" label="Inbox" icon={<Bell size={15} />} onClick={() => nav("/inbox")} /></Tooltip>
-        <span className={`${s.company} ${s.hideSm}`}>{me?.company.name}</span>
       </div>
     </header>
   );

@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Users } from "lucide-react";
+import { Search, UserPlus, Users } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Avatar, EmptyState, ErrorState, Input, Select, SkeletonRows, Tooltip } from "@/components/ui";
+import { Avatar, Button, EmptyState, ErrorState, Input, SkeletonRows, Tooltip } from "@/components/ui";
+import { FilterMenu } from "@/components/app/filter-menu";
+import { InviteDialog } from "../admin/invite-dialogs";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { addDays, hours, money, today, weekStart } from "@/lib/format";
@@ -25,6 +27,7 @@ export default function People() {
   const [team, setTeam] = useLocal(`people:team:${me.company.id}`, "");
   const [role, setRole] = useLocal("people:role", "");
   const full = can("directory", "full");
+  const [invite, setInvite] = useState(false);
   const [status, setStatus] = useLocal("people:status", "ACTIVE");
   const dq = useDebounced(q);
   const { data, error, loading, reload } = useApi<DirPerson[]>("/people", { q: dq, teamId: team, role, status: full ? status : undefined });
@@ -40,19 +43,23 @@ export default function People() {
   const toolbar = (
     <>
       <Input size="sm" icon={<Search size={14} />} placeholder="Search name, email, title" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
-      <Select size="sm" fullWidth={false} value={team} onChange={setTeam} options={[{ value: "", label: "All teams" }, ...(teams.data ?? []).map((t) => ({ value: String(t.id), label: t.name }))]} aria-label="Team" />
-      <Select size="sm" fullWidth={false} value={role} onChange={setRole} options={[{ value: "", label: "All roles" }, { value: "ADMIN", label: "Admins" }, { value: "MANAGER", label: "Managers" }, { value: "EMPLOYEE", label: "Employees" }]} aria-label="Role" />
-      {full && (
-        <Select size="sm" fullWidth={false} value={status} onChange={setStatus} aria-label="Status"
-          options={[{ value: "", label: "Any status" }, { value: "ACTIVE", label: "Active" }, { value: "INVITED", label: "Invited" }, { value: "DEACTIVATED", label: "Inactive" }]} />
-      )}
       <div className="grow" />
       {data && <span className="small faint">{data.length} {data.length === 1 ? "person" : "people"}</span>}
+      <FilterMenu
+        sections={[
+          { key: "team", label: "Team", single: true, options: (teams.data ?? []).map((x) => ({ value: String(x.id), label: x.name, icon: <span className="dot" style={{ background: x.color }} /> })) },
+          { key: "role", label: "Role", single: true, options: [{ value: "ADMIN", label: "Admins" }, { value: "MANAGER", label: "Managers" }, { value: "EMPLOYEE", label: "Employees" }] },
+          ...(full ? [{ key: "status", label: "Status", single: true, required: true, defaultValue: "ACTIVE", options: [{ value: "", label: "Any status" }, { value: "ACTIVE", label: "Active" }, { value: "INVITED", label: "Invited" }, { value: "DEACTIVATED", label: "Inactive" }] }] : []),
+        ]}
+        value={{ team: team ? [team] : [], role: role ? [role] : [], status: [status] }}
+        onApply={(v) => { setTeam(v.team?.[0] ?? ""); setRole(v.role?.[0] ?? ""); setStatus(v.status?.[0] ?? "ACTIVE"); }}
+      />
     </>
   );
 
   return (
-    <Page title="Employees" icon={<Users size={15} />} toolbar={toolbar}>
+    <Page title="Employees" icon={<Users size={15} />} toolbar={toolbar}
+      actions={can("people", "invite") && <Button size="sm" variant="primary" icon={<UserPlus size={14} />} onClick={() => setInvite(true)}>Add employee</Button>}>
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : !data?.length ? (
         <EmptyState icon={<Users size={28} />} title="No one matches" description="Try a different search or clear the filters." />
       ) : (
@@ -98,6 +105,7 @@ export default function People() {
           })}
         </div>
       )}
+      {invite && <InviteDialog onClose={() => { setInvite(false); reload(); }} />}
     </Page>
   );
 }

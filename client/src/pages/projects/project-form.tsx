@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileStack, Plus, X } from "lucide-react";
+import { ChevronDown, FileStack, Plus, X } from "lucide-react";
 import { Avatar, Button, Combobox, DatePicker, Dialog, Field, IconButton, Input, SegmentedControl, Select, Textarea, toast } from "@/components/ui";
 import { PRIORITIES, PRIORITY_META, PriorityIcon } from "@/components/app/icons";
 import { post, put } from "@/lib/api";
@@ -24,13 +24,15 @@ const num = (v: string) => (v.trim() === "" ? null : Number(v));
 const validUrl = (u: string) => { try { const x = new URL(u); return x.protocol === "http:" || x.protocol === "https:"; } catch { return false; } };
 
 /** Create / edit project (and sub-project) form per MGR-P10..P12, with "from template" when creating. */
-export function ProjectFormDialog({ project, parentId, onClose, onSaved }: { project?: Project; parentId?: number; onClose: () => void; onSaved: (id: number) => void }) {
+export function ProjectFormDialog({ project, parentId, withDates, onClose, onSaved }: { project?: Project; parentId?: number; withDates?: boolean; onClose: () => void; onSaved: (id: number) => void }) {
   const { me, can } = useMe();
   const fin = can("financials", "view");
   const opts = useOptions();
   const editing = !!project;
   const sub = !!parentId || (!!project && (project as { parentId?: number | null }).parentId != null);
   const [mode, setMode] = useState<"blank" | "template">("blank");
+  // New projects start with just a name, description and colour; everything else is optional and can be added later.
+  const [more, setMore] = useState(editing);
   const [f, setF] = useState<Form>(() => ({
     name: project?.name ?? "", code: project?.code ?? "", description: project?.description ?? "", color: project?.color ?? COLORS[0], status: project?.status ?? (sub ? "ACTIVE" : "PLANNING"),
     priority: project?.priority ?? "MEDIUM", clientMode: "existing", clientId: project?.client?.id ?? null, clientName: "", clientEmail: project?.client?.email ?? "",
@@ -105,17 +107,34 @@ export function ProjectFormDialog({ project, parentId, onClose, onSaved }: { pro
   const title = project ? `Edit ${project.name}` : sub ? "New sub-project" : "New project";
   return (
     <Dialog
-      open onClose={onClose} size="lg" title={title} onSubmit={submit}
-      description={!project && !sub ? "Projects hold tasks, milestones and time. Clients see none of this unless you share a status link." : undefined}
+      open onClose={onClose} size={more || mode === "template" ? "lg" : "md"} title={title} onSubmit={submit}
+      description={!project && !sub && !more ? "Give it a name to get started. Client, people, dates and billing are optional and can be added any time from the project's Edit." : undefined}
       footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{project ? "Save changes" : mode === "template" ? "Create from template" : sub ? "Create sub-project" : "Create project"}</Button></>}
     >
-      {!project && !sub && templates.length > 0 && (
+      {!project && !sub && more && templates.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <SegmentedControl value={mode} onChange={setMode} aria-label="Start from"
             options={[{ value: "blank", label: "Blank project" }, { value: "template", label: "From template", icon: <FileStack size={13} /> }]} />
         </div>
       )}
-      {mode === "template" ? (
+      {!more && mode === "blank" ? (
+        <div className="col" style={{ gap: 16 }}>
+          <Field label="Name" required error={errors.name}><Input autoFocus value={f.name} onChange={(e) => set("name", e.target.value)} placeholder={sub ? "e.g. iOS App" : "e.g. Website Redesign"} /></Field>
+          <Field label="Description"><Textarea rows={3} value={f.description} onChange={(e) => set("description", e.target.value)} placeholder="What is this project about? (optional)" /></Field>
+          <Field label="Colour">
+            <div className="row gap-4">{COLORS.map((c) => <button key={c} type="button" aria-label={`Colour ${c}`} aria-pressed={f.color === c} className={`${s.colorSwatch} ${f.color === c ? s.colorOn : ""}`} style={{ background: c }} onClick={() => set("color", c)} />)}</div>
+          </Field>
+          {withDates && (
+            <div className="form-grid">
+              <Field label="Start date" hint="Where its bar starts on the roadmap"><DatePicker value={f.startDate} onChange={(v) => set("startDate", v)} fullWidth placeholder="No start date" /></Field>
+              <Field label="Target date" error={errors.endDate}><DatePicker value={f.endDate} onChange={(v) => set("endDate", v)} fullWidth placeholder="No target date" /></Field>
+            </div>
+          )}
+          <button type="button" className={`${s.moreLink} link`} onClick={() => setMore(true)}>
+            <ChevronDown size={14} /> More options: client, members, {withDates ? "" : "dates, "}billing{templates.length && !sub ? ", templates" : ""}
+          </button>
+        </div>
+      ) : mode === "template" ? (
         <div className="form-grid">
           <Field label="Template" required error={errors.template} className="full">
             <Select value={tpl.templateId ?? ""} onChange={(v) => setTpl({ ...tpl, templateId: v ? Number(v) : null })} placeholder="Choose a project template" options={templates.map((t) => ({ value: t.id, label: t.name }))} />
@@ -166,7 +185,7 @@ export function ProjectFormDialog({ project, parentId, onClose, onSaved }: { pro
                 <Combobox multiple value={f.memberIds} placeholder="Add members" onChange={(v) => set("memberIds", v.map(Number))} options={users.map((u) => ({ value: u.id, label: u.name, icon: <Avatar name={u.name} size={16} /> }))} />
               </Field>
               <Field label="Start date"><DatePicker value={f.startDate} onChange={(v) => set("startDate", v)} fullWidth placeholder="No start date" /></Field>
-              <Field label="End date" error={errors.endDate}><DatePicker value={f.endDate} onChange={(v) => set("endDate", v)} fullWidth placeholder="No end date" /></Field>
+              <Field label="Target date" error={errors.endDate}><DatePicker value={f.endDate} onChange={(v) => set("endDate", v)} fullWidth placeholder="No target date" /></Field>
               <Field label="Estimated hours" error={errors.estimatedHours}><Input inputMode="decimal" value={f.estimatedHours} onChange={(e) => set("estimatedHours", e.target.value)} suffix="h" /></Field>
             </div>
           </section>

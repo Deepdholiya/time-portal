@@ -1,7 +1,8 @@
 import { useMemo, type ReactNode } from "react";
-import { Briefcase, Building2, CheckCircle2, CircleDollarSign, FolderTree, ListTodo, Tag, User, Users, X } from "lucide-react";
-import { Button, Combobox, DateRangePicker, presetRange, type ComboboxOption, type DateRange } from "@/components/ui";
+import { Briefcase, Building2, CheckCircle2, CircleDollarSign, FolderTree, ListTodo, Tag, User, Users } from "lucide-react";
+import { Combobox, DateRangePicker, presetRange, type ComboboxOption, type DateRange } from "@/components/ui";
 import { ProjectDot, STATUS_META, STATUSES } from "@/components/app/icons";
+import { FilterMenu, type FilterSection, type FilterValues } from "@/components/app/filter-menu";
 import { useApi } from "@/lib/hooks";
 import type { Options } from "@/lib/types";
 import s from "./analytics.module.css";
@@ -77,57 +78,57 @@ export function SingleChip({ icon, label, options, value, onChange }: { icon: Re
 export type FilterKey = "client" | "project" | "subProject" | "team" | "employee" | "task" | "status" | "billable" | "tag";
 const ALL: FilterKey[] = ["client", "project", "subProject", "team", "employee", "task", "billable", "status", "tag"];
 
-/** One-row filter bar: date range + dimension chips + clear. */
-export function FilterBar({ value, onChange, hide = [], showRange = true, presets, leading, trailing }: {
+const KEY: Record<FilterKey, keyof Filters> = { client: "clientId", project: "projectId", subProject: "subProjectId", team: "teamId", employee: "userId", task: "taskId", status: "status", billable: "billable", tag: "tag" };
+
+/**
+ * Filter bar: optional date range, then the shared Filter dropdown holding every dimension (multi-select with Select all),
+ * applied together. `extra` adds sections such as Rows to the same dropdown.
+ */
+export function FilterBar({ value, onChange, hide = [], showRange = true, presets, leading, trailing, extra }: {
   value: Filters; onChange: (f: Filters) => void; hide?: FilterKey[]; showRange?: boolean; presets?: string[]; leading?: ReactNode; trailing?: ReactNode;
+  extra?: { sections: FilterSection[]; value: FilterValues; onChange: (v: FilterValues) => void };
 }) {
   const { data: opts } = useOptions();
-  const set = (patch: Partial<Filters>) => onChange({ ...value, ...patch });
   const shown = ALL.filter((k) => !hide.includes(k));
 
-  const o = useMemo(() => {
+  const sections = useMemo<FilterSection[]>(() => {
     const projects = opts?.projects ?? [];
     const top = projects.filter((p) => !p.parentId);
-    const pick = new Set(value.projectId.map(Number));
-    const subs = projects.filter((p) => p.parentId && (!pick.size || pick.has(p.parentId)));
-    const taskSrc = projects.filter((p) => !pick.size || pick.has(p.id) || (p.parentId && pick.has(p.parentId)));
     const topName = (id?: number | null) => top.find((t) => t.id === id)?.name;
-    return {
-      clients: (opts?.clients ?? []).map((c) => ({ value: String(c.id), label: c.name })),
-      projects: top.map((p) => ({ value: String(p.id), label: p.name, icon: <ProjectDot color={p.color} /> })),
-      subs: subs.map((p) => ({ value: String(p.id), label: p.name, icon: <ProjectDot color={p.color} />, hint: topName(p.parentId) })),
-      teams: (opts?.teams ?? []).map((t) => ({ value: String(t.id), label: t.name })),
-      users: (opts?.users ?? []).map((u) => ({ value: String(u.id), label: u.name })),
-      tasks: taskSrc.flatMap((p) => p.tasks.map((t) => ({ value: String(t.id), label: t.title, hint: t.key, keywords: p.name }))).slice(0, 400),
-      tags: (opts?.tags ?? []).map((t) => ({ value: t, label: t })),
+    const all: Record<FilterKey, FilterSection> = {
+      client: { key: "client", label: "Client", icon: <Building2 size={13} />, options: (opts?.clients ?? []).map((c) => ({ value: String(c.id), label: c.name })) },
+      project: { key: "project", label: "Project", icon: <Briefcase size={13} />, options: top.map((p) => ({ value: String(p.id), label: p.name, icon: <ProjectDot color={p.color} /> })) },
+      subProject: { key: "subProject", label: "Sub-project", icon: <FolderTree size={13} />, options: projects.filter((p) => p.parentId).map((p) => ({ value: String(p.id), label: p.name, icon: <ProjectDot color={p.color} />, hint: topName(p.parentId) })) },
+      team: { key: "team", label: "Team", icon: <Users size={13} />, options: (opts?.teams ?? []).map((t) => ({ value: String(t.id), label: t.name })) },
+      employee: { key: "employee", label: "Employee", icon: <User size={13} />, options: (opts?.users ?? []).map((u) => ({ value: String(u.id), label: u.name })) },
+      task: { key: "task", label: "Task", icon: <ListTodo size={13} />, options: projects.flatMap((p) => p.tasks.map((t) => ({ value: String(t.id), label: t.title, hint: t.key, keywords: p.name }))).slice(0, 400) },
+      billable: { key: "billable", label: "Billable", icon: <CircleDollarSign size={13} />, single: true, options: [{ value: "true", label: "Billable" }, { value: "false", label: "Non-billable" }] },
+      status: { key: "status", label: "Status", icon: <CheckCircle2 size={13} />, options: STATUSES.map((st) => ({ value: st, label: STATUS_META[st].label })) },
+      tag: { key: "tag", label: "Tag", icon: <Tag size={13} />, single: true, options: (opts?.tags ?? []).map((t) => ({ value: t, label: t })) },
     };
-  }, [opts, value.projectId]);
+    return shown.map((k) => all[k]).filter((x) => x.options.length > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opts, shown.join()]);
 
-  const statuses = STATUSES.map((st) => ({ value: st, label: STATUS_META[st].label }));
-  const count = activeCount(value);
+  const values: FilterValues = { ...(extra?.value ?? {}) };
+  for (const k of shown) { const v = value[KEY[k]]; values[k] = Array.isArray(v) ? v : v ? [v as string] : []; }
+  const apply = (v: FilterValues) => {
+    const next: Filters = { ...value };
+    for (const k of shown) {
+      const field = KEY[k];
+      (next as unknown as Record<string, unknown>)[field] = Array.isArray(value[field]) ? (v[k] ?? []) : (v[k]?.[0] ?? "");
+    }
+    onChange(next);
+    if (extra) extra.onChange(Object.fromEntries(extra.sections.map((x) => [x.key, v[x.key] ?? []])));
+  };
 
   return (
     <div className={s.filterBar}>
       {leading}
-      {showRange && <DateRangePicker size="sm" value={value.range} onChange={(range) => set({ range })} presets={presets} />}
-      {shown.includes("client") && <MultiChip icon={<Building2 size={13} />} label="Client" options={o.clients} value={value.clientId} onChange={(clientId) => set({ clientId })} />}
-      {shown.includes("project") && <MultiChip icon={<Briefcase size={13} />} label="Project" options={o.projects} value={value.projectId} onChange={(projectId) => set({ projectId, subProjectId: [], taskId: [] })} />}
-      {shown.includes("subProject") && <MultiChip icon={<FolderTree size={13} />} label="Sub-project" options={o.subs} value={value.subProjectId} onChange={(subProjectId) => set({ subProjectId })} />}
-      {shown.includes("team") && <MultiChip icon={<Users size={13} />} label="Team" options={o.teams} value={value.teamId} onChange={(teamId) => set({ teamId })} />}
-      {shown.includes("employee") && <MultiChip icon={<User size={13} />} label="Employee" options={o.users} value={value.userId} onChange={(userId) => set({ userId })} />}
-      {shown.includes("task") && <MultiChip icon={<ListTodo size={13} />} label="Task" options={o.tasks} value={value.taskId} onChange={(taskId) => set({ taskId })} />}
-      {shown.includes("billable") && (
-        <SingleChip icon={<CircleDollarSign size={13} />} label="Billable" value={value.billable} onChange={(billable) => set({ billable })}
-          options={[{ value: "true", label: "Billable" }, { value: "false", label: "Non-billable" }]} />
-      )}
-      {shown.includes("status") && <MultiChip icon={<CheckCircle2 size={13} />} label="Status" options={statuses} value={value.status} onChange={(status) => set({ status })} />}
-      {shown.includes("tag") && o.tags.length > 0 && <SingleChip icon={<Tag size={13} />} label="Tag" options={o.tags} value={value.tag} onChange={(tag) => set({ tag })} />}
-      {count > 0 && (
-        <Button size="sm" variant="ghost" icon={<X size={13} />} onClick={() => onChange({ ...emptyFilters(value.range) })}>
-          Clear {count > 1 ? `(${count})` : ""}
-        </Button>
-      )}
-      {trailing && <><div className="grow" />{trailing}</>}
+      {showRange && <DateRangePicker size="sm" value={value.range} onChange={(range) => onChange({ ...value, range })} presets={presets} />}
+      <div className="grow" />
+      {trailing}
+      <FilterMenu sections={[...(extra?.sections ?? []), ...sections]} value={values} onApply={apply} />
     </div>
   );
 }

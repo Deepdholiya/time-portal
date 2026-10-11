@@ -1,7 +1,8 @@
-import { forwardRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Archive, Building2, CircleDot, FolderKanban, Lock, Plus, Receipt, Search, Tag, UserRound, X } from "lucide-react";
-import { Avatar, AvatarGroup, Button, Combobox, EmptyState, ErrorState, Input, Select, SkeletonRows } from "@/components/ui";
+import { Avatar, AvatarGroup, Button, EmptyState, ErrorState, Input, SkeletonRows } from "@/components/ui";
+import { FilterMenu } from "@/components/app/filter-menu";
 import { ProjectDot } from "@/components/app/icons";
 import { HealthBadge } from "./health-badge";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
@@ -10,16 +11,12 @@ import { useMe } from "@/lib/session";
 import { useOptions } from "../tasks/lib";
 import { BILLING, BILLING_TYPES, PROJECT_STATUS, PROJECT_STATUSES, type Project } from "./lib";
 import { ProjectFormDialog } from "./project-form";
-import t from "../tasks/tasks.module.css";
+import { ProjectActions } from "./project-actions";
 import s from "./projects.module.css";
 
 interface Filters { status: string[]; clientId: number | null; managerId: number | null; archived: "false" | "true" | "all"; billing: string[]; tag: string | null }
 const EMPTY: Filters = { status: [], clientId: null, managerId: null, archived: "false", billing: [], tag: null };
 
-/** Filter chip; forwards the popover trigger's ref and handlers so it can open a picker. */
-const Chip = forwardRef<HTMLButtonElement, { active: boolean; icon: ReactNode; children: ReactNode } & ButtonHTMLAttributes<HTMLButtonElement>>(function Chip({ active, icon, children, ...rest }, ref) {
-  return <button ref={ref} type="button" {...rest} className={`${t.filterChip} ${active ? t.active : ""}`}>{icon}{children}</button>;
-});
 
 /** Linear-style projects list with health, progress and tracked-vs-estimate. */
 export default function Projects() {
@@ -34,7 +31,6 @@ export default function Projects() {
   const list = useApi<Project[]>("/projects", {
     status: f.status.join(","), clientId: f.clientId, managerId: f.managerId, archived: manage ? f.archived : "false", billing: f.billing.join(","), tag: f.tag, q: dq,
   });
-  const set = <K extends keyof Filters>(k: K, v: Filters[K]) => setF({ ...f, [k]: v });
   const active = f.status.length || f.clientId || f.managerId || f.billing.length || f.tag || f.archived !== "false" || q;
   const users = opts.data?.users ?? [];
   const clients = opts.data?.clients ?? [];
@@ -42,23 +38,23 @@ export default function Projects() {
   const toolbar = (
     <>
       <Input size="sm" style={{ width: 200 }} icon={<Search size={14} />} placeholder="Search projects…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search projects" />
-      <Combobox multiple value={f.status} width={200} onChange={(v) => set("status", v)} options={PROJECT_STATUSES.map((x) => ({ value: x, label: PROJECT_STATUS[x].label }))}
-        trigger={<Chip active={f.status.length > 0} icon={<CircleDot size={13} />}>{f.status.length ? f.status.map((x) => PROJECT_STATUS[x as keyof typeof PROJECT_STATUS].label).join(", ") : "Status"}</Chip>} />
-      <Combobox value={f.clientId} clearable clearLabel="Any client" width={240} onChange={(v) => set("clientId", v ? Number(v) : null)} options={clients.map((c) => ({ value: c.id, label: c.name }))}
-        trigger={<Chip active={!!f.clientId} icon={<Building2 size={13} />}>{clients.find((c) => c.id === f.clientId)?.name ?? "Client"}</Chip>} />
-      <Combobox value={f.managerId} clearable clearLabel="Any manager" width={240} onChange={(v) => set("managerId", v ? Number(v) : null)} options={users.filter((u) => u.role !== "EMPLOYEE").map((u) => ({ value: u.id, label: u.name, icon: <Avatar name={u.name} size={16} /> }))}
-        trigger={<Chip active={!!f.managerId} icon={<UserRound size={13} />}>{users.find((u) => u.id === f.managerId)?.name ?? "Manager"}</Chip>} />
-      <Combobox multiple value={f.billing} width={200} onChange={(v) => set("billing", v)} options={BILLING_TYPES.map((b) => ({ value: b, label: BILLING[b] }))}
-        trigger={<Chip active={f.billing.length > 0} icon={<Receipt size={13} />}>{f.billing.length ? f.billing.map((b) => BILLING[b as keyof typeof BILLING]).join(", ") : "Billing"}</Chip>} />
-      {(opts.data?.tags.length ?? 0) > 0 && (
-        <Combobox value={f.tag} clearable clearLabel="Any tag" width={200} onChange={(v) => set("tag", v)} options={(opts.data?.tags ?? []).map((x) => ({ value: x, label: x }))}
-          trigger={<Chip active={!!f.tag} icon={<Tag size={13} />}>{f.tag ?? "Tag"}</Chip>} />
-      )}
-      {manage && (
-        <Select size="sm" fullWidth={false} value={f.archived} onChange={(v) => set("archived", v as Filters["archived"])} aria-label="Archived"
-          options={[{ value: "false", label: "Active projects" }, { value: "true", label: "Archived" }, { value: "all", label: "All projects" }]} />
-      )}
       {active ? <Button size="sm" variant="ghost" icon={<X size={13} />} onClick={() => { setQ(""); setF(EMPTY); }}>Clear</Button> : null}
+      <span className="grow" />
+      <FilterMenu
+        sections={[
+          { key: "status", label: "Status", icon: <CircleDot size={13} />, options: PROJECT_STATUSES.map((x) => ({ value: x, label: PROJECT_STATUS[x].label })) },
+          { key: "client", label: "Client", icon: <Building2 size={13} />, single: true, options: clients.map((c) => ({ value: String(c.id), label: c.name })) },
+          { key: "manager", label: "Manager", icon: <UserRound size={13} />, single: true, options: users.filter((u) => u.role !== "EMPLOYEE").map((u) => ({ value: String(u.id), label: u.name, icon: <Avatar name={u.name} size={16} /> })) },
+          { key: "billing", label: "Billing", icon: <Receipt size={13} />, options: BILLING_TYPES.map((b) => ({ value: b, label: BILLING[b] })) },
+          ...((opts.data?.tags.length ?? 0) > 0 ? [{ key: "tag", label: "Tag", icon: <Tag size={13} />, single: true, options: (opts.data?.tags ?? []).map((x) => ({ value: x, label: x })) }] : []),
+          ...(manage ? [{ key: "archived", label: "Show", icon: <Archive size={13} />, single: true, required: true, defaultValue: "false", options: [{ value: "false", label: "Active projects" }, { value: "true", label: "Archived" }, { value: "all", label: "All projects" }] }] : []),
+        ]}
+        value={{ status: f.status, client: f.clientId ? [String(f.clientId)] : [], manager: f.managerId ? [String(f.managerId)] : [], billing: f.billing, tag: f.tag ? [f.tag] : [], archived: [f.archived] }}
+        onApply={(v) => setF({
+          status: v.status ?? [], clientId: v.client?.[0] ? Number(v.client[0]) : null, managerId: v.manager?.[0] ? Number(v.manager[0]) : null,
+          billing: v.billing ?? [], tag: v.tag?.[0] ?? null, archived: ((v.archived?.[0] as Filters["archived"]) ?? "false"),
+        })}
+      />
     </>
   );
 
@@ -76,7 +72,7 @@ export default function Projects() {
           <thead>
             <tr>
               <th style={{ paddingLeft: 20 }}>Name</th><th>Health</th><th>Status</th><th>Lead</th><th className="hide-sm">Client</th><th>Progress</th>
-              <th className="hide-sm">Target</th><th className="num">Tracked / est.</th><th className="hide-sm">Members</th>
+              <th className="hide-sm">Target</th><th className="num">Tracked / est.</th><th className="hide-sm">Members</th>{manage && <th style={{ width: 44 }} />}
             </tr>
           </thead>
           <tbody>
@@ -104,6 +100,7 @@ export default function Projects() {
                   <td className="hide-sm"><span className={p.endDate && p.endDate < new Date().toISOString().slice(0, 10) && p.status !== "COMPLETED" ? "danger" : "muted"}>{p.endDate ? fmtDate(p.endDate) : "—"}</span></td>
                   <td className="num"><span className={over ? "danger" : ""}>{hours(tracked, 0)}h</span><span className="faint"> / {p.estimatedHours != null ? `${p.estimatedHours}h` : "—"}</span></td>
                   <td className="hide-sm">{p.members.length ? <AvatarGroup names={p.members.map((m) => m.name)} max={4} size={18} /> : <span className="faint">—</span>}</td>
+                  {manage && <td><ProjectActions p={p} onChanged={list.reload} /></td>}
                 </tr>
               );
             })}

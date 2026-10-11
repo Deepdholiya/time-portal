@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Gauge, Plane } from "lucide-react";
-import { Avatar, Badge, Button, EmptyState, IconButton, SegmentedControl, Select, SkeletonRows, Tooltip } from "@/components/ui";
+import { Avatar, Badge, Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip } from "@/components/ui";
+import { FilterMenu } from "@/components/app/filter-menu";
 import { Page } from "@/components/app/page";
 import { get } from "@/lib/api";
 import { useApi, useLocal } from "@/lib/hooks";
@@ -79,8 +80,6 @@ export default function Workload() {
             options={[{ value: "week", label: "By week" }, { value: "day", label: "By day" }]} />
           <SegmentedControl aria-label="Metric" value={metric} onChange={setMetric}
             options={[{ value: "planned", label: "Planned" }, { value: "tracked", label: "Logged" }]} />
-          <Select size="sm" fullWidth={false} value={teamId} onChange={setTeamId} aria-label="Team"
-            options={[{ value: "", label: "All teams" }, ...(opts?.teams ?? []).map((x) => ({ value: String(x.id), label: x.name }))]} />
           <div className="grow" />
           <div className={s.legend}>
             {(Object.keys(STATUS) as WRow["status"][]).map((k) => (
@@ -89,6 +88,8 @@ export default function Workload() {
               </Tooltip>
             ))}
           </div>
+          <FilterMenu sections={[{ key: "team", label: "Team", single: true, options: (opts?.teams ?? []).map((x) => ({ value: String(x.id), label: x.name })) }]}
+            value={{ team: teamId ? [teamId] : [] }} onApply={(v) => setTeamId(v.team?.[0] ?? "")} />
         </div>
       }
     >

@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Download, ListFilter, Users, X } from "lucide-react";
-import { Button, EmptyState, SegmentedControl, SkeletonRows, Tooltip } from "@/components/ui";
+import { Download, Rows3, Users } from "lucide-react";
+import { Button, EmptyState, SkeletonRows, Tooltip } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { ProjectDot } from "@/components/app/icons";
 import { ExportDialog } from "@/components/app/export-dialog";
 import { TimeRangeControl, useRangeParam } from "@/components/app/time-range";
 import { useApi, useLocal } from "@/lib/hooks";
 import { dayName, fmtDate, hm, range, today } from "@/lib/format";
-import { activeCount, emptyFilters, filterQuery, FilterBar, type Filters } from "../analytics/filter-bar";
+import { emptyFilters, filterQuery, FilterBar, type Filters } from "../analytics/filter-bar";
 import { EntriesSheet, LoadError } from "../analytics/entries";
 import s from "./team-time.module.css";
 
@@ -31,7 +31,6 @@ export default function TeamTime() {
   const [rangeSel, setRange] = useRangeParam("This week");
   const { from, to } = rangeSel;
   const [stored, setStored] = useLocal<Filters>("teamtime.filters", emptyFilters());
-  const [showFilters, setShowFilters] = useState(false);
   const [exporting, setExporting] = useState(false);
   const filters: Filters = { ...emptyFilters(), ...stored, range: { from, to, preset: "Custom" } };
   const q = filterQuery(filters);
@@ -43,34 +42,16 @@ export default function TeamTime() {
   const billable = (data?.rows ?? []).reduce((a, r) => a + r.billableMinutes, 0);
   const label = from === to ? fmtDate(from, true) : `${fmtDate(from)} – ${fmtDate(to, true)}`;
   const compact = days.length > 14;
-  const active = activeCount(filters) + (groupBy === "employee" ? 0 : 1);
 
   return (
     <Page
       title="Team timesheets" icon={<Users size={15} />}
       actions={<Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>}
       toolbar={
-        <div className="col" style={{ width: "100%", gap: 8 }}>
-          <div className="row wrap">
-            <TimeRangeControl value={rangeSel} onChange={setRange} />
-            <div className="grow" />
-            <Button size="sm" variant={showFilters || active ? "secondary" : "ghost"} icon={<ListFilter size={14} />} aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
-              Filter{active ? <span className={s.count}>{active}</span> : null}
-            </Button>
-          </div>
-          {showFilters && (
-            <div className={s.filters}>
-              <div className="row wrap gap-4">
-                <span className="faint small" style={{ width: 52 }}>Rows</span>
-                <SegmentedControl aria-label="Group by" value={groupBy} onChange={setGroupBy} options={GROUPS} />
-              </div>
-              <div className="row wrap gap-4" style={{ alignItems: "flex-start" }}>
-                <span className="faint small" style={{ width: 52, lineHeight: "28px" }}>Show</span>
-                <div className="grow"><FilterBar value={filters} onChange={setStored} showRange={false} hide={["status"]} /></div>
-              </div>
-              {active > 0 && <div><Button size="sm" variant="ghost" icon={<X size={13} />} onClick={() => { setStored(emptyFilters()); setGroupBy("employee"); }}>Reset all</Button></div>}
-            </div>
-          )}
+        <div style={{ width: "100%" }}>
+          <FilterBar value={filters} onChange={setStored} showRange={false} hide={["status"]}
+            leading={<TimeRangeControl value={rangeSel} onChange={setRange} />}
+            extra={{ sections: [{ key: "rows", label: "Rows", icon: <Rows3 size={13} />, single: true, required: true, defaultValue: "employee", options: GROUPS }], value: { rows: [groupBy] }, onChange: (v) => setGroupBy((v.rows?.[0] as GroupBy) ?? "employee") }} />
         </div>
       }
     >

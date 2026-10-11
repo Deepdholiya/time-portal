@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { Activity, Briefcase, CalendarDays, CheckCircle2, ChevronsDownUp, ChevronsUpDown, Eye, Map as MapIcon, Target, User, Users } from "lucide-react";
-import { Badge, Button, EmptyState, SegmentedControl, SkeletonRows, Switch, Tooltip, toast } from "@/components/ui";
+import { Activity, Briefcase, CalendarDays, CheckCircle2, ChevronsDownUp, ChevronsUpDown, Eye, Map as MapIcon, Plus, Target, User, Users } from "lucide-react";
+import { Badge, Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/ui";
+import { FilterMenu, type FilterSection, type FilterValues } from "@/components/app/filter-menu";
 import { Page } from "@/components/app/page";
 import { HEALTH_META, ProjectDot } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
@@ -8,13 +9,13 @@ import { patch } from "@/lib/api";
 import { invalidate, useApi, useLocal } from "@/lib/hooks";
 import { addDays, fmtDate, today } from "@/lib/format";
 import type { Options } from "@/lib/types";
-import { MultiChip, SingleChip } from "../analytics/filter-bar";
+import { useMe } from "@/lib/session";
+import { ProjectFormDialog } from "../projects/project-form";
 import { LoadError } from "../analytics/entries";
 import { Gantt, type Target as BarTarget } from "./gantt";
 import { ImpactDialog } from "./impact-dialog";
 import { ZOOMS, type Zoom } from "./scale";
 import type { Impact, RoadmapData, RProject, RTask, Row } from "./types";
-import s from "./roadmap.module.css";
 
 interface RFilters { projectId: string[]; userId: string; teamId: string; health: string[]; status: string[]; initiativeId: string }
 const EMPTY: RFilters = { projectId: [], userId: "", teamId: "", health: [], status: [], initiativeId: "" };
@@ -35,6 +36,9 @@ export default function Roadmap() {
     status: filters.status.join(",") || undefined, initiativeId: filters.initiativeId || undefined, tasks: showTasks ? "true" : "false",
   });
   const { data: opts } = useApi<Options>("/options");
+  const { can } = useMe();
+  const manage = can("projects", "manage");
+  const [creating, setCreating] = useState(false);
   const [impact, setImpact] = useState<{ task: RTask; items: Impact[] } | null>(null);
 
   const projects = useMemo(() => (data?.projects ?? []).filter((p) => !filters.projectId.length || filters.projectId.includes(String(p.id))), [data, filters.projectId]);
@@ -117,6 +121,24 @@ export default function Roadmap() {
   const statusOpts = ["PLANNING", "ACTIVE", "ON_HOLD", "COMPLETED"].map((v) => ({ value: v, label: v.charAt(0) + v.slice(1).toLowerCase().replace("_", " ") }));
   const active = filters.projectId.length + filters.health.length + filters.status.length + (filters.userId ? 1 : 0) + (filters.teamId ? 1 : 0) + (filters.initiativeId ? 1 : 0);
 
+  const sections: FilterSection[] = [
+    { key: "show", label: "Show", icon: <Eye size={13} />, allByDefault: true, options: [{ value: "tasks", label: "Tasks with dates" }] },
+    { key: "project", label: "Project", icon: <Briefcase size={13} />, options: (data?.projects ?? []).map((p) => ({ value: String(p.id), label: p.name, icon: <ProjectDot color={p.color} /> })) },
+    { key: "initiative", label: "Initiative", icon: <Target size={13} />, single: true, options: (opts?.initiatives ?? data?.initiatives ?? []).map((i) => ({ value: String(i.id), label: i.name })) },
+    { key: "employee", label: "Employee", icon: <User size={13} />, single: true, options: (opts?.users ?? []).map((u) => ({ value: String(u.id), label: u.name })) },
+    { key: "team", label: "Team", icon: <Users size={13} />, single: true, options: (opts?.teams ?? []).map((x) => ({ value: String(x.id), label: x.name })) },
+    { key: "health", label: "Health", icon: <Activity size={13} />, options: healthOpts },
+    { key: "status", label: "Status", icon: <CheckCircle2 size={13} />, options: statusOpts },
+  ];
+  const fv: FilterValues = {
+    show: showTasks ? ["tasks"] : [], project: filters.projectId, initiative: filters.initiativeId ? [filters.initiativeId] : [], employee: filters.userId ? [filters.userId] : [],
+    team: filters.teamId ? [filters.teamId] : [], health: filters.health, status: filters.status,
+  };
+  const applyFilters = (v: FilterValues) => {
+    setShowTasks((v.show ?? []).includes("tasks"));
+    setF({ projectId: v.project ?? [], initiativeId: v.initiative?.[0] ?? "", userId: v.employee?.[0] ?? "", teamId: v.team?.[0] ?? "", health: v.health ?? [], status: v.status ?? [] });
+  };
+
   return (
     <Page
       title="Roadmap" icon={<MapIcon size={15} />}
@@ -124,39 +146,30 @@ export default function Roadmap() {
         <div className="row gap-4">
           {!canEdit && data && <Badge size="sm" icon={<Eye size={11} />}>Read-only</Badge>}
           {conflicts > 0 && <Tooltip content="Tasks that start before a blocking task is due"><span><Badge size="sm" tone="red" dot>{conflicts} dependency conflict{conflicts > 1 ? "s" : ""}</Badge></span></Tooltip>}
-          <Button size="sm" variant="ghost" icon={<CalendarDays size={14} />} onClick={() => setTodayTick((n) => n + 1)}>Today</Button>
-          <Tooltip content={collapsed.length ? "Expand all" : "Collapse projects"}>
-            <Button size="sm" variant="ghost" icon={collapsed.length ? <ChevronsUpDown size={14} /> : <ChevronsDownUp size={14} />} onClick={collapsed.length ? expandAll : collapseAll} aria-label="Toggle all" />
-          </Tooltip>
+          {manage && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>Add project</Button>}
         </div>
       }
       toolbar={
-        <div className="row wrap" style={{ width: "100%" }}>
+        <>
+          <Button size="sm" variant="secondary" icon={<CalendarDays size={14} />} onClick={() => setTodayTick((n) => n + 1)}>Today</Button>
+          <Tooltip content={collapsed.length ? "Expand all" : "Collapse projects"}>
+            <IconButton size="sm" variant="secondary" label="Expand or collapse all" icon={collapsed.length ? <ChevronsUpDown size={14} /> : <ChevronsDownUp size={14} />} onClick={collapsed.length ? expandAll : collapseAll} />
+          </Tooltip>
+          {canEdit && <span className="small faint hide-sm">Drag a bar to move its dates, or its edge to change the length.</span>}
+          <span className="grow" />
+          <FilterMenu sections={sections} value={fv} onApply={applyFilters} />
           <SegmentedControl aria-label="Zoom" value={zoom} onChange={setZoom} options={ZOOMS.map((z) => ({ value: z.value, label: z.label, title: z.title }))} />
-          <span className={s.vsep} />
-          <MultiChip icon={<Briefcase size={13} />} label="Project" value={filters.projectId} onChange={(projectId) => setF({ ...filters, projectId })}
-            options={(data?.projects ?? []).map((p) => ({ value: String(p.id), label: p.name, icon: <ProjectDot color={p.color} /> }))} />
-          <SingleChip icon={<Target size={13} />} label="Initiative" value={filters.initiativeId} onChange={(initiativeId) => setF({ ...filters, initiativeId })}
-            options={(opts?.initiatives ?? data?.initiatives ?? []).map((i) => ({ value: String(i.id), label: i.name }))} />
-          <SingleChip icon={<User size={13} />} label="Employee" value={filters.userId} onChange={(userId) => setF({ ...filters, userId })}
-            options={(opts?.users ?? []).map((u) => ({ value: String(u.id), label: u.name }))} />
-          <SingleChip icon={<Users size={13} />} label="Team" value={filters.teamId} onChange={(teamId) => setF({ ...filters, teamId })}
-            options={(opts?.teams ?? []).map((t) => ({ value: String(t.id), label: t.name }))} />
-          <MultiChip icon={<Activity size={13} />} label="Health" value={filters.health} onChange={(health) => setF({ ...filters, health })} options={healthOpts} />
-          <MultiChip icon={<CheckCircle2 size={13} />} label="Status" value={filters.status} onChange={(status) => setF({ ...filters, status })} options={statusOpts} />
-          {active > 0 && <Button size="sm" variant="ghost" onClick={() => setF(EMPTY)}>Clear</Button>}
-          <div className="grow" />
-          <Switch checked={showTasks} onChange={setShowTasks} label="Tasks" />
-        </div>
+        </>
       }
     >
       {error ? <LoadError error={error} onRetry={reload} what="the roadmap" /> : loading && !data ? <SkeletonRows rows={12} /> : !rows.length ? (
-        <EmptyState icon={<MapIcon size={28} />} title="Nothing on the roadmap" description={active ? "No projects match these filters." : "Projects with start and end dates appear here."}
-          action={active ? <Button size="sm" variant="secondary" onClick={() => setF(EMPTY)}>Clear filters</Button> : undefined} />
+        <EmptyState icon={<MapIcon size={28} />} title="Nothing on the roadmap" description={active ? "No projects match these filters." : "Each project shows as a bar from its start to its target date, with its milestones and dated tasks underneath."}
+          action={active ? <Button size="sm" variant="secondary" onClick={() => setF(EMPTY)}>Clear filters</Button> : manage ? <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>Add project</Button> : undefined} />
       ) : (
         <Gantt rows={rows} zoom={zoom} start={start} end={end} canEdit={canEdit} deps={data?.dependencies ?? []} scrollToToday={todayTick}
           onToggle={toggle} onCommit={commit} onOpenTask={(id) => shell.openTask(id)} />
       )}
+      {creating && <ProjectFormDialog withDates onClose={() => setCreating(false)} onSaved={() => { setCreating(false); reload(); }} />}
       <ImpactDialog value={impact} onClose={() => setImpact(null)} onShifted={() => { reload(); invalidate("/tasks"); }} />
     </Page>
   );

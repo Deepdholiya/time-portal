@@ -1,7 +1,8 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CalendarPlus, Check, ChevronLeft, ChevronRight, ListFilter, Sheet as SheetIcon } from "lucide-react";
-import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, Popover, SegmentedControl, Sheet, Tooltip, toast } from "@/components/ui";
+import { CalendarPlus, ChevronLeft, ChevronRight, Sheet as SheetIcon } from "lucide-react";
+import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, SegmentedControl, Sheet, Tooltip, toast } from "@/components/ui";
+import { FilterMenu } from "@/components/app/filter-menu";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { patch } from "@/lib/api";
@@ -85,7 +86,6 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
 
   const title = view === "month" ? monthName(date) : view === "week" ? `${fmtDate(days[0])} – ${fmtDate(days[6], true)}` : `${fmtDay(date)}, ${monthName(date)}`;
   const totalMin = days.reduce((a, d) => a + (view === "month" && d.slice(0, 7) !== date.slice(0, 7) ? 0 : buckets[d].minutes), 0);
-  const hidden = LAYERS.filter((l) => !layers[l.key]).length;
   const userOptions = [
     ...(viewAll ? [{ value: "all", label: "Everyone" }] : []),
     ...(options?.users ?? []).map((u) => ({ value: String(u.id), label: u.id === me.user.id ? `${u.name} (you)` : u.name, icon: <Avatar name={u.name} size={16} />, keywords: u.email })),
@@ -105,20 +105,12 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
           {viewAll && <div style={{ width: 210 }}><Combobox size="sm" options={userOptions} value={who} onChange={(v) => set({ user: v && v !== String(me.user.id) ? v : null })} aria-label="Employee" searchPlaceholder="Search people…" /></div>}
           <span className="grow" />
           <span className="small muted num">{totalMin ? `${hm(totalMin)} logged` : ""}</span>
-          <Popover
-            placement="bottom-end" width={220} padded={false}
-            trigger={<Button size="sm" variant="secondary" icon={<ListFilter size={14} />}>Filter{hidden ? ` · ${LAYERS.length - hidden}/${LAYERS.length}` : ""}</Button>}
-          >
-            <div className={s.layerMenu} role="group" aria-label="Show on the calendar">
-              {LAYERS.map((l) => (
-                <button key={l.key} type="button" role="menuitemcheckbox" aria-checked={layers[l.key]} className={s.layerItem} onClick={() => setLayers({ ...layers, [l.key]: !layers[l.key] })}>
-                  <span className="dot" style={{ background: l.swatch, width: 7, height: 7 }} />
-                  <span className="grow">{l.label}</span>
-                  {layers[l.key] && <Check size={14} />}
-                </button>
-              ))}
-            </div>
-          </Popover>
+          <FilterMenu
+            width={260}
+            sections={[{ key: "show", label: "Show on the calendar", allByDefault: true, options: LAYERS.map((l) => ({ value: l.key, label: l.label, icon: <span className="dot" style={{ background: l.swatch, width: 7, height: 7 }} /> })) }]}
+            value={{ show: LAYERS.filter((l) => layers[l.key]).map((l) => l.key) }}
+            onApply={(v) => setLayers(Object.fromEntries(LAYERS.map((l) => [l.key, (v.show ?? []).includes(l.key)])) as unknown as Layers)}
+          />
           {approver && <Tooltip content="Add leave or holiday"><IconButton size="sm" variant="secondary" label="Add leave or holiday" icon={<CalendarPlus size={14} />} onClick={() => setLeaveOpen(true)} /></Tooltip>}
           <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ cal: v === "month" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
         </>

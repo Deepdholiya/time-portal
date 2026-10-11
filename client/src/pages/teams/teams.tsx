@@ -44,7 +44,7 @@ export default function Teams() {
   };
 
   return (
-    <Page title="Teams" icon={<UsersRound size={15} />} actions={manage && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>New team</Button>}>
+    <Page title="Teams" icon={<UsersRound size={15} />} actions={manage && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>Add team</Button>}>
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : !data?.length ? (
         <EmptyState icon={<UsersRound size={28} />} title="No teams yet" description="Group people into teams to filter timesheets, workload and analytics." action={manage && <Button variant="primary" onClick={() => setEdit("new")}>Create a team</Button>} />
       ) : (

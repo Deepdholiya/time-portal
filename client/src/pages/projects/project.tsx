@@ -14,6 +14,7 @@ import { Overview } from "./project-overview";
 import { Activity, Files, Members, Milestones, Notes, SubProjects } from "./project-tabs";
 import { ProjectTime } from "./project-time";
 import { ProjectSettings } from "./project-settings";
+import { ProjectActions } from "./project-actions";
 import s from "./projects.module.css";
 
 const TABS = ["overview", "tasks", "milestones", "subprojects", "time", "notes", "files", "activity", "members", "settings"] as const;
@@ -69,6 +70,7 @@ export default function Project() {
         {p.archived && <Badge size="sm" icon={<Archive size={11} />}>Archived</Badge>}
         <div className="grow" />
         {can("tasks", "create") && !p.archived && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={newTask}>New task</Button>}
+        <ProjectActions p={p} onChanged={q.reload} afterDelete={p.parent ? `/projects/${p.parent.id}` : "/projects"} />
       </header>
       <div className={s.tabsBar}>
         <Tabs

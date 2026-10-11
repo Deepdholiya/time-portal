@@ -1,0 +1,25 @@
+.count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px; border-radius: var(--radius-pill); background: var(--sh-primary); color: var(--sh-primary-foreground); font-size: 11px; font-weight: 600; }
+.menu { display: flex; flex-direction: column; max-height: min(560px, 75vh); }
+.head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.link { border: 0; background: none; padding: 0; color: var(--text-2); font-size: 12.5px; cursor: pointer; }
+.link:hover { color: var(--text); text-decoration: underline; }
+.body { overflow-y: auto; padding: 4px 0; flex: 1; min-height: 0; }
+.section + .section { border-top: 1px solid var(--border); }
+.sectionHead { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px; border: 0; background: none; color: var(--text); font-size: 13px; cursor: pointer; text-align: left; }
+.sectionHead:hover { background: var(--bg-hover); }
+.icon { display: inline-flex; color: var(--text-3); }
+.summary { font-size: 12px; color: var(--text-3); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.summary.on { color: var(--text); font-weight: 500; }
+.options { display: flex; flex-direction: column; padding: 0 6px 8px 26px; }
+.search { display: flex; align-items: center; gap: 6px; height: 30px; margin: 0 4px 4px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); }
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--text); font-size: 12.5px; }
+.option { display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 4px 8px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text); font-size: 13px; cursor: pointer; text-align: left; }
+.option:hover { background: var(--bg-hover); }
+.all { color: var(--text-2); }
+.box, .radio { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 15px; height: 15px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--bg); color: var(--sh-primary-foreground); }
+.radio { border-radius: 50%; }
+.boxOn { background: var(--sh-primary); border-color: var(--sh-primary); }
+.radio.boxOn { background: var(--bg); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sh-primary); }
+.extra { padding: 10px 12px; border-top: 1px solid var(--border); }
+.foot { display: flex; justify-content: flex-end; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--border); }

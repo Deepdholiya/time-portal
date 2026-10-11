@@ -9,7 +9,7 @@ export interface TabItem { value: string; label: ReactNode; count?: number; icon
 export function Tabs({ items, value, onChange, className }: { items: TabItem[]; value: string; onChange: (v: string) => void; variant?: "pill" | "underline"; className?: string }) {
   return (
     <ArcTabs value={value} onValueChange={onChange} className={className}>
-      <TabsList>
+      <TabsList className={s.tabList}>
         {items.filter((t) => !t.hidden).map((t) => (
           <TabsTrigger key={t.value} value={t.value}>
             <span className={s.tabLabel}>{t.icon}{t.label}{t.count !== undefined && <span className={s.tabCount}>{t.count}</span>}</span>

@@ -121,3 +121,4 @@
 .avatarGroup > * + * { margin-left: -4px; box-shadow: 0 0 0 2px var(--bg); }
 .avatarMore { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg-active); color: var(--text-2); font-weight: 500; }
 .sheet.sheet[data-side="right"] { border-radius: 0; }
+.tabList [role="tab"] { flex: 0 0 auto; padding-inline: 12px; }

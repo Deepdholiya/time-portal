@@ -186,7 +186,7 @@ projectsRouter.post("/:id/archive", manageP, async (req, res) => {
 });
 
 projectsRouter.delete("/:id", async (req, res) => {
-  if (req.user!.role !== "ADMIN") throw new HttpError(403, "Only admins can delete projects. Archive it instead.");
+  if (!can(req, "projects", "manage")) throw new HttpError(403, "Only admins and project managers can delete projects.");
   const { p } = await getProject(req, Number(req.params.id));
   const entries = await prisma.timeEntry.count({ where: { OR: [{ projectId: p.id }, { project: { parentId: p.id } }] } });
   if (entries) throw new HttpError(409, `${p.name} has ${entries} time entries. Archive it so its history stays reportable.`);
