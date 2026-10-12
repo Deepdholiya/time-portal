@@ -7,6 +7,7 @@ import type { Variants } from "motion/react";
 import { CalendarDays, ChevronDown } from "lucide-react";
 import { Calendar, type CalendarDateMatcher } from "../calendar/calendar";
 import { motionTokens } from "../lib/motion-tokens";
+import { useAnchoredPanel } from "../lib/use-anchored-panel";
 import styles from "./date-picker.module.css";
 
 export interface DatePickerProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "value" | "onChange"> {
@@ -51,6 +52,7 @@ export function DatePicker({ label, value, onChange, description, placeholder = 
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<number | undefined>(undefined);
   const formatter = new Intl.DateTimeFormat(locale, format);
   const reduce = useReducedMotion() ?? false;
@@ -62,6 +64,8 @@ export function DatePicker({ label, value, onChange, description, placeholder = 
   const parts = value ? formatter.formatToParts(value) : [];
   // Parts after a wider or narrower segment move on the same curve the new text arrives on, so they never overlap it.
   const partMotion = reduce ? { duration: 0 } : { duration: duration.standard, ease: ease.enter };
+
+  useAnchoredPanel(open, anchorRef, popoverRef);
 
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => { if (!rootRef.current?.contains(event.target as Node)) { window.clearTimeout(closeTimer.current); setOpen(false); } };
@@ -101,7 +105,7 @@ export function DatePicker({ label, value, onChange, description, placeholder = 
 
   return <div className={[styles.field, className].filter(Boolean).join(" ")} ref={rootRef} onBlur={onBlur}>
     <label className={styles.label} htmlFor={controlId}>{label}</label>
-    <div className={styles.anchor}>
+    <div className={styles.anchor} ref={anchorRef}>
       <button {...buttonProps} ref={triggerRef} id={controlId} type="button" disabled={disabled} aria-haspopup="dialog" aria-expanded={open} aria-describedby={hintId} className={styles.trigger} onClick={() => (open ? close() : show())} onKeyDown={onTriggerKeyDown}>
         <CalendarDays size={16} strokeWidth={1.75} aria-hidden="true" />
         <span className={styles.srOnly}>{shown}</span>

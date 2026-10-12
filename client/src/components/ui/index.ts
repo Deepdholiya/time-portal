@@ -15,3 +15,4 @@ export { Tabs, SegmentedControl, type TabItem } from "./tabs";
 export { Toaster, toast } from "./toast";
 export { Spinner, Loading, Skeleton, SkeletonRows, EmptyState, ErrorState, Kbd } from "./feedback";
 export { DatePicker, DateRangePicker, presetRange, PRESETS, type DateRange } from "./dates";
+export { TimePicker, formatTime, parseTime, type TimePickerProps } from "./time-picker";

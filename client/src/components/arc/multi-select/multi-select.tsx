@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Variants } from "motion/react";
 import { ChevronDown, X } from "lucide-react";
+import { useAnchoredPanel } from "../lib/use-anchored-panel";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./multi-select.module.css";
@@ -63,6 +64,8 @@ export function MultiSelect({ label, options, value, defaultValue = [], onValueC
   const labelId = `${id}-label`;
   const valueId = `${id}-value`;
   const rootRef = useRef<HTMLDivElement>(null);
+  const controlRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [internal, setInternal] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -104,10 +107,11 @@ export function MultiSelect({ label, options, value, defaultValue = [], onValueC
     }
   };
   const reduce = useReducedMotion();
+  useAnchoredPanel(open, controlRef, menuRef, { matchWidth: true });
 
   return <div ref={rootRef} className={[styles.field, className].filter(Boolean).join(" ")}>
     <span id={labelId} className={styles.label}>{label}</span>
-    <div className={styles.control}><button type="button" className={`${styles.trigger} ${selected.length ? styles.hasClear : ""}`} disabled={disabled} aria-labelledby={`${labelId} ${valueId}`} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} onClick={() => setOpen((current) => !current)} onKeyDown={onKeyDown}>
+    <div ref={controlRef} className={styles.control}><button type="button" className={`${styles.trigger} ${selected.length ? styles.hasClear : ""}`} disabled={disabled} aria-labelledby={`${labelId} ${valueId}`} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-listbox`} onClick={() => setOpen((current) => !current)} onKeyDown={onKeyDown}>
       <span id={valueId} className={styles.srOnly}>{selected.length ? selected.map(labelFor).join(", ") : placeholder}</span>
       <span className={styles.value} aria-hidden="true">
         <AnimatePresence initial={false}>
@@ -124,7 +128,7 @@ export function MultiSelect({ label, options, value, defaultValue = [], onValueC
       exit={{ opacity: 0, ...(reduce ? {} : { scale: 0.6, filter: `blur(${motionTokens.blur.subtle}px)` }), transition: { duration: motionTokens.duration.instant, ease: standard } }}
       whileTap={{ scale: reduce ? 1 : 0.96, transition: { duration: motionTokens.duration.instant, ease: standard } }}><X size={14} aria-hidden="true" /></motion.button>}</AnimatePresence>
     <AnimatePresence initial={false}>
-      {open && <motion.div id={`${id}-listbox`} className={styles.menu} role="listbox" aria-label={label} aria-multiselectable="true"
+      {open && <motion.div ref={menuRef} id={`${id}-listbox`} className={styles.menu} role="listbox" aria-label={label} aria-multiselectable="true"
         initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: .97 }}
         animate={{ opacity: 1, y: 0, scale: 1, transition: reduce ? { duration: motionTokens.duration.instant } : { ...motionTokens.spring.snappy, opacity: { duration: motionTokens.duration.fast, ease: enter } } }}
         exit={{ opacity: 0, ...(reduce ? {} : { y: -4, scale: .98 }), transition: { duration: motionTokens.duration.instant, ease: standard } }}>

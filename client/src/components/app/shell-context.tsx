@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
 export interface NewTaskDefaults { projectId?: number; parentId?: number; status?: string; assigneeId?: number | null; milestoneId?: number; dueDate?: string; section?: string }
-export interface NewEntryDefaults { date?: string; projectId?: number; taskId?: number | null; userId?: number; description?: string; minutes?: number; billable?: boolean; tagIds?: number[] }
+export interface NewEntryDefaults { date?: string; projectId?: number; taskId?: number | null; userId?: number; description?: string; minutes?: number; billable?: boolean }
 /** Which field the entry editor focuses first, for "Change project", "Change date" and similar shortcuts. */
 export type EntryFocus = "project" | "date" | "duration" | "description";
 

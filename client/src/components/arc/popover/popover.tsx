@@ -4,6 +4,7 @@ import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { forwardRef } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import styles from "./popover.module.css";
+import { VIEWPORT_MARGIN } from "../lib/use-anchored-panel";
 
 export const Popover = PopoverPrimitive.Root;
 export const PopoverClose = PopoverPrimitive.Close;
@@ -21,7 +22,7 @@ PopoverTrigger.displayName = "PopoverTrigger";
 export const PopoverContent = forwardRef<
   HTMLDivElement,
   ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(function PopoverContent({ className, align = "start", sideOffset = 6, collisionPadding = 10, ...props }, ref) {
+>(function PopoverContent({ className, align = "start", sideOffset = 6, collisionPadding = VIEWPORT_MARGIN, ...props }, ref) {
   return <PopoverPrimitive.Portal>
     <PopoverPrimitive.Content
       {...props}

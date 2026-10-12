@@ -18,8 +18,8 @@
 .all { color: var(--text-2); }
 .box, .radio { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 15px; height: 15px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--bg); color: var(--sh-primary-foreground); }
 .radio { border-radius: 50%; }
-.boxOn { background: var(--sh-primary); border-color: var(--sh-primary); }
+.boxOn { background: var(--brand); border-color: var(--brand); color: var(--brand-foreground); }
 .radio.boxOn { background: var(--bg); }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sh-primary); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); }
 .extra { padding: 10px 12px; border-top: 1px solid var(--border); }
 .foot { display: flex; justify-content: flex-end; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--border); }

@@ -5,7 +5,7 @@
   --popover-y: -5px;
   z-index: 80;
   min-width: 12rem;
-  max-width: min(22rem, calc(100vw - 20px));
+  max-width: min(22rem, calc(100vw - 16px));
   padding: 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-panel);

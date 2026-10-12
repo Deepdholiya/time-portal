@@ -6,6 +6,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./tooltip.module.css";
+import { VIEWPORT_MARGIN } from "../lib/use-anchored-panel";
 
 export interface TooltipProps {
   content: ReactNode;
@@ -71,7 +72,7 @@ export function Tooltip({ content, children, side = "top" }: TooltipProps) {
     <TooltipPrimitive.Root open={open} delayDuration={isWarm ? 0 : DELAY} onOpenChange={next => { if (next) setInstant(warmth.get()); setOpen(next); }}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Content className={styles.tooltip} data-instant={instant || undefined} side={side} sideOffset={8} collisionPadding={12}>
+        <TooltipPrimitive.Content className={styles.tooltip} data-instant={instant || undefined} side={side} sideOffset={8} collisionPadding={VIEWPORT_MARGIN}>
           {typeof content === "string" || typeof content === "number" ? <TooltipText text={String(content)}/> : content}
         </TooltipPrimitive.Content>
       </TooltipPrimitive.Portal>

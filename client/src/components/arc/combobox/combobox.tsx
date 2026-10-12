@@ -13,6 +13,7 @@ import {
 } from "react";
 import type { InputHTMLAttributes, KeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import { motionTokens } from "../lib/motion-tokens";
+import { useAnchoredPanel } from "../lib/use-anchored-panel";
 import styles from "./combobox.module.css";
 
 export interface ComboboxOption {
@@ -73,10 +74,13 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
   const hintId = description ? `${controlId}-description` : undefined;
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const controlRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const reduceMotion = useReducedMotion();
   const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
+  useAnchoredPanel(open, controlRef, popoverRef, { matchWidth: true });
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
   const selectedValue = controlledValue ?? uncontrolledValue;
@@ -196,7 +200,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
   return (
     <div ref={rootRef} className={styles.field}>
       <label htmlFor={controlId}>{label}</label>
-      <div className={[styles.control, open ? styles.open : "", disabled ? styles.disabled : "", className ?? ""].filter(Boolean).join(" ")}>
+      <div ref={controlRef} className={[styles.control, open ? styles.open : "", disabled ? styles.disabled : "", className ?? ""].filter(Boolean).join(" ")}>
         <Search className={styles.searchIcon} size={16} strokeWidth={1.75} aria-hidden="true" />
         <input
           {...inputProps}
@@ -248,6 +252,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
+            ref={popoverRef}
             className={styles.popover}
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1, transition: reduceMotion ? { duration: motionTokens.duration.instant } : { ...motionTokens.spring.snappy, opacity: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.enter] } } }}

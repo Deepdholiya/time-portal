@@ -31,7 +31,7 @@ export function EntryList({ entries, days, options, onChanged, readOnly }: {
   return (
     <>
       <div className={`${s.entry} ${s.entryHeader}`} aria-hidden>
-        <span>Description</span><span>Project</span><span className={s.colTags}>Tags</span><span />
+        <span>Description</span><span>Project</span><span />
         <span className={`${s.colTimes} right`}>Time</span><span className="right">Duration</span><span />
       </div>
       {dates.map((d) => {
@@ -66,7 +66,7 @@ function EntryRow({ entry: e, options, locked, today, onChanged }: { entry: Time
   const duplicate = async (date = e.date) => {
     try {
       // The copy starts after the day's last entry, so it never overlaps the original.
-      const c = await post<TimeEntry>("/time", { projectId: e.projectId, taskId: e.taskId ?? null, date, minutes: e.minutes, description: e.description, billable: e.billable, tagIds: e.tags.map((t) => t.id) });
+      const c = await post<TimeEntry>("/time", { projectId: e.projectId, taskId: e.taskId ?? null, date, minutes: e.minutes, description: e.description, billable: e.billable });
       toast.success(date === e.date ? "Entry duplicated" : `Copied to ${fmtDate(date)}`, { description: c.startTime ? `${c.startTime}–${c.endTime}` : undefined });
       afterTimeChange();
       onChanged();
@@ -95,9 +95,6 @@ function EntryRow({ entry: e, options, locked, today, onChanged }: { entry: Time
           <span className="ellipsis">{projectPath(e.project)}</span>
           {e.task && <span className={`ellipsis faint ${s.taskText}`}>{key ? `${key} ` : ""}{e.task.title}</span>}
         </span>
-      </span>
-      <span className={`${s.entryTags} ${s.colTags}`}>
-        {e.tags.map((t) => <span key={t.id} className={s.tag} title={t.name}><span className="dot" style={{ background: t.color }} />{t.name}</span>)}
       </span>
       <span className={s.entryBill}>
         <Tooltip content={e.billable ? "Billable" : "Non-billable"}>

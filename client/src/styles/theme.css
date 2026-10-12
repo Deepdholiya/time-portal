@@ -13,6 +13,11 @@
   --brand: var(--company-brand, #ff4c00);
   --brand-hover: color-mix(in oklab, var(--brand) 86%, black);
   --brand-foreground: var(--company-brand-fg, #ffffff);
+  /* Chosen selection controls (switch track, checkbox fill, picker selections) use the brand instead of near-black. */
+  --control-on: var(--brand);
+  --control-glyph: var(--brand-foreground);
+  --control-thumb-on: var(--brand-foreground);
+  --control-fill: var(--brand);
 
   /* One corner radius everywhere: 8px for controls, cards, menus, sheets and charts. Pills stay for counts, tags and avatars. */
   --sh-radius: 8px;

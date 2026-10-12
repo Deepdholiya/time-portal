@@ -125,7 +125,7 @@ function TableView({ tabs }: { tabs: ReactNode }) {
         {q.error ? <ErrorState error={q.error} onRetry={q.reload} /> : !q.data ? <SkeletonRows rows={6} /> : <TimesheetGrid rows={rows} ctx={ctx} />}
       </div>
       <div className={s.foot}>
-        <span className="small faint">Click a cell to add or edit time: duration, description and tags. Time is submitted automatically each day at {me.company.settings.autoSubmitTime ?? "23:59"} ({me.company.timezone}) and you can still edit it afterwards.</span>
+        <span className="small faint">Click a cell to add or edit time: duration, start and end, and description. Time is submitted automatically each day at {me.company.settings.autoSubmitTime ?? "23:59"} ({me.company.timezone}) and you can still edit it afterwards.</span>
       </div>
     </Page>
   );

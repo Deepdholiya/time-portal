@@ -61,6 +61,6 @@ export function entryBody(e: TimeEntry, patch: Partial<{ minutes: number; billab
     projectId: e.projectId, taskId: e.taskId ?? null, date: e.date,
     startTime: e.startTime ?? null, endTime: patch.minutes === undefined ? e.endTime ?? null : null,
     minutes: patch.minutes ?? (e.startTime && e.endTime ? null : e.minutes),
-    description: e.description, billable: patch.billable ?? e.billable, tagIds: e.tags.map((t) => t.id),
+    description: e.description, billable: patch.billable ?? e.billable,
   };
 }

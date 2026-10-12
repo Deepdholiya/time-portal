@@ -123,9 +123,9 @@
 
 /* The highlight lives under the days: one bar per week plus a solid end at each side of the range. */
 .layer { position: absolute; inset: 0; pointer-events: none; }
-.bar { position: absolute; height: calc(var(--cell) - 6px); border-radius: var(--radius-md); background: var(--accent-subtle); }
+.bar { position: absolute; height: calc(var(--cell) - 6px); border-radius: var(--radius-md); background: var(--brand-soft); }
 .thumb { position: absolute; top: 0; left: 0; width: var(--cell); height: var(--cell); }
-.thumb::before { content: ""; position: absolute; inset: 3px; border-radius: var(--radius-md); background: var(--accent); }
+.thumb::before { content: ""; position: absolute; inset: 3px; border-radius: var(--radius-md); background: var(--brand); }
 
 .day {
   position: relative;
@@ -147,9 +147,9 @@
 }
 .day > span { position: relative; display: grid; width: calc(100% - 6px); height: calc(100% - 6px); place-items: center; border-radius: var(--radius-md); transition: background-color var(--duration-fast) var(--ease-standard), transform var(--duration-instant) var(--ease-standard); }
 .day:active:not(:disabled) > span { transform: scale(.9); }
-.day[data-edge] { color: var(--accent-foreground); font-weight: 500; transition-delay: 40ms; }
-.day[data-today]::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--accent); }
-.day[data-today][data-edge]::after { background: var(--accent-foreground); }
+.day[data-edge] { color: var(--brand-foreground); font-weight: 500; transition-delay: 40ms; }
+.day[data-today]::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--brand); }
+.day[data-today][data-edge]::after { background: var(--brand-foreground); }
 .day:disabled { color: var(--text-muted); cursor: default; opacity: .5; }
 .day:focus-visible:not([data-edge]) > span { background: color-mix(in oklab, var(--foreground) 7%, transparent); }
 
@@ -175,7 +175,7 @@
   transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-instant) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
 }
 .ghost { background: transparent; color: var(--text-secondary); }
-.primary { min-width: 4.75rem; background: var(--accent); color: var(--accent-foreground); }
+.primary { min-width: 4.75rem; background: var(--brand); color: var(--brand-foreground); }
 .ghost:active, .primary:active:not(:disabled) { transform: scale(.97); }
 .primary:disabled { opacity: .45; cursor: default; }
 .ghost:focus-visible { background: var(--surface-muted); color: var(--foreground); }
@@ -202,7 +202,7 @@
   .navButton:hover:not(:disabled) { background: color-mix(in oklab, var(--foreground) 6.5%, transparent); color: var(--foreground); }
   .day:hover:not(:disabled):not([data-edge]) > span { background: color-mix(in oklab, var(--foreground) 7%, transparent); }
   .ghost:hover { background: var(--surface-muted); color: var(--foreground); }
-  .primary:hover:not(:disabled) { background: var(--accent-strong); }
+  .primary:hover:not(:disabled) { background: var(--brand-hover); }
 }
 
 @media (prefers-reduced-motion: reduce) {

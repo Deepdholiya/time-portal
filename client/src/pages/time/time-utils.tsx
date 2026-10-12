@@ -4,7 +4,7 @@ import { ProjectDot } from "@/components/app/icons";
 import { invalidate, useApi } from "@/lib/hooks";
 import { weekday } from "@/lib/format";
 import { useMe } from "@/lib/session";
-import type { DayStatus, DaysResponse, Options, ProjectOption, Tag, TagLite, TimeEntry } from "@/lib/types";
+import type { DayStatus, DaysResponse, Options, ProjectOption, TimeEntry } from "@/lib/types";
 
 export const useOptions = () => useApi<Options>("/options");
 
@@ -74,15 +74,6 @@ export function resolvePick(o: Options | undefined, v: string | null): { project
 }
 
 export const pickValue = (projectId?: number | null, taskId?: number | null) => (taskId ? `t${taskId}` : projectId ? `p${projectId}` : null);
-
-/** Active tags the person may put on entries (their team's tags plus company-wide ones). */
-export const useTags = (userId?: number) => useApi<Tag[]>("/tags", userId ? { userId } : undefined);
-
-export const tagOptions = (tags: Tag[] | undefined, keep: TagLite[] = []): ComboboxOption[] => {
-  const list: TagLite[] = [...(tags ?? [])];
-  for (const t of keep) if (!list.some((x) => x.id === t.id)) list.push(t);
-  return list.map((t) => ({ value: t.id, label: t.name, icon: <span className="dot" style={{ background: t.color }} /> }));
-};
 
 /** Labels and badge tones for a day's submission state. */
 export const DAY_STATUS: Record<DayStatus, { label: string; tone: BadgeTone; hint: string }> = {

@@ -31,7 +31,7 @@
 .cell.dropTarget { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
 .cellHead { display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 4px; }
 .num { font-size: 12px; font-weight: 500; color: var(--text-2); font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.num.today { background: var(--accent); color: #fff; border-radius: var(--radius-pill); min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
+.num.today { background: var(--brand); color: var(--brand-foreground); border-radius: var(--radius-pill); min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
 .hours { margin-left: auto; font-size: 11px; color: var(--text-3); font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .hours.has { color: var(--text-2); font-weight: 500; }
 /* Log time on a day: a small boxed button that's always there, so it's clear every past day can take time. */

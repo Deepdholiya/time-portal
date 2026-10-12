@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { ChevronLeft, ClockPlus, DollarSign, Lock, MoreVertical, Plus, Trash2 } from "lucide-react";
-import { Button, ConfirmDialog, Field, IconButton, Input, Menu, Popover, Textarea, toast } from "@/components/ui";
+import { Button, ConfirmDialog, Field, IconButton, Input, Menu, Popover, Textarea, TimePicker, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useMe } from "@/lib/session";
 import { del, post, put } from "@/lib/api";
 import { dayName, fmtDate, fromMin, hm, parseDate, parseDuration, toMin } from "@/lib/format";
 import type { Options, TimeEntry } from "@/lib/types";
 import { ProjectTaskPicker, type Pick } from "../time/project-task-picker";
-import { TagPicker } from "../time/tag-picker";
 import { entryBody, type Row } from "./rows";
 import s from "./timesheet.module.css";
 
@@ -154,7 +153,7 @@ function GridRow({ row, ctx }: { row: Row; ctx: GridCtx }) {
 }
 
 /**
- * One project/task on one day. Clicking the cell opens a small editor right there: duration, description and tags (the row
+ * One project/task on one day. Clicking the cell opens a small editor right there: duration, start and end, and description (the row
  * already sets the project and task), saved in one step. A cell with several entries lists them first; pick one to edit it or
  * add another.
  */
@@ -180,7 +179,7 @@ function DayCell({ row, date, ctx }: { row: Row; date: string; ctx: GridCtx }) {
   );
   return (
     <td className={cls}>
-      <Popover trigger={cell} open={open} onOpenChange={setOpen} padded={false} width={400} placement="bottom-start">
+      <Popover trigger={cell} open={open} onOpenChange={setOpen} padded={false} width={440} placement="bottom-start">
         {(close) => <CellEditor row={row} date={date} list={list} ctx={ctx} editable={editable} close={() => { close(); setOpen(false); }} />}
       </Popover>
     </td>
@@ -223,7 +222,7 @@ function CellEditor({ row, date, list, ctx, editable, close }: { row: Row; date:
     onBack={list.length > 1 && picked !== "new" ? () => setPicked(null) : undefined} close={close} />;
 }
 
-/** Duration, description and tags for one entry in a timesheet cell. Enter saves. */
+/** Duration, start/end and description for one entry in a timesheet cell. Enter saves. */
 function EntryForm({ entry, row, date, ctx, editable, head, onBack, close }: {
   entry: TimeEntry | null; row: Row; date: string; ctx: GridCtx; editable: boolean; head: React.ReactNode; onBack?: () => void; close: () => void;
 }) {
@@ -232,7 +231,6 @@ function EntryForm({ entry, row, date, ctx, editable, head, onBack, close }: {
   const [start, setStart] = useState(entry?.startTime ?? "");
   const [end, setEnd] = useState(entry?.endTime ?? "");
   const [desc, setDesc] = useState(entry?.description ?? "");
-  const [tagIds, setTagIds] = useState<number[]>(entry?.tags.map((t) => t.id) ?? []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
@@ -264,9 +262,9 @@ function EntryForm({ entry, row, date, ctx, editable, head, onBack, close }: {
     setBusy(true); setError(null);
     try {
       guard(ctx);
-      if (entry) await put(`/time/${entry.id}`, withReason(ctx, { ...entryBody(entry, { minutes: m }), startTime, description: desc.trim(), tagIds }));
+      if (entry) await put(`/time/${entry.id}`, withReason(ctx, { ...entryBody(entry, { minutes: m }), startTime, description: desc.trim() }));
       else {
-        await post("/time", { projectId: row.projectId, taskId: row.taskId, date, minutes: m, startTime, billable: row.billable, description: desc.trim(), tagIds, ...(ctx.forOther ? { userId: ctx.userId } : {}) });
+        await post("/time", { projectId: row.projectId, taskId: row.taskId, date, minutes: m, startTime, billable: row.billable, description: desc.trim(), ...(ctx.forOther ? { userId: ctx.userId } : {}) });
         if (row.draft) ctx.onRemoveDraft(row.key);
       }
       toast.success(entry ? "Entry saved" : `Logged ${hm(m)} on ${dayName(date)}`);
@@ -310,19 +308,16 @@ function EntryForm({ entry, row, date, ctx, editable, head, onBack, close }: {
             <Input autoFocus value={dur} onChange={(e) => changeDur(e.target.value)} onKeyDown={onEnter} placeholder="1h 30m" className="num" />
           </Field>
           <Field label="Start">
-            <Input type="time" value={start} onChange={(e) => changeStart(e.target.value)} aria-label="Start time" />
+            <TimePicker clearable value={start} onChange={changeStart} aria-label="Start time" placeholder="--:--" />
           </Field>
           <Field label="End">
-            <Input type="time" value={end} onChange={(e) => changeEnd(e.target.value)} aria-label="End time" />
+            <TimePicker clearable value={end} onChange={changeEnd} aria-label="End time" placeholder="--:--" />
           </Field>
         </div>
         {!start && <div className={s.timeHint}>No start time? It starts after your last entry that day, or at {settings.workdayStart ?? "09:30"}.</div>}
         {error && <div className="field-error" role="alert">{error}</div>}
         <Field label="Description">
           <Textarea rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} onKeyDown={onEnter} placeholder="What did you work on?" />
-        </Field>
-        <Field label="Tags" hint={settings.requireTags ? "At least one tag is needed" : undefined}>
-          <TagPicker value={tagIds} onChange={setTagIds} userId={ctx.forOther ? ctx.userId : undefined} keep={entry?.tags} />
         </Field>
       </div>
       <div className={s.popFoot}>

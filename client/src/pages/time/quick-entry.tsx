@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
-import { DollarSign, Plus, Tag as TagIcon } from "lucide-react";
-import { Button, DatePicker, IconButton, Tooltip, toast } from "@/components/ui";
+import { DollarSign, Plus } from "lucide-react";
+import { Button, DatePicker, IconButton, TimePicker, Tooltip, toast } from "@/components/ui";
 import { useCompanyDay } from "@/components/app/time-range";
 import { post } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
@@ -8,8 +8,7 @@ import { useMe } from "@/lib/session";
 import { fmtDate, fromMin, hm, parseDuration, toMin } from "@/lib/format";
 import type { Options, TimeEntry } from "@/lib/types";
 import { ProjectTaskPicker, type Pick } from "./project-task-picker";
-import { afterTimeChange, defaultBillable, tagOptions, useTags } from "./time-utils";
-import { TagPicker } from "./tag-picker";
+import { afterTimeChange, defaultBillable } from "./time-utils";
 import s from "./time.module.css";
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -23,7 +22,6 @@ export function QuickEntry({ options, onAdded }: { options: Options | undefined;
   const { today } = useCompanyDay();
   const [desc, setDesc] = useState("");
   const [pick, setPick] = useState<Pick>({ projectId: null, taskId: null });
-  const [tagIds, setTagIds] = useState<number[]>([]);
   const [billable, setBillable] = useState(true);
   const [date, setDate] = useState(today);
   const [start, setStart] = useState("");
@@ -31,7 +29,6 @@ export function QuickEntry({ options, onAdded }: { options: Options | undefined;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const descRef = useRef<HTMLInputElement>(null);
-  const tags = useTags();
   const dayEntries = useApi<TimeEntry[]>("/time", { from: date, to: date });
 
   const suggested = useMemo(() => (dayEntries.data ?? []).map((e) => e.endTime).filter(Boolean).sort().at(-1) ?? settings.workdayStart ?? "09:00", [dayEntries.data, settings.workdayStart]);
@@ -47,7 +44,7 @@ export function QuickEntry({ options, onAdded }: { options: Options | undefined;
     setBusy(true);
     try {
       const e = await post<TimeEntry>("/time", {
-        projectId: pick.projectId, taskId: pick.taskId, date, minutes, description: desc.trim(), tagIds,
+        projectId: pick.projectId, taskId: pick.taskId, date, minutes, description: desc.trim(),
         billable: settings.billableEnabled === false ? false : billable, startTime: start || null,
       });
       toast.success(`Logged ${hm(e.minutes)}${date !== today ? ` on ${fmtDate(date)}` : ""}`, { description: e.startTime ? `${e.startTime}–${e.endTime}${e.description ? ` · ${e.description}` : ""}` : e.description || undefined });
@@ -63,8 +60,6 @@ export function QuickEntry({ options, onAdded }: { options: Options | undefined;
     }
   };
 
-  const tagOpts = tagOptions(tags.data);
-  const selectedTags = tagOpts.filter((o) => tagIds.includes(Number(o.value)));
   const onEnter = (e: React.KeyboardEvent) => { if (e.key === "Enter") { e.preventDefault(); add(); } };
 
   return (
@@ -74,15 +69,6 @@ export function QuickEntry({ options, onAdded }: { options: Options | undefined;
         <ProjectTaskPicker
           options={options} value={pick} width={400} placeholder="Project or task"
           onChange={(v) => { setPick(v); const p = options?.projects.find((x) => x.id === v.projectId); if (p) setBillable(defaultBillable(p)); const t = p?.tasks.find((x) => x.id === v.taskId); if (t && !desc.trim()) setDesc(t.title); }}
-        />
-        <TagPicker
-          value={tagIds} onChange={setTagIds}
-          trigger={
-            <button type="button" className={s.pickTrigger} aria-label="Tags">
-              <TagIcon size={14} className={selectedTags.length ? undefined : "faint"} />
-              {selectedTags.length ? <span className="ellipsis">{selectedTags.map((t) => t.label).join(", ")}</span> : <span className="faint">Tags</span>}
-            </button>
-          }
         />
         {settings.billableEnabled !== false && (
           <Tooltip content={billable ? "Billable" : "Non-billable"}>
@@ -94,10 +80,9 @@ export function QuickEntry({ options, onAdded }: { options: Options | undefined;
           value={date} max={today} clearable={false} size="sm" onChange={(v) => v && setDate(v > today ? today : v)}
           trigger={<button type="button" className={s.pickTrigger} aria-label="Date"><span className="num">{date === today ? "Today" : fmtDate(date)}</span></button>}
         />
-        <label className={s.timeBox} title="Start time">
-          <span className="sr-only">Start time</span>
-          <input type="time" value={startValue} onChange={(e) => setStart(e.target.value)} aria-label="Start time" />
-        </label>
+        <div className={s.timeBox} title="Start time">
+          <TimePicker size="sm" value={startValue} onChange={setStart} aria-label="Start time" />
+        </div>
         <span className={s.arrow} aria-hidden="true">→</span>
         <span className={`${s.endTime} num`} aria-label="End time" title="End time, set by the duration">{end !== null && end <= 24 * 60 ? fromMin(Math.min(end, 24 * 60 - 1)) : "--:--"}</span>
         <input className={`${s.durInput} num`} placeholder="1h 30m" value={duration} onChange={(e) => setDuration(e.target.value)} onKeyDown={onEnter} aria-label="Duration" aria-invalid={!!duration && !minutes} />

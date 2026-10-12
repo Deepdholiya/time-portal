@@ -62,7 +62,9 @@
 .chipValue { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
 .placeholder { color: var(--text-3); }
 .overdue { color: var(--danger); }
-.pop { padding: 0; min-width: 0; max-width: min(28rem, calc(100vw - 20px)); overflow: hidden; }
+.pop { padding: 0; min-width: 0; overflow: hidden; }
+/* Wider than Arc's 22rem cap so editors such as the timesheet cell fit three fields in a row. */
+.pop.pop { max-width: min(28rem, calc(100vw - 16px)); }
 /* Doubled selectors so these win over Arc's own content padding whatever order the stylesheets load in. */
 .pop.pop:not(.padded) { padding: 0; }
 .pop.padded { padding: 12px; }
@@ -81,7 +83,7 @@
 @media (hover: none) { .optEdit { opacity: 1; } }
 .check { color: var(--accent); flex-shrink: 0; }
 .box { width: 14px; height: 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.box.on { background: var(--accent); border-color: var(--accent); color: var(--accent-foreground); }
+.box.on { background: var(--brand); border-color: var(--brand); color: var(--brand-foreground); }
 .empty { padding: 12px; color: var(--text-3); text-align: center; font-size: 12px; }
 .pickerFooter { border-top: 1px solid var(--border); padding: 4px; display: flex; justify-content: space-between; }
 .calendarPop { padding: 12px; width: 296px; }
@@ -132,3 +134,13 @@
 .sheetForm > :not(.sheetFooter) { flex-shrink: 0; }
 .sheetForm > :nth-last-child(2) { margin-bottom: 20px; }
 @media (max-width: 640px) { .formSheet.formSheet[data-side] { inset: 6px 6px 6px auto; max-height: calc(100dvh - 12px); --drawer-size: calc(100vw - 12px); } }
+
+/* TimePicker: an Input with a clock at the end; the whole field opens the list of times. */
+.inputWrap input.timeInput { padding-right: 32px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.inputWrap input.timeInput:focus { cursor: text; }
+.timePop.timePop { min-width: 136px; padding: 0; }
+.timeList { max-height: 240px; overflow-y: auto; padding: 4px; overscroll-behavior: contain; scrollbar-width: thin; }
+.timeOption { display: flex; align-items: center; height: 30px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; white-space: nowrap; }
+.timeOption.hi { background: var(--sh-accent); }
+.timeOption.timeSelected { background: var(--brand); color: var(--brand-foreground); font-weight: 500; }
+.timeOption.timeSelected.hi { background: var(--brand-hover, var(--brand)); }

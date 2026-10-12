@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Settings as SettingsIcon } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Button, ErrorState, Field, Input, Select, SkeletonRows, Switch, Tabs, Textarea, toast } from "@/components/ui";
+import { Button, ErrorState, Field, Input, Select, SkeletonRows, Switch, Tabs, Textarea, TimePicker, toast } from "@/components/ui";
 import { put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
@@ -82,7 +82,7 @@ export default function Settings() {
               <Row label="Currency"><Select value={f.currency} onChange={(v) => set("currency", v)} options={[...new Set([f.currency, ...CURRENCIES])].map((c) => ({ value: c, label: c }))} /></Row>
               <Row label="Working days"><WorkWeekPicker value={f.workWeek} onChange={(v) => set("workWeek", v)} /></Row>
               <Row label="Week starts on"><Select value={f.weekStartsOn} onChange={(v) => set("weekStartsOn", v)} options={DAYS.map((d) => ({ value: String(d.value), label: d.label }))} /></Row>
-              <Row label="Work starts at" hint="The default start time for the first entry of a day in Timesheet, Time tracker and Log time."><Input type="time" value={f.settings.workdayStart} onChange={(e) => setS("workdayStart", e.target.value)} /></Row>
+              <Row label="Work starts at" hint="The default start time for the first entry of a day in Timesheet, Time tracker and Log time."><TimePicker aria-label="Work starts at" value={f.settings.workdayStart} onChange={(v) => setS("workdayStart", v)} /></Row>
               <Row label="Hours per day" hint="Used for capacity and utilization."><Input type="number" min={1} max={24} step="0.5" value={f.hoursPerDay} onChange={(e) => set("hoursPerDay", e.target.value)} suffix="h" /></Row>
               <Row label="Task key" hint="Prefix for task ids (2 to 5 capital letters)."><Input value={f.settings.taskKey} maxLength={5} onChange={(e) => setS("taskKey", e.target.value.toUpperCase())} /></Row>
               <Row label="Billing notes"><Textarea rows={3} value={f.billingNotes} onChange={(e) => set("billingNotes", e.target.value)} placeholder="Invoice terms, tax ids…" /></Row>
@@ -112,11 +112,10 @@ export default function Settings() {
           )}
           {tab === "time" && (
             <Section title="Time & AI" desc="Rules for logging time, and the AI assistant.">
-              <Row label="Automatic submission time" hint={`Each day's entries are submitted at this time (${f.timezone}). Days changed after it wait for a manual submit.`}><Input type="time" value={f.settings.autoSubmitTime} onChange={(e) => setS("autoSubmitTime", e.target.value)} /></Row>
+              <Row label="Automatic submission time" hint={`Each day's entries are submitted at this time (${f.timezone}). Days changed after it wait for a manual submit.`}><TimePicker aria-label="Automatic submission time" value={f.settings.autoSubmitTime} onChange={(v) => setS("autoSubmitTime", v)} /></Row>
               <Row label="Lock approved days" hint="When on, a day a manager approved can only be changed after an admin turns this off. Otherwise time can be edited any time and changes go back for review."><Switch checked={f.settings.lockApprovedWeeks} onChange={(v) => setS("lockApprovedWeeks", v)} aria-label="Lock approved days" /></Row>
               <Row label="Allow overlapping entries" hint="Let entries with start and end times overlap for the same person."><Switch checked={f.settings.allowOverlappingTimers} onChange={(v) => setS("allowOverlappingTimers", v)} aria-label="Allow overlapping entries" /></Row>
               <Row label="Require a description" hint="Checked when a day is submitted, so entries can be saved first and described later."><Switch checked={f.settings.requireDescription} onChange={(v) => setS("requireDescription", v)} aria-label="Require a description" /></Row>
-              <Row label="Require a tag" hint="Every entry needs at least one tag before its day is submitted. Manage tags under Admin → Time tags."><Switch checked={f.settings.requireTags} onChange={(v) => setS("requireTags", v)} aria-label="Require a tag" /></Row>
               <Row label="Track billable time" hint="Show the billable switch on time entries."><Switch checked={f.settings.billableEnabled} onChange={(v) => setS("billableEnabled", v)} aria-label="Track billable time" /></Row>
               <Row label="AI assistant" hint={data.aiConfigured ? "Uses Claude for task summaries and client email drafts." : "No ANTHROPIC_API_KEY on the server; drafts use a built-in template."}><Switch checked={f.settings.aiEnabled} onChange={(v) => setS("aiEnabled", v)} aria-label="AI enabled" /></Row>
             </Section>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Copy, Trash2, UserRound } from "lucide-react";
-import { Avatar, Button, Combobox, ConfirmDialog, DatePicker, Dialog, Field, Input, Loading, Switch, Textarea, toast, type ComboboxOption } from "@/components/ui";
+import { Avatar, Button, Combobox, ConfirmDialog, DatePicker, Dialog, Field, Input, Loading, Switch, Textarea, TimePicker, toast, type ComboboxOption } from "@/components/ui";
 import type { EntryFocus, NewEntryDefaults } from "@/components/app/shell-context";
 import { useCompanyDay } from "@/components/app/time-range";
 import { ProjectDot } from "@/components/app/icons";
@@ -11,7 +11,6 @@ import { useMe } from "@/lib/session";
 import { fromMin, hm, parseDuration, toMin } from "@/lib/format";
 import type { TimeEntry } from "@/lib/types";
 import { afterTimeChange, defaultBillable, optionPath, pickValue, projectTaskOptions, resolvePick, useOptions } from "./time-utils";
-import { TagPicker } from "./tag-picker";
 import s from "./time.module.css";
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -19,7 +18,7 @@ const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 /**
  * The one time entry editor, used by the Time tracker, the Timesheet and anywhere else time is logged.
  * When the project is already known (opened from a project, task or row, or editing) it shows as a line that can be changed,
- * so the form is date, duration with its start and end, description and tags.
+ * so the form is date, duration with its start and end, and description.
  */
 export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: { id?: number; defaults?: NewEntryDefaults; focus?: EntryFocus; onClose: () => void; onSaved?: () => void }) {
   const { me, can, settings } = useMe();
@@ -41,7 +40,6 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
   const [description, setDescription] = useState(defaults?.description ?? "");
   const [billable, setBillable] = useState(defaults?.billable ?? true);
   const [billTouched, setBillTouched] = useState(defaults?.billable !== undefined);
-  const [tagIds, setTagIds] = useState<number[]>(defaults?.tagIds ?? []);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +79,6 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
       setDescription(entry.description);
       setBillable(entry.billable);
       setBillTouched(true);
-      setTagIds(entry.tags.map((t) => t.id));
     } else {
       let pid = defaults?.projectId;
       if (defaults?.taskId && !pid) pid = projects.find((p) => p.tasks.some((t) => t.id === defaults.taskId))?.id;
@@ -160,7 +157,7 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
     if (date > today) return setError("You can't log time on a future date.");
     if (id && forOther && !reason.trim()) return setError("Add a reason for changing someone else's time. It's kept in the audit log.");
     const body = {
-      projectId, taskId: taskId ?? null, date, description: description.trim(), billable: settings.billableEnabled === false ? false : billable, tagIds,
+      projectId, taskId: taskId ?? null, date, description: description.trim(), billable: settings.billableEnabled === false ? false : billable,
       startTime: startTouched && start ? start : id ? effectiveStart : null, endTime: null, minutes,
       ...(!id && userId !== me.user.id ? { userId } : {}),
       ...(id && forOther ? { reason: reason.trim() } : {}),
@@ -185,7 +182,7 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
     setBusy(true);
     try {
       // The copy starts after the day's last entry so it never overlaps the original.
-      const copy = await post<TimeEntry>("/time", { projectId: entry.projectId, taskId: entry.taskId ?? null, date: entry.date, minutes: entry.minutes, description: entry.description, billable: entry.billable, tagIds: entry.tags.map((t) => t.id), ...(forOther ? { userId: entry.userId } : {}) });
+      const copy = await post<TimeEntry>("/time", { projectId: entry.projectId, taskId: entry.taskId ?? null, date: entry.date, minutes: entry.minutes, description: entry.description, billable: entry.billable, ...(forOther ? { userId: entry.userId } : {}) });
       toast.success("Entry duplicated", { description: copy.startTime ? `${copy.startTime}–${copy.endTime}` : undefined });
       afterTimeChange();
       onSaved?.();
@@ -222,7 +219,6 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
   };
 
   const loading = !options || (id && !entry && !loadError);
-  const keep = entry?.tags ?? [];
 
   return (
     <>
@@ -282,10 +278,10 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
               </Field>
             </div>
             <Field label="Start" error={startError ?? undefined}>
-              <Input type="time" aria-label="Start time" value={effectiveStart} onChange={(e) => { setStart(e.target.value); setStartTouched(true); }} invalid={!!startError} />
+              <TimePicker aria-label="Start time" clearable value={effectiveStart} onChange={(v) => { setStart(v); setStartTouched(true); }} invalid={!!startError} />
             </Field>
             <Field label="End">
-              <Input type="time" aria-label="End time" value={end} onChange={(e) => changeEnd(e.target.value)} />
+              <TimePicker aria-label="End time" clearable value={end} onChange={changeEnd} />
             </Field>
           </div>
           {!startTouched && !id && <div className={`full ${s.timeHint}`}>Starts after your last entry that day, or at {settings.workdayStart ?? "09:30"} when it's the first. Change the start or end to set your own range.</div>}
@@ -300,12 +296,9 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
               </div>
             </Field>
           </div>
-          <Field label="Tags" className="full">
-            <TagPicker value={tagIds} onChange={setTagIds} userId={userId !== me.user.id ? userId : undefined} keep={keep} />
-          </Field>
           {canPickUser && (more ? (
             <Field label="Employee" className="full">
-              <Combobox options={userOptions} value={userId} onChange={(v) => { setUserId(v ? Number(v) : me.user.id); setTagIds([]); }} searchPlaceholder="Search people…" aria-label="Employee" />
+              <Combobox options={userOptions} value={userId} onChange={(v) => setUserId(v ? Number(v) : me.user.id)} searchPlaceholder="Search people…" aria-label="Employee" />
             </Field>
           ) : (
             <div className="full">

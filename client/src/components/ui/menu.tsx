@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import arc from "../arc/dropdown-menu/dropdown-menu.module.css";
 import { cx } from "./shared";
 import s from "./ui.module.css";
+import { VIEWPORT_MARGIN } from "../arc/lib/use-anchored-panel";
 
 export type MenuItem =
   | { type?: "item"; label: ReactNode; icon?: ReactNode; onSelect?: () => void; danger?: boolean; disabled?: boolean; shortcut?: string; checked?: boolean; keepOpen?: boolean }
@@ -34,7 +35,7 @@ export function Menu({ trigger, items, placement = "bottom-start", width }: Menu
     <DropdownPrimitive.Root modal={false}>
       <DropdownPrimitive.Trigger asChild>{trigger}</DropdownPrimitive.Trigger>
       <DropdownPrimitive.Portal>
-        <DropdownPrimitive.Content className={arc.menu} {...PLACE[placement]} sideOffset={6} collisionPadding={12} loop style={width ? { width } : undefined}>
+        <DropdownPrimitive.Content className={arc.menu} {...PLACE[placement]} sideOffset={6} collisionPadding={VIEWPORT_MARGIN} loop style={width ? { width } : undefined}>
           {list.map((it, i) => {
             if (it.type === "separator") return <DropdownPrimitive.Separator key={i} className={arc.separator} />;
             if (it.type === "heading") return <DropdownPrimitive.Label key={i} className={s.menuHeading}>{it.label}</DropdownPrimitive.Label>;

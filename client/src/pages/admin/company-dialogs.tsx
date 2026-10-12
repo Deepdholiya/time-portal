@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { UserMinus, UserPlus } from "lucide-react";
-import { Avatar, Button, Combobox, ConfirmDialog, Dialog, ErrorState, Field, Input, Select, Sheet, SkeletonRows, Textarea, toast } from "@/components/ui";
+import { Avatar, Button, Combobox, ConfirmDialog, Dialog, ErrorState, Field, Input, Select, Sheet, SkeletonRows, Textarea, TimePicker, toast } from "@/components/ui";
 import { del, get, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
@@ -64,7 +64,7 @@ export function CompanyDialog({ company, onClose, onCreated }: { company: Compan
         <Field label="Timezone"><Select value={f.timezone} onChange={(v) => set("timezone", v)} options={[...new Set([f.timezone, ...TIMEZONES])].map((t) => ({ value: t, label: t }))} /></Field>
         <Field label="Currency"><Select value={f.currency} onChange={(v) => set("currency", v)} options={[...new Set([f.currency, ...CURRENCIES])].map((c) => ({ value: c, label: c }))} /></Field>
         <Field label="Hours per day"><Input type="number" min={1} max={24} step="0.5" value={f.hoursPerDay} onChange={(e) => set("hoursPerDay", e.target.value)} suffix="h" /></Field>
-        <Field label="Work starts at" hint="Default start time for the first entry of a day."><Input type="time" value={f.workdayStart} onChange={(e) => set("workdayStart", e.target.value)} /></Field>
+        <Field label="Work starts at" hint="Default start time for the first entry of a day."><TimePicker value={f.workdayStart} onChange={(v) => set("workdayStart", v)} /></Field>
         <Field label="Work week" error={err.workWeek}><WorkWeekPicker value={f.workWeek} onChange={(v) => set("workWeek", v)} /></Field>
         <Field label="Week starts on"><Select value={f.weekStartsOn} onChange={(v) => set("weekStartsOn", v)} options={DAYS.map((d) => ({ value: String(d.value), label: d.label }))} /></Field>
         <Field label="Colour" className="full"><ColorPicker value={f.color} onChange={(v) => set("color", v)} /></Field>

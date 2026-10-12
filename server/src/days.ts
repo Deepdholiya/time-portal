@@ -25,13 +25,12 @@ export function lastDueDate(company: Company) {
 /** What has to be fixed before a day can be submitted, under the company's rules. */
 export async function dayProblems(company: Company, userId: number, date: string) {
   const settings = companySettings(company);
-  const entries = await prisma.timeEntry.findMany({ where: { companyId: company.id, userId, date, running: false }, include: { tags: true }, orderBy: { startTime: "asc" } });
+  const entries = await prisma.timeEntry.findMany({ where: { companyId: company.id, userId, date, running: false }, orderBy: { startTime: "asc" } });
   const problems: string[] = [];
   if (!entries.length) problems.push("There's no time logged on this day");
   const noDesc = entries.filter((e) => !e.description.trim()).length;
   if (settings.requireDescription && noDesc) problems.push(`${noDesc} ${noDesc === 1 ? "entry needs" : "entries need"} a description`);
-  const noTags = entries.filter((e) => !e.tags.length).length;
-  if (settings.requireTags && noTags) problems.push(`${noTags} ${noTags === 1 ? "entry needs" : "entries need"} a tag`);
+  // Time tags are retired from the app, so the old requireTags setting never blocks a submission.
   if (!settings.allowOverlappingTimers) {
     const timed = entries.filter((e) => e.startTime && e.endTime).sort((a, b) => a.startTime!.localeCompare(b.startTime!));
     for (let i = 1; i < timed.length; i++) {

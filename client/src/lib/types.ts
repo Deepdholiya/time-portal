@@ -48,7 +48,6 @@ export interface TimeEntry {
   startedAt?: string | null; pausedAt?: string | null; accumulatedSec: number; elapsedSec?: number; userId: number; projectId: number; taskId?: number | null;
   user?: UserLite; project?: { id: number; name: string; color: string; parentId?: number | null; parent?: { id: number; name: string; color: string } | null; client?: { id: number; name: string } | null };
   task?: { id: number; title: string; number?: number; key?: string } | null;
-  tags: TagLite[];
   [k: string]: unknown;
 }
 export interface TagLite { id: number; name: string; color: string }
