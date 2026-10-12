@@ -21,6 +21,7 @@ import { roadmapRouter, calendarRouter, leaveRouter } from "./routes/planning.js
 import { settingsRouter } from "./routes/settings.js";
 import { reimbursementsRouter } from "./routes/reimbursements.js";
 import { notificationsRouter, aiRouter, publicRouter } from "./routes/misc.js";
+import { aiToolsRouter } from "./routes/ai.js";
 
 /** The Express app, shared by the local server (index.ts) and the Vercel function (api/index.mjs). */
 const app = express();
@@ -56,6 +57,7 @@ app.use("/api/reimbursements", reimbursementsRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/ai", aiRouter);
+app.use("/api/ai", aiToolsRouter);
 app.use("/api", (_req, _res, next) => next(new HttpError(404, "Not found")));
 
 // Serve the built frontend in production.

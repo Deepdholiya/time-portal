@@ -3,10 +3,11 @@ import { useState } from "react";
 import { Archive, Clock, Plus } from "lucide-react";
 import { Badge, Button, ErrorState, Loading, Tabs } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
+import { AiInsight, type AiSource } from "@/components/app/ai-button";
 import { Forbidden } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { useApi } from "@/lib/hooks";
-import { ApiError } from "@/lib/api";
+import { ApiError, post } from "@/lib/api";
 import { useMe } from "@/lib/session";
 import { TaskView } from "../tasks/task-view";
 import { HealthBadge } from "./health-badge";
@@ -72,6 +73,7 @@ export default function Project() {
         {!p.parentId && <HealthBadge p={p} />}
         {p.archived && <Badge size="sm" icon={<Archive size={11} />}>Archived</Badge>}
         <div className="grow" />
+        <AiInsight label="Summarize project status with AI" title="Project status" load={() => post<{ summary: string; source: AiSource }>("/ai/project-summary", { projectId: p.id })} />
         {!p.archived && (isMember || manage) && <Button size="sm" variant="secondary" icon={<Clock size={14} />} onClick={() => shell.logTime({ projectId: p.id }, q.reload)}>Log time</Button>}
         {can("tasks", "create") && !p.archived && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={newTask}>New task</Button>}
         <ProjectActions p={p} onChanged={q.reload} afterDelete={p.parent ? `/projects/${p.parent.id}` : "/projects"} />

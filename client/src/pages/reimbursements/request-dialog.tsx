@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Combobox, DatePicker, Dialog, Field, Input, Select, Textarea, toast, type BadgeTone } from "@/components/ui";
+import { AiButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
 import { patch, post } from "@/lib/api";
 import { useMe } from "@/lib/session";
 import { today } from "@/lib/format";
@@ -34,6 +35,8 @@ export function ReimbursementDialog({ open, onClose, onSaved, editing }: { open:
   const [receiptUrl, setReceiptUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiSource, setAiSource] = useState<AiSource | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -44,7 +47,21 @@ export function ReimbursementDialog({ open, onClose, onSaved, editing }: { open:
     setProjectId(editing?.project ? String(editing.project.id) : null);
     setDescription(editing?.description ?? "");
     setReceiptUrl(editing?.receiptUrl ?? "");
+    setAiSource(null);
   }, [open, editing]);
+
+  const tidyWithAi = async () => {
+    if (description.trim().length < 3) return setError("Write a few words about the expense first, then AI can tidy it.");
+    setError(null);
+    setAiBusy(true);
+    try {
+      const n = Number(amount);
+      const r = await post<{ description: string; category: string; source: AiSource }>("/ai/reimbursement-tidy", { description: description.trim(), amount: Number.isFinite(n) && n > 0 ? n : undefined, projectId: projectId ? Number(projectId) : null });
+      setDescription(r.description);
+      setCategory(r.category);
+      setAiSource(r.source);
+    } catch (e) { toast.error(e); } finally { setAiBusy(false); }
+  };
 
   const projectOptions = useMemo(() => (options?.projects ?? []).filter((p) => p.canLog && p.status !== "COMPLETED").map((p) => {
     const parent = p.parentId ? options?.projects.find((x) => x.id === p.parentId) : null;
@@ -87,8 +104,11 @@ export function ReimbursementDialog({ open, onClose, onSaved, editing }: { open:
         <Field label="Project" className="full" hint="Optional. The project's manager is asked to review it too.">
           <Combobox options={projectOptions} value={projectId} onChange={setProjectId} clearable placeholder="No project" searchPlaceholder="Search projects…" aria-label="Project" />
         </Field>
-        <Field label="Description" className="full" required>
-          <Textarea rows={3} maxLength={500} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Cab to the client office for the design review" style={{ minHeight: 72 }} />
+        <Field label="Description" className="full" required hint={aiSource ? `${aiSourceNote(aiSource)} Category set to ${categoryLabel(category)}.` : undefined}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}><Textarea rows={3} maxLength={500} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Cab to the client office for the design review" style={{ minHeight: 72 }} aria-label="Description" /></div>
+            <AiButton label="Tidy description and suggest a category" loading={aiBusy} onClick={tidyWithAi} />
+          </div>
         </Field>
         <Field label="Receipt link" className="full" hint="Optional. A link to the receipt in Drive, Dropbox or similar.">
           <Input type="url" value={receiptUrl} onChange={(e) => setReceiptUrl(e.target.value)} placeholder="https://" aria-label="Receipt link" />

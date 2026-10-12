@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Briefcase, ChevronDown, Download, Mail, Save, Table2 } from "lucide-react";
 import { Button, Combobox, PRESETS, presetRange, SkeletonRows, Tabs, toast, type DateRange } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
+import { AiInsight, type AiSource } from "@/components/app/ai-button";
 import { Page } from "@/components/app/page";
 import { post } from "@/lib/api";
 import { useLocal } from "@/lib/hooks";
@@ -103,6 +104,11 @@ export default function Reports() {
   const canExport = can("export", "own");
   const [exporting, setExporting] = useState(false);
 
+  const summarize = () => post<{ summary: string; source: AiSource }>("/ai/report-summary", {
+    from: filters.range.from, to: filters.range.to, groupBy: config.groupBy[0],
+    totals: data!.totals, groups: (data!.groups.length ? data!.groups : data!.chart).slice(0, 30).map((g) => ({ name: g.name, minutes: g.minutes, billableMinutes: g.billableMinutes })),
+  });
+
   const { data: opts } = useOptions();
   const projectOpts = (opts?.projects ?? []).filter((p) => !p.parentId).map((p) => ({ value: String(p.id), label: p.name, icon: <ProjectDot color={p.color} /> }));
   const projLabel = filters.projectId.length === 0 ? "All" : filters.projectId.length === 1 ? projectOpts.find((o) => o.value === filters.projectId[0])?.label ?? "1 project" : `${filters.projectId.length} projects`;
@@ -113,6 +119,7 @@ export default function Reports() {
       tabs={<Tabs value={view} onChange={(v) => setView(v as "summary" | "detailed")} items={[{ value: "summary", label: "Summary" }, { value: "detailed", label: "Detailed" }]} />}
       actions={
         <div className="row gap-4">
+          {data && <AiInsight label="Summarize this report with AI" title="Report summary" load={summarize} />}
           {singleProject && can("clientEmail", "yes") && <Button size="sm" variant="secondary" icon={<Mail size={14} />} onClick={() => setEmailOpen(true)}>Client update</Button>}
           <SavedMenu list={saved.data ?? []} current={current} onLoad={loadSaved} onChanged={() => { saved.reload(); setCurrent(null); }} />
           <Button size="sm" variant="secondary" icon={<Save size={14} />} onClick={() => setSaving(true)}>Save</Button>

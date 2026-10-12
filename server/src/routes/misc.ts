@@ -43,7 +43,7 @@ notificationsRouter.delete("/:id", async (req, res) => {
 // Uses the Claude API when ANTHROPIC_API_KEY is set; otherwise a deterministic writer drafts from the same data.
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
 
-async function claude(system: string, prompt: string): Promise<string | null> {
+export async function claude(system: string, prompt: string): Promise<string | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -60,7 +60,7 @@ async function claude(system: string, prompt: string): Promise<string | null> {
   }
 }
 
-function aiAllowed(req: Request) {
+export function aiAllowed(req: Request) {
   if (!companySettings(req.company!).aiEnabled) throw new HttpError(403, "AI is turned off for this company");
 }
 

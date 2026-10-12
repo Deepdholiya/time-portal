@@ -14,3 +14,6 @@
 .templateNote { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-subtle); color: var(--text-2); }
 .clear { border: 0; background: none; color: var(--text-3); cursor: pointer; display: inline-flex; padding: 2px; border-radius: var(--radius-sm); }
 .clear:hover { color: var(--text); background: var(--bg-hover); }
+.descRow { display: flex; align-items: flex-start; gap: 8px; }
+.descRow > :first-child { flex: 1; min-width: 0; }
+.aiNote { font-size: 11.5px; color: var(--text-3); margin-top: -2px; }

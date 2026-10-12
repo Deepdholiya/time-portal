@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Bell, BellOff, Copy, FileStack, Lock, MoreHorizontal, Sparkles, Trash2, Users, X } from "lucide-react";
+import { Bell, BellOff, Copy, FileStack, Lock, MoreHorizontal, Trash2, Users } from "lucide-react";
 import { AvatarGroup, Button, ConfirmDialog, Dialog, ErrorState, IconButton, Input, Menu, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
+import { AiButton, AiPanel, type AiSource } from "@/components/app/ai-button";
 import { Sheet } from "@/components/ui";
 import { del, post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
@@ -36,7 +37,7 @@ export default function TaskSheet({ id, onClose, onOpenTask }: { id: number; onC
   const t = q.data;
   const [impact, setImpact] = useState<Impact[] | null>(null);
   const impactQ = useApi<Impact[]>(t && t.blocking.length ? `/tasks/${id}/impact` : null);
-  const [summary, setSummary] = useState<string | null>(null);
+  const [summary, setSummary] = useState<{ text: string; source: AiSource } | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [tplOpen, setTplOpen] = useState(false);
   const [tplName, setTplName] = useState("");
@@ -63,7 +64,7 @@ export default function TaskSheet({ id, onClose, onOpenTask }: { id: number; onC
   };
   const aiSummary = async () => {
     setAiBusy(true);
-    try { const r = await post<{ summary: string }>("/ai/task-summary", { taskId: id }); setSummary(r.summary); } catch (e) { toast.error(e); } finally { setAiBusy(false); }
+    try { const r = await post<{ summary: string; source: AiSource }>("/ai/task-summary", { taskId: id }); setSummary({ text: r.summary, source: r.source }); } catch (e) { toast.error(e); } finally { setAiBusy(false); }
   };
   const copyLink = async () => {
     try { await navigator.clipboard.writeText(`${location.origin}/tasks/${id}`); toast.success("Link copied"); } catch { toast.error("Couldn't copy the link"); }
@@ -87,7 +88,7 @@ export default function TaskSheet({ id, onClose, onOpenTask }: { id: number; onC
 
   const actions = t && (
     <>
-      {can("aiAssist", "yes") && <Tooltip content="Summarize with AI"><IconButton label="AI summary" icon={<Sparkles size={15} />} loading={aiBusy} onClick={aiSummary} /></Tooltip>}
+      <AiButton size="sm" label="Summarize with AI" loading={aiBusy} onClick={aiSummary} />
       <Tooltip content={following ? "Unfollow" : "Follow"}><IconButton label={following ? "Unfollow" : "Follow"} icon={following ? <BellOff size={15} /> : <Bell size={15} />} onClick={follow} /></Tooltip>
       <Tooltip content="Copy link"><IconButton label="Copy link" icon={<Copy size={15} />} onClick={copyLink} /></Tooltip>
       <Menu
@@ -116,10 +117,7 @@ export default function TaskSheet({ id, onClose, onOpenTask }: { id: number; onC
               {!t.canEdit && <div className={s.readonlyNote}><Lock size={12} />You can comment and attach files, but only the assignee or a manager can edit this task.</div>}
             </div>
             {summary && (
-              <div className={s.aiBox}>
-                <div className="row" style={{ marginBottom: 4 }}><Sparkles size={13} className="faint" /><span className="small muted grow">AI summary</span><IconButton size="sm" label="Close summary" icon={<X size={13} />} onClick={() => setSummary(null)} /></div>
-                {summary}
-              </div>
+              <AiPanel source={summary.source} onClose={() => setSummary(null)}>{summary.text}</AiPanel>
             )}
             <ImpactCallout impact={shownImpact} task={t} onShifted={() => { setImpact([]); impactQ.reload(); q.reload(); }} onDismiss={() => setImpact([])} />
             <SubTasks task={t} onOpenTask={onOpenTask} reload={q.reload} />

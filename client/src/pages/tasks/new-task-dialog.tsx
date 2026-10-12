@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Clock, FileStack, FolderKanban, Milestone, X } from "lucide-react";
 import { Button, Combobox, Dialog, DatePicker, Input, Menu, Popover, Switch, Textarea, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
+import { AiButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
 import { AssigneePicker, PriorityPicker, StatusPicker } from "@/components/app/properties";
 import type { NewTaskDefaults } from "@/components/app/shell-context";
 import { post } from "@/lib/api";
@@ -30,6 +31,8 @@ export default function NewTaskDialog({ defaults, onClose, onCreated }: { defaul
   const [more, setMore] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiSource, setAiSource] = useState<AiSource | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
 
@@ -43,6 +46,17 @@ export default function NewTaskDialog({ defaults, onClose, onCreated }: { defaul
 
   // Pick the only project automatically for people who can only log on one.
   useEffect(() => { if (!d.projectId && projects.length === 1) set("projectId", projects[0].id); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [projects.length]);
+
+  const draftWithAi = async () => {
+    if (d.title.trim().length < 3) { setError("Write a task title first, then AI can draft the description"); titleRef.current?.focus(); return; }
+    setError(null);
+    setAiBusy(true);
+    try {
+      const r = await post<{ description: string; source: AiSource }>("/ai/task-draft", { title: d.title.trim(), projectId: d.projectId });
+      set("description", d.description.trim() ? `${d.description.trim()}\n\n${r.description}` : r.description);
+      setAiSource(r.source);
+    } catch (e) { toast.error(e); } finally { setAiBusy(false); }
+  };
 
   const submit = async () => {
     setError(null);
@@ -68,6 +82,7 @@ export default function NewTaskDialog({ defaults, onClose, onCreated }: { defaul
       toast.success(template ? `Created from "${template.name}"` : `Created ${"key" in created ? created.key : "task"}`);
       if (more) {
         setD((x) => ({ ...x, title: "", description: "", templateId: null }));
+        setAiSource(null);
         setTimeout(() => titleRef.current?.focus(), 0);
       } else onClose();
     } catch (e) {
@@ -106,11 +121,15 @@ export default function NewTaskDialog({ defaults, onClose, onCreated }: { defaul
         ) : (
           <>
             <Input ref={titleRef} bare autoFocus className={s.title} placeholder="Task title" value={d.title} onChange={(e) => set("title", e.target.value)} aria-label="Task title" />
-            <Textarea
-              bare className={s.desc} placeholder="Add description…" value={d.description} rows={3} aria-label="Description"
-              onChange={(e) => set("description", e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submit(); } }}
-            />
+            <div className={s.descRow}>
+              <Textarea
+                bare className={s.desc} placeholder="Add description…" value={d.description} rows={Math.min(12, Math.max(3, d.description.split("\n").length + 1))} aria-label="Description"
+                onChange={(e) => set("description", e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submit(); } }}
+              />
+              <AiButton size="sm" label="Draft description with AI" loading={aiBusy} onClick={draftWithAi} />
+            </div>
+            {aiSource && <div className={s.aiNote}>{aiSourceNote(aiSource)}</div>}
           </>
         )}
         <div className={s.chips}>

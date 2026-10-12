@@ -4,6 +4,7 @@ import { Avatar, Button, Combobox, ConfirmDialog, DatePicker, Dialog, Field, Inp
 import type { EntryFocus, NewEntryDefaults } from "@/components/app/shell-context";
 import { useCompanyDay } from "@/components/app/time-range";
 import { ProjectDot } from "@/components/app/icons";
+import { AiButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
 import { del, get, post, put } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
@@ -46,6 +47,8 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [initialised, setInitialised] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiSource, setAiSource] = useState<AiSource | null>(null);
 
   const projects = options?.projects ?? [];
   const byId = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
@@ -208,6 +211,16 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
     }
   };
 
+  const describeWithAi = async () => {
+    if (!projectId) { setError("Pick a project or task first, then AI can write the description."); return; }
+    setAiBusy(true);
+    try {
+      const r = await post<{ description: string; source: AiSource }>("/ai/time-description", { projectId, taskId, minutes: minutes && minutes > 0 && minutes <= 1440 ? minutes : undefined, draft: description.trim() || undefined });
+      setDescription(r.description);
+      setAiSource(r.source);
+    } catch (e) { toast.error(e); } finally { setAiBusy(false); }
+  };
+
   const loading = !options || (id && !entry && !loadError);
   const keep = entry?.tags ?? [];
 
@@ -277,11 +290,14 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
           </div>
           {!startTouched && !id && <div className={`full ${s.timeHint}`}>Starts after your last entry that day, or at {settings.workdayStart ?? "09:30"} when it's the first. Change the start or end to set your own range.</div>}
           <div className="full" data-entry-focus="description">
-            <Field label="Description">
-              <Textarea
-                aria-label="Description" placeholder="What did you work on?" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} style={{ minHeight: 56 }}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); save(); } }}
-              />
+            <Field label="Description" hint={aiSourceNote(aiSource) ?? undefined}>
+              <div className={s.aiRow}>
+                <div><Textarea
+                  aria-label="Description" placeholder="What did you work on?" rows={Math.min(6, Math.max(2, Math.ceil(description.length / 60)))} value={description} onChange={(e) => setDescription(e.target.value)} style={{ minHeight: 56 }}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); save(); } }}
+                /></div>
+                <AiButton label={description.trim() ? "Tidy description with AI" : "Write description with AI"} loading={aiBusy} onClick={describeWithAi} />
+              </div>
             </Field>
           </div>
           <Field label="Tags" className="full">

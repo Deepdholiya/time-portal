@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { CalendarDays, Diamond, Home as HomeIcon, Palmtree, PartyPopper, Plus, Clock3, Users, Timer, BadgeDollarSign, Gauge, ListChecks, AlertCircle } from "lucide-react";
 import { Avatar, Button, DateRangePicker, EmptyState, ErrorState, SegmentedControl, Skeleton, presetRange, type DateRange } from "@/components/ui";
 import { Page } from "@/components/app/page";
+import { AiInsight, type AiSource } from "@/components/app/ai-button";
+import { post } from "@/lib/api";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { useApi, useLocal } from "@/lib/hooks";
@@ -87,7 +89,7 @@ export default function Home() {
     <Page
       title="Home"
       icon={<HomeIcon size={15} className="faint" />}
-      actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button>}
+      actions={<div className="row gap-4"><AiInsight label="What should I focus on today?" title="Focus for today" load={() => post<{ summary: string; source: AiSource }>("/ai/focus")} /><Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button></div>}
       toolbar={
         <>
           {canAll && <SegmentedControl<View> aria-label="Dashboard view" options={viewOptions} value={view} onChange={setView} />}

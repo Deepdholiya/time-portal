@@ -99,3 +99,5 @@
 .ctxChange { font-size: 12px; color: var(--text-2); font-weight: 500; flex-shrink: 0; }
 .ctxProject:hover .ctxChange { color: var(--text); }
 @media (max-width: 520px) { .timeRow { grid-template-columns: 1fr 1fr; } }
+.aiRow { display: flex; align-items: flex-start; gap: 8px; }
+.aiRow > :first-child { flex: 1; min-width: 0; }
