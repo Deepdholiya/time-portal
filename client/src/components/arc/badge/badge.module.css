@@ -1,10 +1,11 @@
 .badge {
   display: inline-flex;
-  min-height: 26px;
+  min-height: 24px;
   align-items: center;
   border: 1px solid var(--badge-border, var(--border));
   border-radius: var(--radius-pill);
   padding: 0 10px;
+  gap: 6px;
   color: var(--badge-foreground, var(--foreground));
   background: var(--badge-background, var(--surface));
   font-size: var(--text-xs);
@@ -20,12 +21,12 @@
 @media (hover: hover) and (pointer: fine) {
   .badge:hover { border-color: color-mix(in oklab, var(--badge-color, var(--foreground)) 32%, var(--border)); background: color-mix(in oklab, var(--badge-color, var(--foreground)) 10%, var(--surface)); }
 }
-.sm { min-height: 22px; padding: 0 8px; font-size: 11px; }
-.md { font-size: var(--text-xs); }
+.sm { min-height: 22px; padding: 0 9px; font-size: 12px; }
+.md { font-size: 12px; }
 
 .body { display: block; }
 .content { position: relative; display: inline-flex; width: max-content; align-items: center; gap: 5px; }
-.sm .content { gap: 4px; }
+.sm .content { gap: 5px; }
 .label, .glyph { position: relative; display: inline-flex; align-items: center; }
 .text { display: block; }
 

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Clock, Plus } from "lucide-react";
+import { Clock, Plus, Timer, Target, BadgeDollarSign, FolderKanban } from "lucide-react";
 import { Button, EmptyState, ErrorState, SkeletonRows } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
@@ -12,6 +12,7 @@ import { EntryList } from "./entry-list";
 import { QuickEntry } from "./quick-entry";
 import { expectedMinutes, useDays, useHolidays, useOptions } from "./time-utils";
 import s from "./time.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 /** Manual time logging: an entry bar, a summary for the selected range and the entries grouped by day. */
 export default function TimeTracker() {
@@ -59,22 +60,22 @@ export default function TimeTracker() {
 
       <div className={s.summary}>
         <div>
-          <div className={s.sumLabel}>{single ? "Day total" : "Range total"}</div>
+          <MetricLabel icon={<Timer />}>{single ? "Day total" : "Range total"}</MetricLabel>
           <div className={s.sumValue}>{hm(total)}</div>
           <div className="tiny faint">{single ? fmtDate(range.from) : `${fmtDate(range.from)} – ${fmtDate(range.to)}`}</div>
         </div>
         <div>
-          <div className={s.sumLabel}>Logged vs expected</div>
+          <MetricLabel icon={<Target />}>Logged vs expected</MetricLabel>
           <div className={s.sumValue}>{hm(total)} <span className={s.sumOf}>/ {hm(expected)}</span></div>
           <div className={s.capBar} role="meter" aria-valuemin={0} aria-valuemax={expected} aria-valuenow={total} aria-label="Logged against expected hours"><span style={{ width: `${pct * 100}%`, background: total > expected && expected ? "var(--orange)" : undefined }} /></div>
         </div>
         <div>
-          <div className={s.sumLabel}>Billable</div>
+          <MetricLabel icon={<BadgeDollarSign />}>Billable</MetricLabel>
           <div className={s.sumValue}>{hm(billable)}</div>
           {total > 0 && <div className="tiny faint">{Math.round((billable / total) * 100)}% of logged time</div>}
         </div>
         <div>
-          <div className={s.sumLabel} style={{ marginBottom: 6 }}>By project</div>
+          <MetricLabel icon={<FolderKanban />} className="mb-6">By project</MetricLabel>
           {byProject.length === 0 && <div className="small faint">Nothing logged in this range.</div>}
           <div className={s.projBars}>
             {byProject.map((p) => (

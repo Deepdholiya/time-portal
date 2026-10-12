@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, Diamond, Home as HomeIcon, Palmtree, PartyPopper, Plus } from "lucide-react";
+import { CalendarDays, Diamond, Home as HomeIcon, Palmtree, PartyPopper, Plus, Clock3, Users, Timer, BadgeDollarSign, Gauge, ListChecks, AlertCircle } from "lucide-react";
 import { Avatar, Button, DateRangePicker, EmptyState, ErrorState, SegmentedControl, Skeleton, presetRange, type DateRange } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
@@ -12,6 +12,7 @@ import type { Priority, Task, TaskStatus, TimeEntry } from "@/lib/types";
 import { HoursByDay, HoursByProject, type Group } from "./home-charts";
 import { HomeToday } from "./home-today";
 import s from "./home.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 type View = "my" | "team" | "company";
 interface SchedTask { id: number; key: string; title: string; status: TaskStatus; priority: Priority; dueDate?: string | null; project?: { name: string; color: string } }
@@ -71,13 +72,13 @@ export default function Home() {
   const util = k?.utilization;
   const tiles = k ? [
     view === "my"
-      ? { label: "Today", value: hm(todayMin), sub: `${todayTime.data?.length ?? 0} entries`, to: "/time" }
-      : { label: "People", value: String(k.people), sub: `${k.activeProjects} active projects`, to: "/team-time" },
-    { label: "Total time", value: hm(k.totalMinutes), sub: k.capacityMinutes ? `of ${hm(k.capacityMinutes)} capacity` : range.preset ?? "", to: view === "my" ? "/timesheet" : "/analytics" },
-    { label: "Billable", value: hm(k.billableMinutes), sub: `${hm(k.nonBillableMinutes)} non-billable`, to: "/analytics" },
-    { label: "Utilisation", value: util == null ? "—" : pct(util), sub: util == null ? "No capacity in range" : util > 1 ? "Over capacity" : util < 0.6 ? "Under-utilised" : "Healthy", tone: util != null && util > 1 ? "var(--orange)" : undefined, to: "/analytics" },
-    { label: "Tasks due", value: String(k.tasksDue), sub: `${k.tasksCompleted} completed in range`, to: "/my-tasks" },
-    { label: "Overdue", value: String(k.overdueTasks), sub: k.blockedTasks ? `${k.blockedTasks} blocked` : "Nothing blocked", tone: k.overdueTasks ? "var(--red)" : undefined, to: "/my-tasks" },
+      ? { label: "Today", icon: <Clock3 />, value: hm(todayMin), sub: `${todayTime.data?.length ?? 0} entries`, to: "/time" }
+      : { label: "People", icon: <Users />, value: String(k.people), sub: `${k.activeProjects} active projects`, to: "/team-time" },
+    { label: "Total time", icon: <Timer />, value: hm(k.totalMinutes), sub: k.capacityMinutes ? `of ${hm(k.capacityMinutes)} capacity` : range.preset ?? "", to: view === "my" ? "/timesheet" : "/analytics" },
+    { label: "Billable", icon: <BadgeDollarSign />, value: hm(k.billableMinutes), sub: `${hm(k.nonBillableMinutes)} non-billable`, to: "/analytics" },
+    { label: "Utilisation", icon: <Gauge />, value: util == null ? "—" : pct(util), sub: util == null ? "No capacity in range" : util > 1 ? "Over capacity" : util < 0.6 ? "Under-utilised" : "Healthy", tone: util != null && util > 1 ? "var(--orange)" : undefined, to: "/analytics" },
+    { label: "Tasks due", icon: <ListChecks />, value: String(k.tasksDue), sub: `${k.tasksCompleted} completed in range`, to: "/my-tasks" },
+    { label: "Overdue", icon: <AlertCircle />, value: String(k.overdueTasks), sub: k.blockedTasks ? `${k.blockedTasks} blocked` : "Nothing blocked", tone: k.overdueTasks ? "var(--red)" : undefined, to: "/my-tasks" },
   ] : [];
 
   const viewOptions: { value: View; label: string }[] = [{ value: "my", label: "My work" }, { value: "team", label: "My team" }, { value: "company", label: "Company" }];
@@ -105,7 +106,7 @@ export default function Home() {
             {!k ? Array.from({ length: 6 }, (_, i) => <div key={i} className={s.kpi}><Skeleton width={70} /><Skeleton width={50} height={20} style={{ marginTop: 8 }} /></div>)
               : tiles.map((t) => (
                 <button key={t.label} type="button" className={s.kpi} onClick={() => nav(t.to)} title={`Open ${t.to.slice(1)}`}>
-                  <div className={s.kpiLabel}>{t.label}</div>
+                  <MetricLabel icon={t.icon}>{t.label}</MetricLabel>
                   <div className={s.kpiValue} style={{ color: t.tone }}>{t.value}</div>
                   <div className={s.kpiSub}>{t.sub}</div>
                 </button>

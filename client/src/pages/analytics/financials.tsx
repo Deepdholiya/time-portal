@@ -1,3 +1,4 @@
+import { TrendingUp, Wallet, PiggyBank, Percent } from "lucide-react";
 import { EmptyState, SkeletonRows } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useApi } from "@/lib/hooks";
@@ -38,10 +39,10 @@ export function Financials({ query }: { query: Record<string, string> }) {
   return (
     <div>
       <div className={s.kpis}>
-        <Kpi label="Revenue" value={m(t.revenue)} sub={`${t.billableHours.toFixed(1)} billable hours`} />
-        <Kpi label="Cost" value={m(t.cost)} />
-        <Kpi label="Profit" value={<span className={t.profit < 0 ? "danger" : ""}>{m(t.profit)}</span>} />
-        <Kpi label="Margin" value={t.margin == null ? "—" : pct(t.margin)} />
+        <Kpi icon={<TrendingUp />} label="Revenue" value={m(t.revenue)} sub={`${t.billableHours.toFixed(1)} billable hours`} />
+        <Kpi icon={<Wallet />} label="Cost" value={m(t.cost)} />
+        <Kpi icon={<PiggyBank />} label="Profit" value={<span className={t.profit < 0 ? "danger" : ""}>{m(t.profit)}</span>} />
+        <Kpi icon={<Percent />} label="Margin" value={t.margin == null ? "—" : pct(t.margin)} />
       </div>
       <div className={s.charts}>
         <ChartCard title="Revenue and cost by month" className={s.span12}>

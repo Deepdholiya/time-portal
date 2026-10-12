@@ -72,7 +72,7 @@ export default function MyTasks() {
         icon={<CheckCircle2 size={28} />}
         title={tab === "assigned" ? "Nothing assigned to you" : tab === "created" ? "You haven't created any tasks" : "You're not following any tasks"}
         description={tab === "following" ? "Follow a task from its detail panel to see updates here." : showDone ? undefined : "Completed tasks are hidden. Turn on “Show completed” to see them."}
-        action={can("tasks", "create") ? <Button variant="primary" icon={<Plus size={14} />} onClick={() => add({})}>New task</Button> : undefined}
+        action={can("tasks", "create") ? <Button variant="secondary" icon={<Plus size={14} />} onClick={() => add({})}>New task</Button> : undefined}
       />
     );
   } else if (view === "board") {

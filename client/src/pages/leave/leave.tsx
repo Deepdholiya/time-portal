@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarPlus, PartyPopper, Plane, Plus, X } from "lucide-react";
+import { CalendarPlus, PartyPopper, Plane, Plus, X, CalendarClock, Hourglass } from "lucide-react";
 import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, IconButton, SkeletonRows, toast, type BadgeTone } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { del, post } from "@/lib/api";
@@ -8,6 +8,7 @@ import { useMe } from "@/lib/session";
 import { dayName, fmtDate, today } from "@/lib/format";
 import { LEAVE_TYPES, RequestLeaveDialog } from "./request-dialog";
 import s from "./leave.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 interface LeaveRequest { id: number; user?: { id: number; name: string }; type: string; from: string; to: string; halfDay: boolean; reason?: string | null; status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"; reviewNote?: string | null; reviewedBy?: { name: string } | null; days: number }
 interface Holiday { id: number; date: string; name: string }
@@ -72,9 +73,9 @@ export default function Leave() {
     }>
       <div className={s.body}>
         <div className={s.stats}>
-          <div><div className="stat-label">Taken in {year}</div><div className="stat-value" style={{ fontSize: 20 }}>{taken} <span className="small muted" style={{ fontWeight: 400 }}>days</span></div></div>
-          <div><div className="stat-label">Booked ahead</div><div className="stat-value" style={{ fontSize: 20 }}>{booked} <span className="small muted" style={{ fontWeight: 400 }}>days</span></div></div>
-          <div><div className="stat-label">Awaiting approval</div><div className="stat-value" style={{ fontSize: 20 }}>{pending} <span className="small muted" style={{ fontWeight: 400 }}>days</span></div></div>
+          <div><MetricLabel icon={<Plane />}>Taken in {year}</MetricLabel><div className="stat-value" style={{ fontSize: 20 }}>{taken} <span className="small muted" style={{ fontWeight: 400 }}>days</span></div></div>
+          <div><MetricLabel icon={<CalendarClock />}>Booked ahead</MetricLabel><div className="stat-value" style={{ fontSize: 20 }}>{booked} <span className="small muted" style={{ fontWeight: 400 }}>days</span></div></div>
+          <div><MetricLabel icon={<Hourglass />}>Awaiting approval</MetricLabel><div className="stat-value" style={{ fontSize: 20 }}>{pending} <span className="small muted" style={{ fontWeight: 400 }}>days</span></div></div>
         </div>
 
         <div className={s.cols}>

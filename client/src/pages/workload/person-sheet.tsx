@@ -1,3 +1,4 @@
+import { Gauge, CalendarClock, Timer, Hourglass, Plane } from "lucide-react";
 import { Badge, EmptyState, Sheet } from "@/components/ui";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
@@ -5,6 +6,7 @@ import { dueLabel, fmtDate } from "@/lib/format";
 import type { Priority, TaskStatus } from "@/lib/types";
 import { STATUS, type WRow } from "./workload";
 import s from "./workload.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 /** A person's open tasks behind their planned hours; click a task to open it (and reassign from there). */
 export function WorkloadSheet({ row, onClose, from, to }: { row: WRow | null; onClose: () => void; from: string; to: string }) {
@@ -15,11 +17,11 @@ export function WorkloadSheet({ row, onClose, from, to }: { row: WRow | null; on
       {row && (
         <div>
           <div className={s.sheetStats}>
-            <div><div className="faint small">Capacity</div><div className="medium num">{row.capacityHours.toFixed(1)}h</div></div>
-            <div><div className="faint small">Planned</div><div className="medium num">{row.plannedHours.toFixed(1)}h</div></div>
-            <div><div className="faint small">Logged</div><div className="medium num">{row.trackedHours.toFixed(1)}h</div></div>
-            <div><div className="faint small">Remaining estimate</div><div className="medium num">{row.remainingHours.toFixed(1)}h</div></div>
-            <div><div className="faint small">Leave</div><div className="medium num">{row.leaveDays}d</div></div>
+            <div><MetricLabel icon={<Gauge />}>Capacity</MetricLabel><div className="medium num">{row.capacityHours.toFixed(1)}h</div></div>
+            <div><MetricLabel icon={<CalendarClock />}>Planned</MetricLabel><div className="medium num">{row.plannedHours.toFixed(1)}h</div></div>
+            <div><MetricLabel icon={<Timer />}>Logged</MetricLabel><div className="medium num">{row.trackedHours.toFixed(1)}h</div></div>
+            <div><MetricLabel icon={<Hourglass />}>Remaining</MetricLabel><div className="medium num">{row.remainingHours.toFixed(1)}h</div></div>
+            <div><MetricLabel icon={<Plane />}>Leave</MetricLabel><div className="medium num">{row.leaveDays}d</div></div>
           </div>
           <div className="list-group-header" style={{ position: "static" }}>Open tasks <span className="faint small">{fmtDate(from)} – {fmtDate(to)}</span><div className="grow" /><span className="faint small">{row.tasks.length}</span></div>
           {!row.tasks.length ? <EmptyState compact title="No open tasks in this range" /> : row.tasks.map((t) => (

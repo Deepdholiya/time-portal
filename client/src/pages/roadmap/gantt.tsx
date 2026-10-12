@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, ChevronDown, ChevronRight, Diamond, Layers, Plus } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronRight, Diamond, Plus } from "lucide-react";
 import { Avatar, Badge, Tooltip } from "@/components/ui";
 import { HEALTH_META, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { addDays, daysBetween, fmtDate, today } from "@/lib/format";
@@ -35,9 +35,10 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
 
   useEffect(() => {
     const el = scroller.current;
-    if (el) el.scrollLeft = Math.max(0, x(t0) - (el.clientWidth - LEFT) / 3);
+    if (el) el.scrollTo({ left: Math.max(0, x(t0) - (el.clientWidth - LEFT) / 3), behavior: scrollToToday ? "smooth" : "auto" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom, start, scrollToToday]);
+  const centerToday = () => { const el = scroller.current; el?.scrollTo({ left: Math.max(0, x(t0) - (el.clientWidth - LEFT) / 2), behavior: "smooth" }); };
 
   // Live extent while dragging.
   const extent = (key: string, a: string | null, b: string | null): [string, string] | null => {
@@ -132,7 +133,7 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
     <div className={s.scroller} ref={scroller}>
       <div className={s.canvas} style={{ width: LEFT + W }}>
         <div className={s.head}>
-          <div className={s.corner}><Layers size={13} className="faint" /> Title</div>
+          <div className={s.corner}>Name</div>
           <div className={s.ticks} style={{ width: W }}>
             <div className={s.tierTop}>{ticks.top.map((t) => <div key={t.x} className={s.tickTop} style={{ left: t.x, width: t.w }}><span>{t.label}</span></div>)}</div>
             <div className={s.tierBottom}>{ticks.bottom.map((t) => <div key={t.x} className={`${s.tick} ${t.weekend ? s.weekend : ""} ${t.strong ? s.tickStrong : ""}`} style={{ left: t.x, width: t.w }}>{t.w >= 18 ? t.label : ""}</div>)}</div>
@@ -142,7 +143,7 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
           <div className={s.grid} style={{ left: LEFT, width: W }}>
             {ticks.bottom.map((t) => <div key={t.x} className={`${s.gridLine} ${t.weekend ? s.weekendCol : ""}`} style={{ left: t.x, width: t.w }} />)}
           </div>
-          {t0 >= start && t0 <= end && <div className={s.today} style={{ left: LEFT + x(t0) + ppd / 2 }}><span>Today</span></div>}
+          {t0 >= start && t0 <= end && <div className={s.today} style={{ left: LEFT + x(t0) + ppd / 2 }}><button type="button" onClick={centerToday} title="Center on today">Today</button></div>}
           <svg className={s.deps} style={{ left: LEFT }} width={W} height={rows.length * ROW_H} aria-hidden>
             <defs>
               <marker id="rm-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--text-3)" /></marker>
@@ -164,7 +165,7 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
                   const target: Target = { kind: "project", id: p.id, start: p.startDate, end: p.endDate };
                   return (
                     <>
-                      {bar(`p${p.id}`, target, s.projectBar, { borderColor: p.color, ["--c" as string]: p.color },
+                      {bar(`p${p.id}`, target, s.projectBar, { ["--c" as string]: p.color },
                         <><span className={s.progress} style={{ width: `${Math.round(p.progress * 100)}%` }} /><span className={s.barText}>{p.name}</span></>,
                         `${p.name} · ${fmtDate(p.startDate, true)} → ${fmtDate(p.endDate, true)} · ${Math.round(p.progress * 100)}% done`)}
                       {!r.open && p.milestones.map((m) => <MilestoneMark key={m.id} left={x(m.date)} ppd={ppd} color={p.color} m={m} />)}
@@ -172,7 +173,7 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
                   );
                 })()}
                 {r.kind === "sub" && bar(`s${r.sub.id}`, { kind: "sub", id: r.sub.id, start: r.sub.startDate, end: r.sub.endDate }, s.subBar,
-                  { borderColor: r.parent.color, ["--c" as string]: r.parent.color }, <span className={s.barText}>{r.sub.name}</span>,
+                  { ["--c" as string]: r.parent.color }, <span className={s.barText}>{r.sub.name}</span>,
                   `${r.sub.name} · ${fmtDate(r.sub.startDate, true)} → ${fmtDate(r.sub.endDate, true)}`)}
                 {r.kind === "milestones" && r.project.milestones.map((m, i, all) => {
                   // Label only when it fits before the next marker.

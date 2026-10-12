@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Activity, Briefcase, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronsDownUp, ChevronsUpDown, Eye, Map as MapIcon, Plus, Rows3, Target, User, Users, ZoomIn } from "lucide-react";
+import { Activity, Briefcase, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronsDownUp, ChevronsUpDown, Eye, Map as MapIcon, Plus, Rows3, Target, User, Users, ZoomIn, AlertTriangle, X } from "lucide-react";
 import { Badge, Button, EmptyState, IconButton, Menu, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { FilterMenu, type FilterSection, type FilterValues } from "@/components/app/filter-menu";
 import { Page } from "@/components/app/page";
@@ -35,6 +35,7 @@ export default function Roadmap() {
   const filters = { ...EMPTY, ...f };
   const [collapsed, setCollapsed] = useLocal<string[]>("roadmap.collapsed", []);
   const [todayTick, setTodayTick] = useState(0);
+  const [onlyConflicts, setOnlyConflicts] = useState(false);
   const { data, error, loading, reload, mutate } = useApi<RoadmapData>("/roadmap", {
     userId: filters.userId || undefined, teamId: filters.teamId || undefined, health: filters.health.join(",") || undefined,
     status: filters.status.join(",") || undefined, initiativeId: filters.initiativeId || undefined, tasks: showTasks ? "true" : "false",
@@ -47,7 +48,12 @@ export default function Roadmap() {
   const [creating, setCreating] = useState<boolean | string>(false);
   const [impact, setImpact] = useState<{ task: RTask; items: Impact[] } | null>(null);
 
-  const projects = useMemo(() => (data?.projects ?? []).filter((p) => !filters.projectId.length || filters.projectId.includes(String(p.id))), [data, filters.projectId]);
+  const projects = useMemo(() => {
+    const conflictIn = new Set((data?.tasks ?? []).filter((t) => t.conflict).map((t) => t.projectId));
+    return (data?.projects ?? [])
+      .filter((p) => !filters.projectId.length || filters.projectId.includes(String(p.id)))
+      .filter((p) => !onlyConflicts || conflictIn.has(p.id) || p.children.some((c) => conflictIn.has(c.id)));
+  }, [data, filters.projectId, onlyConflicts]);
   const closed = new Set(collapsed);
   const toggle = (k: string) => setCollapsed(closed.has(k) ? collapsed.filter((x) => x !== k) : [...collapsed, k]);
 
@@ -73,7 +79,7 @@ export default function Roadmap() {
       const g = groups.get(g0.k) ?? { ...g0, list: [] };
       g.list.push(p); groups.set(g0.k, g);
     }
-    const tasksOf = (pid: number) => data.tasks.filter((t) => t.projectId === pid);
+    const tasksOf = (pid: number) => data.tasks.filter((t) => t.projectId === pid && (!onlyConflicts || t.conflict));
     for (const [k, g] of [...groups.entries()].sort((a, b) => a[1].order.localeCompare(b[1].order))) {
       const open = !closed.has(k);
       out.push({ kind: "initiative", key: k, id: g.id, name: g.name, color: g.color, count: g.list.length, start: minD(g.list.map((p) => p.startDate)) ?? null, end: maxD(g.list.map((p) => p.endDate)) ?? null, open });
@@ -96,7 +102,7 @@ export default function Roadmap() {
     }
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, projects, collapsed, groupBy, showTasks]);
+  }, [data, projects, collapsed, groupBy, showTasks, onlyConflicts]);
 
   // Timeline domain: everything visible plus some air, always including today.
   const { start, end } = useMemo(() => {
@@ -165,7 +171,6 @@ export default function Roadmap() {
       actions={
         <div className="row gap-4">
           {!canEdit && data && <Badge size="sm" icon={<Eye size={11} />}>Read-only</Badge>}
-          {conflicts > 0 && <Tooltip content="Tasks that start before a blocking task is due"><span><Badge size="sm" tone="red" dot>{conflicts} dependency conflict{conflicts > 1 ? "s" : ""}</Badge></span></Tooltip>}
           {manage && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>Add project</Button>}
         </div>
       }
@@ -176,8 +181,15 @@ export default function Roadmap() {
             <IconButton size="sm" variant="secondary" label="Expand or collapse all" icon={collapsed.length ? <ChevronsUpDown size={14} /> : <ChevronsDownUp size={14} />} onClick={collapsed.length ? expandAll : collapseAll} />
           </Tooltip>
           <FilterMenu placement="bottom-start" sections={sections} value={fv} onApply={applyFilters} />
-          {canEdit && <span className="small faint hide-sm">Drag a bar to move its dates, or its edge to change the length.</span>}
+          {(conflicts > 0 || onlyConflicts) && (
+            <Tooltip content={onlyConflicts ? "Show everything again" : "Show only tasks that start before a blocking task is due"}>
+              <Button size="sm" variant="secondary" active={onlyConflicts} icon={<AlertTriangle size={14} className="danger" />} onClick={() => setOnlyConflicts(!onlyConflicts)}>
+                {conflicts} conflict{conflicts === 1 ? "" : "s"}{onlyConflicts && <X size={13} className="faint" />}
+              </Button>
+            </Tooltip>
+          )}
           <span className="grow" />
+          {canEdit && <span className="small faint hide-sm">Drag a bar to move it, or its edge to resize.</span>}
           <Menu trigger={<Button size="sm" variant="secondary" icon={<Rows3 size={14} />} iconRight={<ChevronDown size={13} />}>Group: {GROUPS.find((g) => g.value === groupBy)?.label}</Button>}
             items={GROUPS.map((g) => ({ label: g.label, icon: g.value === groupBy ? <Check size={14} /> : <span style={{ width: 14 }} />, onSelect: () => { setGroupBy(g.value); setCollapsed([]); } }))} />
           <Menu trigger={<Button size="sm" variant="secondary" icon={<ZoomIn size={14} />} iconRight={<ChevronDown size={13} />}>Zoom: {ZOOMS.find((z) => z.value === zoom)?.label}</Button>}

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button, DatePicker, DateRangePicker, IconButton, SegmentedControl } from "@/components/ui";
 import { addDays, daysBetween, fmtDate, monthEnd, monthStart, todayIn, weekStart } from "@/lib/format";
@@ -132,7 +132,14 @@ export function PeriodNav({ label, date, onPick, onPrev, onNext, onToday, todayL
   label: ReactNode; date?: string; onPick?: (d: string) => void; onPrev: () => void; onNext: () => void; onToday?: () => void; todayLabel?: string;
   atToday?: boolean; nextDisabled?: boolean; max?: string; picker?: ReactNode; unit?: string;
 }) {
-  const chip = <Button size="sm" variant="secondary" icon={<CalendarDays size={14} className="faint" />} className="tp-period num" aria-label={`Pick a date (${typeof label === "string" ? label : unit})`}>{label}</Button>;
+  // Drawn like the date range picker's trigger: calendar icon, the period, a chevron.
+  const chip = (
+    <button type="button" className="tp-date-trigger" aria-label={`Pick a date (${typeof label === "string" ? label : unit})`}>
+      <CalendarDays size={16} strokeWidth={1.75} className="tp-date-icon" />
+      <span className="num">{label}</span>
+      <ChevronDown size={16} strokeWidth={1.75} className="tp-date-chev" />
+    </button>
+  );
   return (
     <div className="row gap-4 tp-period-nav">
       <IconButton size="sm" variant="secondary" label={`Previous ${unit}`} icon={<ChevronLeft size={14} />} onClick={onPrev} />

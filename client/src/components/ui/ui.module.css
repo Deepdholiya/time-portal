@@ -32,8 +32,8 @@
 .inputWrap .adornEnd { right: 10px; font-size: 12px; }
 .withIcon input { padding-left: 30px; }
 .withSuffix input { padding-right: 44px; }
-.sm { --control-height-md: var(--control-height-sm); font-size: 12px; }
-.sm input, .sm button { font-size: 12px; }
+.sm { --control-height-md: var(--control-height-sm); font-size: 13px; }
+.sm input, .sm button { font-size: 13px; }
 .lg { --control-height-md: var(--control-height-lg); }
 .bare { width: 100%; border: 0; background: transparent; outline: none; padding: 0; color: var(--text); font: inherit; }
 .bare::placeholder { color: var(--text-3); }
@@ -124,7 +124,7 @@
 .sheet.sheet[data-side="right"] { border-radius: 0; }
 .tabList [role="tab"] { flex: 0 0 auto; padding-inline: 12px; }
 /* Form side sheet: floats inset from the right edge with rounded corners; the footer stays at the bottom. */
-.formSheet.formSheet[data-side] { --drawer-size: min(var(--sheet-w, 520px), calc(100vw - 24px)); width: var(--drawer-size); max-width: var(--drawer-size); inset: 12px 12px 12px auto; max-height: calc(100dvh - 24px); border-width: 1px; border-radius: 16px; }
+.formSheet.formSheet[data-side] { --drawer-size: min(var(--sheet-w, 520px), calc(100vw - 24px)); width: var(--drawer-size); max-width: var(--drawer-size); inset: 12px 12px 12px auto; max-height: calc(100dvh - 24px); border-width: 1px; border-radius: 8px; }
 .formSheet > div:last-child { display: flex; flex-direction: column; flex: 1; padding-bottom: 0; }
 .sheetForm { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .sheetFooter { position: sticky; bottom: 0; z-index: 2; display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: auto calc(var(--space-6) * -1) 0; padding: 14px var(--space-6); border-top: 1px solid var(--border); background: var(--surface-raised, var(--bg)); }

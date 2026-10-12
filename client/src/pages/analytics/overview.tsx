@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from "recharts";
-import { X } from "lucide-react";
+import { X, Timer, BadgeDollarSign, FolderKanban, Building2, Gauge } from "lucide-react";
 import { Button } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { addDays, fmtDate, fmtDay, hm, pct, range, weekStart } from "@/lib/format";
@@ -77,11 +77,11 @@ export function Overview({ data, q, own, single, weekStartsOn, focused, onProjec
         </div>
       )}
       <div className={s.kpis}>
-        <Kpi label="Total time" value={hm(k.totalMinutes)} sub={`${k.entries} entries`} />
-        <Kpi label="Billable" value={hm(k.billableMinutes)} sub={k.totalMinutes ? `${pct(k.billableMinutes / total)} of total` : "—"} />
-        <Kpi label="Top project" value={<span className={s.kpiText}>{topProject ? <><ProjectDot color={topProject.color} />{topProject.name}</> : "—"}</span>} sub={topProject ? `${hm(topProject.minutes)} · ${pct(topProject.minutes / total)}` : undefined} />
-        <Kpi label="Top client" value={<span className={s.kpiText}>{topClient?.name ?? "—"}</span>} sub={topClient ? `${hm(topClient.minutes)} · ${pct(topClient.minutes / total)}` : undefined} />
-        <Kpi label="Utilisation" value={k.utilization == null ? "—" : pct(k.utilization)} sub={`of ${hm(k.capacityMinutes)} capacity`} />
+        <Kpi icon={<Timer />} label="Total time" value={hm(k.totalMinutes)} sub={`${k.entries} entries`} />
+        <Kpi icon={<BadgeDollarSign />} label="Billable" value={hm(k.billableMinutes)} sub={k.totalMinutes ? `${pct(k.billableMinutes / total)} of total` : "—"} />
+        <Kpi icon={<FolderKanban />} label="Top project" value={<span className={s.kpiText}>{topProject ? <><ProjectDot color={topProject.color} />{topProject.name}</> : "—"}</span>} sub={topProject ? `${hm(topProject.minutes)} · ${pct(topProject.minutes / total)}` : undefined} />
+        <Kpi icon={<Building2 />} label="Top client" value={<span className={s.kpiText}>{topClient?.name ?? "—"}</span>} sub={topClient ? `${hm(topClient.minutes)} · ${pct(topClient.minutes / total)}` : undefined} />
+        <Kpi icon={<Gauge />} label="Utilisation" value={k.utilization == null ? "—" : pct(k.utilization)} sub={`of ${hm(k.capacityMinutes)} capacity`} />
       </div>
 
       <div className={s.charts}>

@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Timer, BadgeDollarSign, CircleSlash, ListChecks } from "lucide-react";
 import { Badge, Button, EmptyState } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { fmtDate, hm, hours } from "@/lib/format";
@@ -10,6 +10,7 @@ import type { Group } from "../analytics/types";
 import { ChartControls, COLUMN_OPTIONS, GROUP_OPTIONS, TableControls, type ReportConfig } from "./report-config";
 import a from "../analytics/analytics.module.css";
 import s from "./reports.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 export interface ReportGroup extends Group { children?: Group[] }
 export interface ReportResult {
@@ -59,10 +60,10 @@ export function ResultView({ data, config, onConfig, view, onMore, loadingMore }
   return (
     <div className="col gap-16">
       <div className={s.totals}>
-        <span>Total <b className="num">{hm(t.minutes)}</b></span>
-        <span>Billable <b className="num">{hm(t.billableMinutes)}</b>{t.minutes ? <span className="faint"> · {Math.round((t.billableMinutes / t.minutes) * 100)}%</span> : null}</span>
-        <span>Non-billable <b className="num">{hm(t.nonBillableMinutes)}</b></span>
-        <span>Entries <b className="num">{t.entries}</b></span>
+        <span className="row"><MetricLabel icon={<Timer />}>Total</MetricLabel><b className="num">{hm(t.minutes)}</b></span>
+        <span className="row"><MetricLabel icon={<BadgeDollarSign />}>Billable</MetricLabel><b className="num">{hm(t.billableMinutes)}</b>{t.minutes ? <span className="faint"> · {Math.round((t.billableMinutes / t.minutes) * 100)}%</span> : null}</span>
+        <span className="row"><MetricLabel icon={<CircleSlash />}>Non-billable</MetricLabel><b className="num">{hm(t.nonBillableMinutes)}</b></span>
+        <span className="row"><MetricLabel icon={<ListChecks />}>Entries</MetricLabel><b className="num">{t.entries}</b></span>
         <span className="grow" />
         <span className="faint small">{data.level === "own" ? "Your own time" : "All time you can see"}</span>
       </div>
