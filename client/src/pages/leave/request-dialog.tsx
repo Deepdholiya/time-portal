@@ -76,7 +76,7 @@ export function RequestLeaveDialog({ open, onClose, onSaved, workWeek, holidays,
   return (
     <Dialog
       open={open} onClose={onClose} title={forOthers ? "Add leave or holiday" : "Request leave"} size="sm" onSubmit={submit}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{forOthers ? "Add" : "Send request"}</Button></>}
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{forOthers ? "Add" : "Send request"}</Button></>}
     >
       <div className="form-grid">
         {forOthers && (

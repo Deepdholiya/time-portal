@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Gauge, Plane } from "lucide-react";
-import { Avatar, Badge, Button, EmptyState, IconButton, SkeletonRows, Tooltip } from "@/components/ui";
+import { Gauge, Plane } from "lucide-react";
+import { Avatar, Badge, EmptyState, SkeletonRows, Tooltip } from "@/components/ui";
 import { FilterMenu } from "@/components/app/filter-menu";
+import { PeriodNav } from "@/components/app/time-range";
 import { Page } from "@/components/app/page";
 import { get } from "@/lib/api";
 import { useApi, useLocal } from "@/lib/hooks";
@@ -70,10 +71,17 @@ export default function Workload() {
       title="Workload" icon={<Gauge size={15} />}
       toolbar={
         <div className="row wrap" style={{ width: "100%" }}>
-          <IconButton size="sm" variant="secondary" label="Previous" icon={<ChevronLeft size={15} />} onClick={() => setAnchor(addDays(anchor, -7 * weeks))} />
-          <span className={s.period}>{fmtDate(from)} – {fmtDate(to, true)}</span>
-          <IconButton size="sm" variant="secondary" label="Next" icon={<ChevronRight size={15} />} onClick={() => setAnchor(addDays(anchor, 7 * weeks))} />
-          <Button size="sm" variant="secondary" onClick={() => setAnchor(weekStart(today(), ws))}>This week</Button>
+          <PeriodNav
+            unit="period"
+            label={`${fmtDate(from)} – ${fmtDate(to, true)}`}
+            date={anchor}
+            onPick={(d) => setAnchor(weekStart(d, ws))}
+            onPrev={() => setAnchor(addDays(anchor, -7 * weeks))}
+            onNext={() => setAnchor(addDays(anchor, 7 * weeks))}
+            onToday={() => setAnchor(weekStart(today(), ws))}
+            todayLabel="This week"
+            atToday={anchor === weekStart(today(), ws)}
+          />
           <FilterMenu placement="bottom-start"
             sections={[
               { key: "weeks", label: "Period", single: true, required: true, defaultValue: "4", options: [{ value: "1", label: "1 week" }, { value: "2", label: "2 weeks" }, { value: "4", label: "4 weeks" }, { value: "6", label: "6 weeks" }] },

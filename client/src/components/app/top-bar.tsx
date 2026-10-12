@@ -1,13 +1,14 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, Bell, Clock, CornerDownLeft, FolderKanban, Menu as MenuIcon, Moon, Plus, Search, Sparkles, X } from "lucide-react";
-import { Button, IconButton, Kbd, Spinner, Tooltip } from "@/components/ui";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ArrowRight, Bell, ChevronRight, Clock, CornerDownLeft, FolderKanban, LogOut, Moon, PanelLeft, Plus, Search, Sparkles, Sun, UserRound, X } from "lucide-react";
+import { Avatar, Button, IconButton, Kbd, Menu, Spinner, Tooltip } from "@/components/ui";
+import { get as getJson } from "@/lib/api";
 import { get, post } from "@/lib/api";
 import { useDebounced } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
 import { toggleTheme } from "@/lib/theme";
 import type { Task } from "@/lib/types";
-import { navItems } from "./nav";
+import { navItems, sectionFor, visibleNav } from "./nav";
 import { StatusIcon } from "./icons";
 import { useShell } from "./shell-context";
 import s from "./top-bar.module.css";
@@ -16,17 +17,51 @@ interface Result { id: string; group: string; label: string; hint?: string; icon
 interface Answer { answer: string; source: string; links: { label: string; to: string }[] }
 export interface TopBarHandle { focus: () => void }
 
+/** Where you are: the area, then the page ("Work › Tasks"). */
+function Crumbs() {
+  const { can } = useSession();
+  const { pathname } = useLocation();
+  const sections = visibleNav(can);
+  const sec = sections.find((x) => x.id === sectionFor(sections, pathname));
+  let page: { label: string; to: string } | undefined;
+  for (const g of sec?.groups ?? []) for (const i of g.items) {
+    const hit = i.to === "/" ? pathname === "/" : pathname === i.to || pathname.startsWith(i.to + "/");
+    if (hit && (!page || i.to.length > page.to.length)) page = i;
+  }
+  if (pathname.startsWith("/settings")) page = { label: "Account settings", to: pathname };
+  return (
+    <nav className={s.crumbs} aria-label="Breadcrumb">
+      {sec && sec.id !== "home" && <><span className={s.crumbArea}>{sec.label}</span><ChevronRight size={14} className={s.crumbSep} /></>}
+      {page && pathname !== page.to && page.to !== "/" && !pathname.startsWith("/settings")
+        ? <><Link to={page.to} className={s.crumbArea}>{page.label}</Link><ChevronRight size={14} className={s.crumbSep} /><span className={s.crumbPage} aria-current="page">Details</span></>
+        : <span className={s.crumbPage} aria-current="page">{page?.label ?? sec?.label ?? "Home"}</span>}
+    </nav>
+  );
+}
+
+/** Unread notifications, refreshed with the sidebar counters. */
+function useUnread() {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const load = () => getJson<{ unread: number }>("/notifications/count").then((r) => setN(r.unread)).catch(() => {});
+    load();
+    const i = setInterval(load, 45_000);
+    window.addEventListener("tp:counts", load);
+    return () => { clearInterval(i); window.removeEventListener("tp:counts", load); };
+  }, []);
+  return n;
+}
+
 /**
  * Top bar with one search box for pages, projects and tasks, plus "Ask AI" for questions about your own time
  * ("how many hours did I log last week?"). ⌘K or / focuses it.
  */
-export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function TopBar({ onMenu }, ref) {
+export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSidebar: () => void }>(function TopBar({ onMenu, onToggleSidebar }, ref) {
   const nav = useNavigate();
   const shell = useShell();
-  const { can } = useSession();
-  // Home is the only page without its own way to log time (the tracker has its bar, the timesheet its own button).
-  const { pathname } = useLocation();
-  const showLog = pathname === "/" || pathname === "/my-tasks";
+  const { me, can, logout } = useSession();
+  const unread = useUnread();
+  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === "dark");
   const input = useRef<HTMLInputElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
@@ -91,14 +126,17 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function 
   let lastGroup = "";
   return (
     <header className={s.bar}>
-      <IconButton className={s.menuBtn} label="Open menu" icon={<MenuIcon size={18} />} onClick={onMenu} />
+      <IconButton className={s.menuBtn} label="Open menu" icon={<PanelLeft size={18} />} onClick={onMenu} />
+      <Tooltip content="Toggle sidebar"><IconButton className={s.hideSm} label="Toggle sidebar" icon={<PanelLeft size={18} />} onClick={onToggleSidebar} /></Tooltip>
+      <Crumbs />
+      <span className="grow" />
       <div className={s.searchWrap} ref={box}>
         <div className={`${s.search} ${open ? s.focused : ""}`}>
           <Search size={15} className="faint" />
           <input
             ref={input}
             value={q}
-            placeholder="Search or ask AI about your time…"
+            placeholder="Search or ask AI…"
             aria-label="Search or ask AI"
             role="combobox"
             aria-expanded={open}
@@ -151,11 +189,27 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void }>(function 
           </div>
         )}
       </div>
-      <span className="grow" />
       <div className={s.actions}>
-        {showLog && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()} className={s.hideSm}>Log time</Button>}
-        {showLog && <Tooltip content="Log time"><IconButton variant="primary" className={s.showSm} label="Log time" icon={<Plus size={16} />} onClick={() => shell.logTime()} /></Tooltip>}
-        <Tooltip content="Inbox"><IconButton variant="ghost" label="Inbox" icon={<Bell size={15} />} onClick={() => nav("/inbox")} /></Tooltip>
+        <Tooltip content="Inbox">
+          <span className={s.bellWrap}>
+            <IconButton variant="secondary" label={unread ? `Inbox, ${unread} unread` : "Inbox"} icon={<Bell size={15} />} onClick={() => nav("/inbox")} />
+            {unread > 0 && <span className={s.bellDot} aria-hidden />}
+          </span>
+        </Tooltip>
+        {me && (
+          <Menu
+            width={240}
+            placement="bottom-end"
+            trigger={<button type="button" className={s.avatarBtn} aria-label="Your account"><Avatar name={me.user.name} size={28} /></button>}
+            items={[
+              { type: "heading", label: `${me.user.name} · ${me.user.email}` },
+              { label: "Account settings", icon: <UserRound size={14} />, onSelect: () => nav("/settings/account") },
+              { label: dark ? "Light mode" : "Dark mode", icon: dark ? <Sun size={14} /> : <Moon size={14} />, onSelect: () => { toggleTheme(); setDark(document.documentElement.dataset.theme === "dark"); }, shortcut: "⇧D" },
+              { type: "separator" },
+              { label: "Log out", icon: <LogOut size={14} />, onSelect: logout },
+            ]}
+          />
+        )}
       </div>
     </header>
   );

@@ -14,7 +14,6 @@ import { DEFAULT_CONFIG, GroupByMenu, type ReportConfig } from "./report-config"
 import { ResultView, type ReportResult } from "./report-result";
 import { SaveDialog, SavedMenu, useSavedReports, type SavedReport } from "./saved-reports";
 import ClientEmailDialog from "./client-email-dialog";
-import s from "./reports.module.css";
 
 const LIST_KEYS = ["clientId", "projectId", "subProjectId", "teamId", "userId", "taskId", "status"] as const;
 
@@ -111,13 +110,12 @@ export default function Reports() {
   return (
     <Page
       title="Reports" icon={<Table2 size={15} />}
+      tabs={<Tabs value={view} onChange={(v) => setView(v as "summary" | "detailed")} items={[{ value: "summary", label: "Summary" }, { value: "detailed", label: "Detailed" }]} />}
       actions={
         <div className="row gap-4">
-          <Tabs variant="underline" value={view} onChange={(v) => setView(v as "summary" | "detailed")} items={[{ value: "summary", label: "Summary" }, { value: "detailed", label: "Detailed" }]} />
-          <span className={s.sep} />
-          {singleProject && can("clientEmail", "yes") && <Button size="sm" variant="ghost" icon={<Mail size={14} />} onClick={() => setEmailOpen(true)}>Client update</Button>}
+          {singleProject && can("clientEmail", "yes") && <Button size="sm" variant="secondary" icon={<Mail size={14} />} onClick={() => setEmailOpen(true)}>Client update</Button>}
           <SavedMenu list={saved.data ?? []} current={current} onLoad={loadSaved} onChanged={() => { saved.reload(); setCurrent(null); }} />
-          <Button size="sm" variant="ghost" icon={<Save size={14} />} onClick={() => setSaving(true)}>Save</Button>
+          <Button size="sm" variant="secondary" icon={<Save size={14} />} onClick={() => setSaving(true)}>Save</Button>
         </div>
       }
       toolbar={

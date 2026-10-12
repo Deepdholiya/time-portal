@@ -62,7 +62,7 @@ export function FilterMenu({ sections, value, onApply, label = "Filter", width =
         </div>
         {footer && <div className={s.extra}>{footer}</div>}
         <div className={s.foot}>
-          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button size="sm" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button size="sm" variant="primary" onClick={apply}>Apply</Button>
         </div>
       </div>

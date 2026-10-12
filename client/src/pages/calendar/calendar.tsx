@@ -1,8 +1,9 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CalendarPlus, ChevronLeft, ChevronRight, Plus, Sheet as SheetIcon } from "lucide-react";
+import { CalendarPlus, Plus, Sheet as SheetIcon } from "lucide-react";
 import { Avatar, Button, Combobox, ErrorState, IconButton, Loading, SegmentedControl, Sheet, Tooltip, toast } from "@/components/ui";
 import { FilterMenu } from "@/components/app/filter-menu";
+import { PeriodNav } from "@/components/app/time-range";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { patch } from "@/lib/api";
@@ -95,13 +96,20 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
     <Page
       title="Timesheet"
       icon={<SheetIcon size={15} className="faint" />}
-      actions={<div className="row gap-4">{tabs}<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button></div>}
+      tabs={tabs}
+      actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button>}
       toolbar={
         <>
-          <IconButton size="sm" variant="secondary" label="Previous" icon={<ChevronLeft size={14} />} onClick={() => step(-1)} />
-          <IconButton size="sm" variant="secondary" label="Next" icon={<ChevronRight size={14} />} onClick={() => step(1)} />
-          <Button size="sm" variant="ghost" onClick={() => set({ date: null })}>Today</Button>
-          <span className={s.title}>{title}</span>
+          <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ cal: v === "month" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
+          <PeriodNav
+            unit={view}
+            label={title}
+            date={date}
+            onPick={(d) => set({ date: d })}
+            onPrev={() => step(-1)}
+            onNext={() => step(1)}
+            onToday={() => set({ date: null })}
+          />
           {viewAll && <div style={{ width: 210 }}><Combobox size="sm" options={userOptions} value={who} onChange={(v) => set({ user: v && v !== String(me.user.id) ? v : null })} aria-label="Employee" searchPlaceholder="Search people…" /></div>}
           <FilterMenu placement="bottom-start"
             width={260}
@@ -112,7 +120,6 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
           <span className="grow" />
           <span className="small muted num">{totalMin ? `${hm(totalMin)} logged` : ""}</span>
           {approver && <Tooltip content="Add leave or holiday"><IconButton size="sm" variant="secondary" label="Add leave or holiday" icon={<CalendarPlus size={14} />} onClick={() => setLeaveOpen(true)} /></Tooltip>}
-          <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ cal: v === "month" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
         </>
       }
     >

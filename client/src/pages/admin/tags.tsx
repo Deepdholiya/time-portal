@@ -34,7 +34,7 @@ export default function TagsAdmin() {
       <div style={{ padding: "16px 20px 32px", maxWidth: 920 }}>
         <p className="small muted" style={{ margin: "0 0 12px" }}>Tags label time entries (meetings, bug fixes, client calls) for reports. Limit a tag to teams to keep each team's list short. Whether a tag is required is set in Company settings → Time.</p>
         {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows rows={5} /> : !data?.length ? (
-          <EmptyState icon={<TagsIcon size={24} />} title="No tags yet" description="Create the tags your teams should use on their time." action={<Button variant="primary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>New tag</Button>} />
+          <EmptyState icon={<TagsIcon size={24} />} title="No tags yet" description="Create the tags your teams should use on their time." action={<Button variant="secondary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>New tag</Button>} />
         ) : (
           <div className="table-wrap">
             <table className="table">
@@ -84,7 +84,7 @@ function TagDialog({ tag, teams, onClose, onSaved }: { tag: Tag | null; teams: {
   };
   return (
     <Dialog open onClose={onClose} size="sm" title={tag ? "Edit tag" : "New tag"} onSubmit={save}
-      footer={<><div className="grow" /><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{tag ? "Save" : "Create tag"}</Button></>}>
+      footer={<><div className="grow" /><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{tag ? "Save" : "Create tag"}</Button></>}>
       <div className="form-grid">
         <Field label="Name" required className="full" error={error ?? undefined}><Input autoFocus value={name} maxLength={40} onChange={(e) => setName(e.target.value)} placeholder="e.g. Client call" /></Field>
         <Field label="Color" className="full"><ColorPicker value={color} onChange={setColor} /></Field>

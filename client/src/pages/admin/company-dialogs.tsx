@@ -51,7 +51,7 @@ export function CompanyDialog({ company, onClose, onCreated }: { company: Compan
   return (
     <Dialog open onClose={onClose} size="lg" title={company ? `Edit ${company.name}` : "New company"} dismissable={false}
       description={company ? undefined : "Each company is a separate workspace: its own clients, projects, time, settings and members. You'll be added as a member."}
-      onSubmit={save} footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{company ? "Save" : "Create company"}</Button></>}>
+      onSubmit={save} footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{company ? "Save" : "Create company"}</Button></>}>
       <div className="form-grid">
         <Field label="Name" required error={err.name} hint={!company && slug ? `Slug: ${slug}` : company ? `Slug: ${company.slug}` : undefined}>
           <Input autoFocus value={f.name} onChange={(e) => set("name", e.target.value)} placeholder="Acme Studio" name="company-name" />

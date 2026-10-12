@@ -45,7 +45,7 @@ export default function Automations() {
   return (
     <Page title="Automations" icon={<Workflow size={15} />} actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>New automation</Button>}>
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : !data?.length ? (
-        <EmptyState icon={<Workflow size={28} />} title="No automations" description="Send reminders and notifications automatically when work changes." action={<Button variant="primary" onClick={() => setEdit("new")}>Create automation</Button>} />
+        <EmptyState icon={<Workflow size={28} />} title="No automations" description="Send reminders and notifications automatically when work changes." action={<Button variant="secondary" onClick={() => setEdit("new")}>Create automation</Button>} />
       ) : (
         <div className="list">
           {data.map((a) => {
@@ -103,7 +103,7 @@ function AutomationDialog({ item, onClose }: { item: Automation | null; onClose:
 
   return (
     <Dialog open onClose={onClose} title={item ? "Edit automation" : "New automation"} onSubmit={save}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{item ? "Save" : "Create"}</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{item ? "Save" : "Create"}</Button></>}>
       <div className="col gap-16">
         <Field label="When" hint={item ? "The trigger can't be changed; create a new automation instead." : undefined}>
           <Select value={trigger} disabled={!!item} onChange={changeTrigger} options={Object.entries(TRIGGERS).map(([k, t]) => ({ value: k, label: t.label }))} />

@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useMemo, useRef, useState, lazy } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Loading } from "@/components/ui";
-import { useHotkey } from "@/lib/hooks";
+import { useHotkey, useLocal } from "@/lib/hooks";
 import { toggleTheme } from "@/lib/theme";
 import { Sidebar } from "./sidebar";
 import { TopBar, type TopBarHandle } from "./top-bar";
@@ -19,6 +19,7 @@ export function AppLayout() {
   const loc = useLocation();
   const search = useRef<TopBarHandle>(null);
   const [drawer, setDrawer] = useState(false);
+  const [hideNav, setHideNav] = useLocal("nav:hidden", false);
   const [taskId, setTaskId] = useState<number | null>(null);
   const [newTask, setNewTask] = useState<{ open: boolean; defaults?: NewTaskDefaults; onCreated?: (t: { id: number }) => void }>({ open: false });
   const [entry, setEntry] = useState<EntryState>({ open: false });
@@ -44,7 +45,7 @@ export function AppLayout() {
 
   return (
     <ShellContext.Provider value={shell}>
-      <div className={s.app}>
+      <div className={`${s.app} ${hideNav ? s.sidebarHidden : ""}`}>
         <div className={s.desktopSidebar}><Sidebar /></div>
         {drawer && (
           <div className={s.drawer}>
@@ -53,7 +54,7 @@ export function AppLayout() {
           </div>
         )}
         <main className={s.main}>
-          <TopBar ref={search} onMenu={() => setDrawer(true)} />
+          <TopBar ref={search} onMenu={() => setDrawer(true)} onToggleSidebar={() => setHideNav(!hideNav)} />
           <div className={s.content}>
             <Suspense fallback={<Loading />}>
               <Outlet />

@@ -55,7 +55,7 @@ export default function Clients() {
   return (
     <Page title="Clients" icon={<Briefcase size={15} />} toolbar={toolbar} actions={manage && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>New client</Button>}>
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : !rows.length ? (
-        <EmptyState icon={<Briefcase size={28} />} title={data?.length ? "No clients match" : "No clients yet"} description={data?.length ? "Try another search or filter." : "Add the companies you do work for, then link projects to them."} action={manage && !data?.length && <Button variant="primary" onClick={() => setEdit("new")}>Add a client</Button>} />
+        <EmptyState icon={<Briefcase size={28} />} title={data?.length ? "No clients match" : "No clients yet"} description={data?.length ? "Try another search or filter." : "Add the companies you do work for, then link projects to them."} action={manage && !data?.length && <Button variant="secondary" onClick={() => setEdit("new")}>Add a client</Button>} />
       ) : (
         <div className="table-wrap">
           <table className="table">
@@ -137,7 +137,7 @@ function ClientDialog({ client, fin, currency, onClose }: { client: Client | nul
 
   return (
     <Dialog open onClose={onClose} title={client ? "Edit client" : "New client"} onSubmit={save} dismissable={false}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{client ? "Save" : "Add client"}</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{client ? "Save" : "Add client"}</Button></>}>
       <div className="form-grid">
         <Field label="Name" required error={err} className="full"><Input autoFocus value={f.name} onChange={(e) => { set("name")(e); setErr(""); }} placeholder="Acme Corp" /></Field>
         <Field label="Contact person"><Input value={f.contactName} onChange={set("contactName")} /></Field>

@@ -1,4 +1,4 @@
-.body { padding: 20px 24px 40px; display: flex; flex-direction: column; gap: 16px; }
+.body { padding: 24px var(--gutter) 48px; display: flex; flex-direction: column; gap: 16px; }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); }
 .stats > div { padding: 12px 16px; border-right: 1px solid var(--border); }
 .stats > div:last-child { border-right: 0; }

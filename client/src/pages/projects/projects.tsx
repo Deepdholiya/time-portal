@@ -65,7 +65,7 @@ export default function Projects() {
   else if (!list.data.length) {
     body = active
       ? <EmptyState title="No projects match" description="Try a different filter." action={<Button variant="secondary" onClick={() => { setQ(""); setF(EMPTY); }}>Clear filters</Button>} />
-      : <EmptyState icon={<FolderKanban size={28} />} title="No projects yet" description="Projects hold tasks, milestones and tracked time." action={manage ? <Button variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>New project</Button> : undefined} />;
+      : <EmptyState icon={<FolderKanban size={28} />} title="No projects yet" description="Projects hold tasks, milestones and tracked time." action={manage ? <Button variant="secondary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>New project</Button> : undefined} />;
   } else {
     body = (
       <div className="table-wrap">

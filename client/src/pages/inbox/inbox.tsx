@@ -81,12 +81,13 @@ export default function Inbox() {
   return (
     <Page
       title="Inbox" icon={<InboxIcon size={15} />}
-      actions={
-        <div className="row gap-4">
+      toolbar={
+        <>
           <SegmentedControl aria-label="Show" value={filter} onChange={(v) => { setFilter(v); setSel(0); }}
             options={[{ value: "all", label: "All" }, { value: "unread", label: `Unread${data?.unread ? ` ${data.unread}` : ""}` }]} />
-          <Button size="sm" variant="ghost" icon={<CheckCheck size={14} />} disabled={!data?.unread} onClick={readAll}>Mark all read</Button>
-        </div>
+          <span className="grow" />
+          <Button size="sm" variant="secondary" icon={<CheckCheck size={14} />} disabled={!data?.unread} onClick={readAll}>Mark all read</Button>
+        </>
       }
     >
       {error ? <LoadError error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows rows={10} /> : !rows.length ? (

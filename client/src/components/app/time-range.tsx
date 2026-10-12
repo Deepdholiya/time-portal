@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { DatePicker, DateRangePicker, IconButton, SegmentedControl } from "@/components/ui";
+import type { ReactNode } from "react";
+import { Button, DatePicker, DateRangePicker, IconButton, SegmentedControl } from "@/components/ui";
 import { addDays, daysBetween, fmtDate, monthEnd, monthStart, todayIn, weekStart } from "@/lib/format";
 import { useMe } from "@/lib/session";
 
@@ -61,7 +62,8 @@ export function useRangeParam(fallback: Preset = "This week") {
 /** The range one step earlier or later: whole weeks and months stay whole, anything else moves by its own length. */
 function step(r: Range, dir: -1 | 1, today: string, startsOn: number): Range {
   const n = daysBetween(r.from, r.to) + 1;
-  if (r.from === weekStart(r.from, startsOn) && n <= 7) {
+  // A single day moves by a day, even on the first day of the week.
+  if (n > 1 && r.from === weekStart(r.from, startsOn) && n <= 7) {
     const from = addDays(r.from, 7 * dir);
     return { from, to: addDays(from, 6) > today ? today : addDays(from, 6) };
   }
@@ -94,28 +96,49 @@ export function TimeRangeControl({ value, onChange }: { value: Range; onChange: 
         options={[{ value: "day", label: "Day" }, { value: "range", label: "Range" }]}
       />
       <span className="range-break" aria-hidden />
-      <IconButton size="sm" variant="secondary" label={single ? "Previous day" : "Previous period"} icon={<ChevronLeft size={14} />} onClick={() => onChange(step(value, -1, today, startsOn))} />
-      {single ? (
-        <DatePicker
-          value={value.from}
-          max={today}
-          clearable={false}
-          size="sm"
-          onChange={(v) => v && onChange({ from: v > today ? today : v, to: v > today ? today : v })}
-          trigger={<button type="button" className="prop-chip num" aria-label="Pick a day" style={{ minWidth: 120, justifyContent: "center" }}><CalendarDays size={13} className="faint" />{label}</button>}
-        />
-      ) : (
-        <DateRangePicker
-          size="sm"
-          value={value}
-          max={today}
-          weekStartsOn={startsOn === 7 ? 0 : 1}
-          presets={[...RANGE_PRESETS]}
-          presetFn={(name) => presetRange(name, today, startsOn)}
-          onChange={(r) => onChange({ from: r.from, to: r.to > today ? today : r.to })}
-        />
-      )}
-      <IconButton size="sm" variant="secondary" label={single ? "Next day" : "Next period"} icon={<ChevronRight size={14} />} disabled={atEnd} onClick={() => onChange(next)} />
+      <PeriodNav
+        unit={single ? "day" : "period"}
+        label={label}
+        date={value.from}
+        max={today}
+        onPick={(v) => { const d = v > today ? today : v; onChange({ from: d, to: d }); }}
+        picker={single ? undefined : (
+          <DateRangePicker
+            size="sm"
+            value={value}
+            max={today}
+            weekStartsOn={startsOn === 7 ? 0 : 1}
+            presets={[...RANGE_PRESETS]}
+            presetFn={(name) => presetRange(name, today, startsOn)}
+            onChange={(r) => onChange({ from: r.from, to: r.to > today ? today : r.to })}
+          />
+        )}
+        onPrev={() => onChange(step(value, -1, today, startsOn))}
+        onNext={() => onChange(next)}
+        nextDisabled={atEnd}
+        onToday={() => onChange(single ? { from: today, to: today } : presetRange("This week", today, startsOn))}
+        todayLabel={single ? "Today" : "This week"}
+        atToday={single ? value.from === today : (value.from === presetRange("This week", today, startsOn).from && value.to === today)}
+      />
+    </div>
+  );
+}
+
+/**
+ * The one period selector used across the app: previous, the period itself (click to pick a date on a calendar), next, and a
+ * jump back to the current period. Every week, month or day view uses this, in this order.
+ */
+export function PeriodNav({ label, date, onPick, onPrev, onNext, onToday, todayLabel = "Today", atToday, nextDisabled, max, picker, unit = "period" }: {
+  label: ReactNode; date?: string; onPick?: (d: string) => void; onPrev: () => void; onNext: () => void; onToday?: () => void; todayLabel?: string;
+  atToday?: boolean; nextDisabled?: boolean; max?: string; picker?: ReactNode; unit?: string;
+}) {
+  const chip = <Button size="sm" variant="secondary" icon={<CalendarDays size={14} className="faint" />} className="tp-period num" aria-label={`Pick a date (${typeof label === "string" ? label : unit})`}>{label}</Button>;
+  return (
+    <div className="row gap-4 tp-period-nav">
+      <IconButton size="sm" variant="secondary" label={`Previous ${unit}`} icon={<ChevronLeft size={14} />} onClick={onPrev} />
+      {picker ?? (onPick ? <DatePicker value={date ?? null} max={max} clearable={false} size="sm" onChange={(v) => v && onPick(v)} trigger={chip} /> : chip)}
+      <IconButton size="sm" variant="secondary" label={`Next ${unit}`} icon={<ChevronRight size={14} />} disabled={nextDisabled} onClick={onNext} />
+      {onToday && <Button size="sm" variant="ghost" disabled={atToday} onClick={onToday}>{todayLabel}</Button>}
     </div>
   );
 }

@@ -70,7 +70,7 @@ export function InviteDialog({ onClose }: { onClose: () => void }) {
   const projects = (opts.data?.projects ?? []).filter((p) => !p.parentId);
   return (
     <Dialog open onClose={onClose} title="Invite people" description={`They'll get an email with a temporary password for ${me.company.name}.`} size="lg" onSubmit={submit} dismissable={false}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitation</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitation</Button></>}>
       <div className="form-grid">
         <Field label="Full name" required error={errors.name}><Input autoFocus value={f.name} onChange={(e) => set("name", e.target.value)} placeholder="Jane Doe" name="name" /></Field>
         <Field label="Email" required error={errors.email}><Input type="email" value={f.email} onChange={(e) => set("email", e.target.value)} placeholder="jane@company.com" name="email" /></Field>
@@ -121,7 +121,7 @@ export function BulkInviteDialog({ onClose }: { onClose: () => void }) {
       onSubmit={rows ? undefined : submit}
       footer={rows
         ? <>{passwords && <Button variant="ghost" onClick={() => copyText(passwords, "Passwords copied")}>Copy emails + passwords</Button>}<Button variant="primary" onClick={onClose}>Done</Button></>
-        : <><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitations</Button></>}>
+        : <><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitations</Button></>}>
       {!rows ? (
         <div className="col gap-12">
           <Textarea rows={9} value={csv} onChange={(e) => setCsv(e.target.value)} placeholder={SAMPLE} className="mono" aria-label="CSV" />

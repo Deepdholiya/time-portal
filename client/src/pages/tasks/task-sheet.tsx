@@ -152,7 +152,7 @@ export default function TaskSheet({ id, onClose, onOpenTask }: { id: number; onC
       <Dialog
         open={tplOpen} onClose={() => setTplOpen(false)} title="Save as template" size="sm" onSubmit={saveTemplate}
         description="Saves the title, description, priority, estimate, tags and sub-tasks so you can create this task again."
-        footer={<><Button variant="ghost" onClick={() => setTplOpen(false)}>Cancel</Button><Button type="submit" variant="primary" disabled={!tplName.trim()}>Save template</Button></>}
+        footer={<><Button variant="secondary" onClick={() => setTplOpen(false)}>Cancel</Button><Button type="submit" variant="primary" disabled={!tplName.trim()}>Save template</Button></>}
       >
         <Input autoFocus value={tplName} onChange={(e) => setTplName(e.target.value)} placeholder="Template name" maxLength={100} />
       </Dialog>

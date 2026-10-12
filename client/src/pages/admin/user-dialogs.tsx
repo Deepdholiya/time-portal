@@ -64,7 +64,7 @@ export function EditUserDialog({ user, onClose }: { user: AdminUser; onClose: ()
   const projects = (opts.data?.projects ?? []).filter((p) => !p.parentId);
   return (
     <Dialog open onClose={onClose} title={`Edit ${user.name}`} description={user.email} size="lg" onSubmit={save} dismissable={false}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Save changes</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Save changes</Button></>}>
       <div className="form-grid">
         <Field label="Name"><Input value={f.name} onChange={(e) => set("name", e.target.value)} /></Field>
         <Field label="Role" hint={self ? "You can't change your own role." : !isAdmin ? "Only admins can change roles." : undefined}>
@@ -114,7 +114,7 @@ export function PermissionsDialog({ user, onClose }: { user: AdminUser; onClose:
 
   return (
     <Dialog open onClose={onClose} size="lg" title={`Access for ${user.name}`} description={`Overrides apply on top of the ${titleCase(user.role)} role in this company. Leave a feature on "Role default" to follow the role.`}
-      onSubmit={save} footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy} disabled={!Object.keys(draft).length}>Save overrides</Button></>}>
+      onSubmit={save} footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy} disabled={!Object.keys(draft).length}>Save overrides</Button></>}>
       {error ? <ErrorState error={error} /> : !data ? <SkeletonRows rows={6} /> : (
         <div className="col" style={{ gap: 0 }}>
           {groups.map((g) => (

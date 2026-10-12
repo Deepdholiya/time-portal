@@ -32,7 +32,7 @@ export function ExportDialog({ open, onClose, query, initial = ["employee"] }: {
   return (
     <Dialog
       open={open} onClose={onClose} title="Export time" size="sm"
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="primary" icon={<Download size={14} />} onClick={run} disabled={!dims.length && !details}>Export</Button></>}
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button variant="primary" icon={<Download size={14} />} onClick={run} disabled={!dims.length && !details}>Export</Button></>}
     >
       <div className={s.body}>
         <div className={s.section}>

@@ -31,7 +31,7 @@ function MilestoneDialog({ project, m, onClose }: { project: ProjectDetail; m?: 
   };
   return (
     <Dialog open onClose={onClose} title={m ? "Edit milestone" : "New milestone"} size="sm" onSubmit={submit}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{m ? "Save" : "Add milestone"}</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{m ? "Save" : "Add milestone"}</Button></>}>
       <div className="col" style={{ gap: 12 }}>
         <Field label="Name" required><Input autoFocus value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="e.g. Beta launch" /></Field>
         <Field label="Date" required><DatePicker value={f.date} clearable={false} fullWidth onChange={(v) => v && setF({ ...f, date: v })} /></Field>

@@ -3,14 +3,19 @@ import { ShieldAlert } from "lucide-react";
 import { EmptyState } from "@/components/ui";
 import { useSession } from "@/lib/session";
 
-/** Standard page frame: 44px header with title + actions, optional toolbar row, scrollable body. */
-export function Page({ title, icon, actions, toolbar, children, padded, narrow }: { title: ReactNode; icon?: ReactNode; actions?: ReactNode; toolbar?: ReactNode; children: ReactNode; padded?: boolean; narrow?: boolean }) {
+/**
+ * Layout rules every page follows: the title on the left with any view tabs right after it, the primary action (orange) at the
+ * far right with secondary actions just before it; underneath, the toolbar with mode, period, search and Filter on the left and
+ * view options or Export at the far right.
+ */
+export function Page({ title, icon, tabs, actions, toolbar, children, padded, narrow }: { title: ReactNode; icon?: ReactNode; tabs?: ReactNode; actions?: ReactNode; toolbar?: ReactNode; children: ReactNode; padded?: boolean; narrow?: boolean }) {
   return (
     <div className="page">
       <header className="page-header">
         <h1>{icon}{title}</h1>
+        {tabs && <div className="page-tabs">{tabs}</div>}
         <div className="grow" />
-        {actions}
+        {actions && <div className="page-actions">{actions}</div>}
       </header>
       {toolbar && <div className="page-toolbar">{toolbar}</div>}
       <div className="page-body">

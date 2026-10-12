@@ -23,7 +23,7 @@ export function SavedMenu({ list, current, onLoad, onChanged }: { list: SavedRep
   const [remove, setRemove] = useState<SavedReport | null>(null);
   return (
     <>
-      <Popover trigger={<Button size="sm" variant="ghost" icon={<Bookmark size={14} />}>{current ? current.name : "Saved reports"}{list.length ? <span className="faint"> {list.length}</span> : null}</Button>} width={320} padded={false} placement="bottom-end">
+      <Popover trigger={<Button size="sm" variant="secondary" icon={<Bookmark size={14} />}>{current ? current.name : "Saved reports"}{list.length ? <span className="faint"> {list.length}</span> : null}</Button>} width={320} padded={false} placement="bottom-end">
         {(close) => (
           <div className={s.savedList}>
             {!list.length && <div className="faint small" style={{ padding: 12 }}>No saved reports yet. Set up a report and choose Save.</div>}
@@ -77,7 +77,7 @@ export function SaveDialog({ open, onClose, current, payload, onSaved }: {
       footer={<>
         {current && <Button variant="ghost" onClick={() => setAsNew(!asNew)}>{asNew ? `Update "${current.name}" instead` : "Save as new"}</Button>}
         <div className="grow" />
-        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+        <Button variant="secondary" onClick={onClose}>Cancel</Button>
         <Button variant="primary" type="submit" loading={busy} disabled={!name.trim()}>Save</Button>
       </>}>
       <div className="col gap-12">

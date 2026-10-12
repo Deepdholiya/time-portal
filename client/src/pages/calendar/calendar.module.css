@@ -58,7 +58,7 @@
 .more:hover { color: var(--text); }
 
 .weekCell { min-height: 420px; }
-.dayList { padding: 16px 20px 40px; max-width: 880px; display: flex; flex-direction: column; gap: 18px; }
+.dayList { padding: 16px var(--gutter) 40px; max-width: 880px; display: flex; flex-direction: column; gap: 18px; }
 .sectionHead { font-size: 12px; font-weight: 500; color: var(--text-2); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .itemRow { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 8px; border-bottom: 1px solid var(--border); border-radius: 0; min-width: 0; }
 .itemRow.click { cursor: pointer; }

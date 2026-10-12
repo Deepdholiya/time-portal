@@ -86,7 +86,7 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, description, co
     <CenterDialog
       open={open} onClose={onClose} title={title} description={description} size="sm" onSubmit={onConfirm}
       footer={<>
-        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+        <Button variant="secondary" onClick={onClose}>Cancel</Button>
         <Button type="submit" variant={danger ? "danger" : "primary"} loading={loading}>{confirmLabel}</Button>
       </>}
     >

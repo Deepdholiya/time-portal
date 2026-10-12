@@ -227,7 +227,7 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
             </div>
           )}
           {!id && <Button variant="ghost" onClick={() => save(true)} disabled={busy || !!loading} style={{ marginRight: "auto" }}>Save and add another</Button>}
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit" variant="primary" loading={busy} disabled={!!loading || !!loadError}>{id ? "Save" : "Log time"}</Button>
         </>
       }

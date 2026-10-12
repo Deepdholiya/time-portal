@@ -70,7 +70,7 @@ export function LeaveApprovals() {
       <Dialog open={!!reject} onClose={() => setReject(null)} size="sm" title="Decline leave"
         description={reject ? `${reject.user.name} · ${fmtDate(reject.from)} – ${fmtDate(reject.to, true)}` : undefined}
         onSubmit={() => reject && note.trim() && review(reject, "REJECTED", note.trim())}
-        footer={<><div className="grow" /><Button variant="ghost" onClick={() => setReject(null)}>Cancel</Button><Button type="submit" variant="danger" disabled={!note.trim()} loading={busy === reject?.id}>Decline</Button></>}>
+        footer={<><div className="grow" /><Button variant="secondary" onClick={() => setReject(null)}>Cancel</Button><Button type="submit" variant="danger" disabled={!note.trim()} loading={busy === reject?.id}>Decline</Button></>}>
         <Field label="Reason" required><Textarea autoFocus rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Release week, can we move this by a week?" /></Field>
       </Dialog>
     </div>

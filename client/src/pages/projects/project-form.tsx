@@ -128,7 +128,7 @@ export function ProjectFormDialog({ project, parentId, withDates, initiativeId, 
           {!last && <Button variant="ghost" loading={busy} onClick={() => (f.name.trim() ? submit() : next())}>Create now</Button>}
           {last ? <Button type="submit" variant="primary" loading={busy}>Create project</Button> : <Button type="submit" variant="primary" iconRight={<ChevronRight size={14} />}>Next</Button>}
         </>
-      ) : <><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{project ? "Save changes" : mode === "template" ? "Create from template" : sub ? "Create sub-project" : "Create project"}</Button></>}
+      ) : <><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{project ? "Save changes" : mode === "template" ? "Create from template" : sub ? "Create sub-project" : "Create project"}</Button></>}
     >
       {stepping && (
         <ol className={s.stepper} aria-label="Steps">

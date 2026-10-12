@@ -93,7 +93,7 @@ function TagEditor({ tag, done, onChanged, onDeleted }: { tag: Pick<Tag, "id" | 
         <div className="row gap-4">
           <Button size="sm" variant="danger-ghost" icon={<Trash2 size={13} />} onClick={() => setConfirm(true)}>Delete</Button>
           <span className="grow" />
-          <Button size="sm" variant="ghost" onClick={done}>Cancel</Button>
+          <Button size="sm" variant="secondary" onClick={done}>Cancel</Button>
           <Button size="sm" variant="primary" loading={busy} onClick={save}>Save</Button>
         </div>
       )}

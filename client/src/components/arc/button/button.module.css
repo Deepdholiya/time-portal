@@ -11,7 +11,7 @@
 .labelContent { display: inline-flex; flex: none; align-items: center; }
 .labelPhase { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); white-space: nowrap; }
 .labelPhase svg { flex: none; }
-.primary { color: var(--accent-foreground); background: var(--accent); border-color: var(--accent); box-shadow: var(--shadow-xs); }
+.primary { color: var(--brand-foreground, var(--accent-foreground)); background: var(--brand, var(--accent)); border-color: var(--brand, var(--accent)); }
 .secondary { color: var(--foreground); background: var(--bg-input); border-color: var(--sh-input); box-shadow: var(--shadow-xs); }
 .ghost { color: var(--text-secondary); background: transparent; border-color: transparent; }
 .danger { color: var(--danger); background: var(--bg-input); border-color: var(--sh-input); box-shadow: var(--shadow-xs); }

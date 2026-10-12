@@ -74,7 +74,7 @@ export function ProjectSettings({ p, onChanged }: { p: ProjectDetail; onChanged:
 
       {editing && <ProjectFormDialog project={p} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); refresh(); }} />}
       <Dialog open={tpl !== null} onClose={() => setTpl(null)} title="Save as template" size="sm" onSubmit={() => run(async () => { await post(`/projects/${p.id}/template`, { name: tpl!.trim() }); toast.success("Template saved"); invalidate("/options"); setTpl(null); })}
-        footer={<><Button variant="ghost" onClick={() => setTpl(null)}>Cancel</Button><Button type="submit" variant="primary" loading={busy} disabled={!tpl?.trim()}>Save template</Button></>}>
+        footer={<><Button variant="secondary" onClick={() => setTpl(null)}>Cancel</Button><Button type="submit" variant="primary" loading={busy} disabled={!tpl?.trim()}>Save template</Button></>}>
         <Input autoFocus value={tpl ?? ""} onChange={(e) => setTpl(e.target.value)} maxLength={100} aria-label="Template name" />
       </Dialog>
       <ConfirmDialog

@@ -1,4 +1,4 @@
-.wrap { padding: 24px 32px 48px; max-width: 860px; }
+.wrap { padding: 24px var(--gutter) 48px; max-width: 860px; }
 .section { display: flex; flex-direction: column; }
 .h2 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
 .rows { border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); }

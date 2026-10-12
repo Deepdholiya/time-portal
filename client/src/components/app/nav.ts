@@ -18,7 +18,7 @@ export const NAV: NavSection[] = [
   {
     id: "home", label: "Home", icon: Home,
     groups: [{ items: [
-      { to: "/", label: "Overview", icon: LayoutDashboard, keywords: "home dashboard" },
+      { to: "/", label: "Home", icon: LayoutDashboard, keywords: "home dashboard overview" },
       { to: "/inbox", label: "Inbox", icon: Inbox, badge: "inbox", keywords: "notifications" },
       { to: "/my-tasks", label: "My tasks", icon: CircleUserRound, keywords: "assigned issues" },
     ] }],

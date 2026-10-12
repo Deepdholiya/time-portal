@@ -46,7 +46,7 @@ export default function Teams() {
   return (
     <Page title="Teams" icon={<UsersRound size={15} />} actions={manage && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>Add team</Button>}>
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : !data?.length ? (
-        <EmptyState icon={<UsersRound size={28} />} title="No teams yet" description="Group people into teams to filter timesheets, workload and analytics." action={manage && <Button variant="primary" onClick={() => setEdit("new")}>Create a team</Button>} />
+        <EmptyState icon={<UsersRound size={28} />} title="No teams yet" description="Group people into teams to filter timesheets, workload and analytics." action={manage && <Button variant="secondary" onClick={() => setEdit("new")}>Create a team</Button>} />
       ) : (
         <div className="list">
           {data.map((t) => (
@@ -123,7 +123,7 @@ function TeamDialog({ team, people, onClose }: { team: Team | null; people: DirP
   };
 
   return (
-    <Dialog open onClose={onClose} title={team ? "Edit team" : "New team"} onSubmit={save} footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{team ? "Save" : "Create team"}</Button></>}>
+    <Dialog open onClose={onClose} title={team ? "Edit team" : "New team"} onSubmit={save} footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{team ? "Save" : "Create team"}</Button></>}>
       <div className="col gap-16">
         <Field label="Name" error={err}><Input autoFocus value={name} onChange={(e) => { setName(e.target.value); setErr(""); }} placeholder="e.g. Design" /></Field>
         <Field label="Colour"><ColorPicker value={color} onChange={setColor} /></Field>

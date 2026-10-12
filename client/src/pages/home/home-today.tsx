@@ -25,7 +25,7 @@ export function HomeToday() {
           <span className={s.timerClock}>{hm(total)}</span>
           <span className="small muted">{q.data ? `${entries.length} ${entries.length === 1 ? "entry" : "entries"}` : " "}</span>
         </div>
-        <Button variant="primary" size="lg" icon={<Plus size={16} />} onClick={() => shell.logTime({ date: today }, q.reload)} className={s.logBtn}>Log time</Button>
+        <Button variant="secondary" size="lg" icon={<Plus size={16} />} onClick={() => shell.logTime({ date: today }, q.reload)} className={s.logBtn}>Log time</Button>
       </div>
       {entries.length > 0 && (
         <div className={s.todayList}>

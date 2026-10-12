@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, Diamond, Home as HomeIcon, Palmtree, PartyPopper } from "lucide-react";
-import { Avatar, DateRangePicker, EmptyState, ErrorState, SegmentedControl, Skeleton, presetRange, type DateRange } from "@/components/ui";
+import { CalendarDays, Diamond, Home as HomeIcon, Palmtree, PartyPopper, Plus } from "lucide-react";
+import { Avatar, Button, DateRangePicker, EmptyState, ErrorState, SegmentedControl, Skeleton, presetRange, type DateRange } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
@@ -86,11 +86,12 @@ export default function Home() {
     <Page
       title="Home"
       icon={<HomeIcon size={15} className="faint" />}
-      actions={
-        <div className="row">
+      actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button>}
+      toolbar={
+        <>
           {canAll && <SegmentedControl<View> aria-label="Dashboard view" options={viewOptions} value={view} onChange={setView} />}
           <DateRangePicker size="sm" value={range} onChange={setRange} presets={["Today", "Yesterday", "This week", "Last week", "This month", "Last month", "This quarter", "This year"]} />
-        </div>
+        </>
       }
     >
       <div className={s.body}>

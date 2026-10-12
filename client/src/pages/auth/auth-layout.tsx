@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AlertCircle, Check, Circle, Info } from "lucide-react";
 import s from "./auth.module.css";
 
-/** The product mark: an indigo rounded square with a clock hand, matching the favicon. */
+/** The product mark: an orange rounded square with a clock hand, matching the favicon. */
 export function ProductMark({ size = 36 }: { size?: number }) {
   return (
     <span className={s.mark} style={{ width: size, height: size, borderRadius: size / 4 }} aria-hidden>
@@ -14,14 +14,14 @@ export function ProductMark({ size = 36 }: { size?: number }) {
   );
 }
 
-/** Centered auth card on a plain background, Linear-style. */
+/** Centered form on a plain white page with the wordmark at the top, ElevenLabs-style. */
 export function AuthLayout({ title, subtitle, children, footer }: { title: ReactNode; subtitle?: ReactNode; children: ReactNode; footer?: ReactNode }) {
   return (
     <div className={s.screen}>
+      <div className={s.brand}><ProductMark size={26} /><span>Time Portal</span></div>
       <div className={s.card}>
         <div className={s.head}>
-          <ProductMark />
-          <div className="col" style={{ gap: 6, alignItems: "center" }}>
+          <div className="col" style={{ gap: 8, alignItems: "center" }}>
             <h1 className={s.title}>{title}</h1>
             {subtitle && <p className={s.subtitle}>{subtitle}</p>}
           </div>

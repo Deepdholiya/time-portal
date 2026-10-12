@@ -187,7 +187,7 @@ export default function Roadmap() {
     >
       {error ? <LoadError error={error} onRetry={reload} what="the roadmap" /> : loading && !data ? <SkeletonRows rows={12} /> : !rows.length ? (
         <EmptyState icon={<MapIcon size={28} />} title="Nothing on the roadmap" description={active ? "No projects match these filters." : "Each project shows as a bar from its start to its target date, with its milestones and dated tasks underneath."}
-          action={active ? <Button size="sm" variant="secondary" onClick={() => setF(EMPTY)}>Clear filters</Button> : manage ? <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>Add project</Button> : undefined} />
+          action={active ? <Button size="sm" variant="secondary" onClick={() => setF(EMPTY)}>Clear filters</Button> : manage ? <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>Add project</Button> : undefined} />
       ) : (
         <Gantt rows={rows} zoom={zoom} start={start} end={end} canEdit={canEdit} deps={data?.dependencies ?? []} scrollToToday={todayTick}
           onToggle={toggle} onCommit={commit} onOpenTask={(id) => shell.openTask(id)}

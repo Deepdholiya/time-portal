@@ -1,4 +1,4 @@
-.wrap { padding: 20px 24px 40px; max-width: 920px; }
+.wrap { padding: 24px var(--gutter) 48px; max-width: 920px; }
 .matrix { border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); border-collapse: separate; border-spacing: 0; overflow: hidden; }
 .matrix th { position: static; }
 .matrix tr:last-child td { border-bottom: 0; }

@@ -93,7 +93,8 @@ function TableView({ tabs }: { tabs: ReactNode }) {
     <Page
       title="Timesheet"
       icon={<SheetIcon size={15} className="faint" />}
-      actions={<div className="row gap-4">{tabs}<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button></div>}
+      tabs={tabs}
+      actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button>}
       toolbar={
         <>
           <TimeRangeControl value={range} onChange={setRange} />

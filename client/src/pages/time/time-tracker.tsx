@@ -52,7 +52,7 @@ export default function TimeTracker() {
     <Page
       title="Time tracker"
       icon={<Clock size={15} className="faint" />}
-      actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: range.to <= today ? range.to : today }, reload)}>Log time manually</Button>}
+      actions={<Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={() => shell.logTime({ date: range.to <= today ? range.to : today }, reload)}>Log time manually</Button>}
       toolbar={<TimeRangeControl value={range} onChange={setRange} />}
     >
       <QuickEntry options={options} onAdded={reload} />
@@ -96,7 +96,7 @@ export default function TimeTracker() {
               icon={<Clock size={26} />}
               title={single ? `No time logged ${range.from === today ? "today" : `on ${fmtDate(range.from)}`}` : "No time logged in this range"}
               description="Add what you worked on with the bar above, or open the full entry form."
-              action={<Button variant="primary" icon={<Plus size={14} />} onClick={logFirst}>Log your first entry</Button>}
+              action={<Button variant="secondary" icon={<Plus size={14} />} onClick={logFirst}>Log your first entry</Button>}
             />
           ) : (
             <>

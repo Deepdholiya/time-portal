@@ -329,7 +329,7 @@ function EntryForm({ entry, row, date, ctx, editable, head, onBack, close }: {
         {onBack && <IconButton size="sm" label="Back to entries" icon={<ChevronLeft size={14} />} onClick={onBack} />}
         {entry && <IconButton size="sm" variant="ghost" label="Delete entry" icon={<Trash2 size={14} />} onClick={() => setConfirm(true)} />}
         <span className="grow" />
-        <Button size="sm" variant="ghost" onClick={close}>Cancel</Button>
+        <Button size="sm" variant="secondary" onClick={close}>Cancel</Button>
         <Button size="sm" variant="primary" type="submit" loading={busy}>{entry ? "Save" : "Add entry"}</Button>
       </div>
       <ConfirmDialog open={confirm} onClose={() => setConfirm(false)} onConfirm={remove} danger confirmLabel="Delete entry" loading={busy}
