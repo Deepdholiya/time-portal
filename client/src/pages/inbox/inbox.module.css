@@ -1,8 +1,8 @@
 .row {
-  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 16px 8px 8px; border-bottom: 1px solid var(--border); cursor: pointer; position: relative;
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px var(--gutter); border-bottom: 1px solid var(--border); cursor: pointer; position: relative;
 }
 .row:hover, .sel { background: var(--bg-hover); }
-.unread { width: 14px; display: flex; justify-content: center; flex-shrink: 0; }
+.unread { position: absolute; left: max(0px, calc((var(--gutter) - 14px) / 2)); top: 0; bottom: 0; align-items: center; width: 14px; display: flex; justify-content: center; flex-shrink: 0; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 .icon { width: 28px; height: 28px; border-radius: var(--radius); background: var(--bg-subtle); border: 1px solid var(--border); display: grid; place-items: center; flex-shrink: 0; }
 .text { flex: 1; min-width: 0; }
@@ -11,5 +11,5 @@
 .read .title { font-weight: 400; color: var(--text-2); }
 .read .body { color: var(--text-3); }
 .time { color: var(--text-3); font-size: 12px; white-space: nowrap; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.actions { display: none; gap: 2px; position: absolute; right: 12px; background: var(--bg-hover); padding-left: 8px; }
+.actions { display: none; gap: 2px; position: absolute; right: var(--gutter); background: var(--bg-hover); padding-left: 8px; }
 .row:hover .actions { display: flex; }

@@ -212,3 +212,7 @@
 @media (prefers-contrast: more) {
   .surface::after { border-color: var(--border-strong); }
 }
+
+/* The trigger keeps its outline while the panel hangs below it. */
+.root[data-open] .trigger::before { content: ""; position: absolute; inset: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-raised); z-index: -1; }
+.root[data-open] .chevron svg { transform: rotate(180deg); transition: transform .2s ease; }

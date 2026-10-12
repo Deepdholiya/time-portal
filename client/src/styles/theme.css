@@ -31,10 +31,9 @@
   --text-base: 14px;
 
   /* Page frame */
-  --gutter: 40px;
+  --gutter: 24px;
   --header-h: 56px;
 }
-@media (max-width: 1100px) { :root, :root[data-theme="dark"] { --gutter: 24px; } }
 @media (max-width: 760px) { :root, :root[data-theme="dark"] { --gutter: 16px; } }
 
 :root {
@@ -159,7 +158,7 @@ h1, h2, h3, h4 { letter-spacing: -0.015em; }
 .tp-empty-action { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
 .tp-empty-art { position: relative; width: 160px; height: 112px; }
 .tp-empty-compact .tp-empty-art { transform: scale(.72); margin: -14px 0 -18px; }
-.tp-empty-art svg { position: absolute; inset: 0; overflow: visible; }
+.tp-empty-art > svg { position: absolute; inset: 0; overflow: visible; }
 .tp-empty-shadow { fill: var(--bg-active); animation: tp-shadow 4s ease-in-out infinite; transform-origin: 80px 100px; }
 .tp-empty-orbit { fill: none; stroke: var(--border); stroke-dasharray: 3 5; animation: tp-spin-slow 40s linear infinite; transform-origin: 80px 54px; }
 .tp-empty-card rect:first-child { fill: var(--bg); stroke: var(--border); }
@@ -169,10 +168,12 @@ h1, h2, h3, h4 { letter-spacing: -0.015em; }
 .tp-empty-spark { fill: var(--brand); opacity: .0; animation: tp-twinkle 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 .tp-s2 { animation-delay: .8s; fill: var(--text-3); } .tp-s3 { animation-delay: 1.6s; } .tp-s4 { animation-delay: 2.2s; fill: var(--text-3); }
 .tp-empty-tile {
-  position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -30px 0 0 -26px; display: grid; place-items: center; border-radius: 8px;
-  background: var(--bg); border: 1px solid var(--border); box-shadow: 0 6px 16px rgb(0 0 0 / .08); color: var(--text); animation: tp-bob 4s ease-in-out infinite;
+  position: absolute; left: 50%; top: 54px; width: 56px; height: 56px; margin: -28px 0 0 -28px; display: flex; align-items: center; justify-content: center; border-radius: 8px;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-subtle) 100%); border: 1px solid var(--border); box-shadow: 0 1px 0 rgb(255 255 255 / .6) inset, 0 8px 20px -6px rgb(0 0 0 / .14);
+  color: var(--text); animation: tp-bob 4s ease-in-out infinite;
 }
-.tp-empty-tile svg { width: 22px; height: 22px; }
+.tp-empty-tile > svg { width: 24px; height: 24px; stroke-width: 1.75; display: block; }
+.tp-empty-tile::after { content: ""; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 3px var(--bg); }
 @keyframes tp-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes tp-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes tp-shadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(.85); opacity: .7; } }
@@ -192,3 +193,8 @@ button[class*="kpi"]:hover .metric-icon, .metric-label:hover .metric-icon { tran
 [role="menu"], [role="listbox"] { animation: tp-pop .16s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes tp-pop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
 .list-row.clickable:active, .table tr.clickable:active td { background: var(--bg-active); }
+
+/* ---------- Full-width tables line up with the page gutter ---------- */
+:is(.page-body > .table-wrap, .page-body > * > .table-wrap) .table :is(th, td):first-child { padding-left: var(--gutter); }
+:is(.page-body > .table-wrap, .page-body > * > .table-wrap) .table :is(th, td):last-child { padding-right: var(--gutter); }
+:is(.page-body > .table-wrap, .page-body > * > .table-wrap) .table th:last-child[style*="width"] { width: calc(44px + var(--gutter)) !important; }

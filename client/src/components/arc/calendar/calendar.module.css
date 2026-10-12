@@ -49,3 +49,14 @@
   .navButton, .todayButton, .day, .day::before, .dayNumber, .highlightFill { transition: none; }
   .navButton:active, .todayButton:active, .day:active::before, .monthBody:has(.day.selected:active) .highlightFill, .day:active .dayNumber { scale: none; }
 }
+
+/* Drawn like the range picker: month title centred between the arrows, Monday-first weeks, square selection. */
+.header { position: relative; display: flex; justify-content: center; min-height: 32px; margin-bottom: 10px; }
+.heading { font-size: var(--text-sm); font-weight: 600; text-align: center; }
+.title > .titleRow { justify-self: center; }
+.navigation { position: absolute; inset: 0; display: flex; justify-content: space-between; margin: 0; pointer-events: none; }
+.navigation > * { pointer-events: auto; }
+.navigation .todayButton { display: none; }
+.weekdays { margin-bottom: 4px; }
+.highlightFill { border-radius: var(--radius-md); }
+.day.today:not(.selected) { color: var(--foreground); }

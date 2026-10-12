@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { Inbox } from "lucide-react";
 import { Alert } from "../arc/alert/alert";
 import { Button } from "./button";
 import { Skeleton as ArcSkeleton } from "../arc/skeleton/skeleton";
@@ -54,7 +55,7 @@ function EmptyArt({ icon }: { icon?: ReactNode }) {
         <circle className="tp-empty-spark tp-s3" cx="128" cy="14" r="1.6" />
         <path className="tp-empty-spark tp-s4" d="M18 76 l2 -5 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 z" />
       </svg>
-      <div className="tp-empty-tile">{icon}</div>
+      <div className="tp-empty-tile">{icon ?? <Inbox />}</div>
     </div>
   );
 }

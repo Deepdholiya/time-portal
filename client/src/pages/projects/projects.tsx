@@ -72,7 +72,7 @@ export default function Projects() {
         <table className={`table ${s.table}`}>
           <thead>
             <tr>
-              <th style={{ paddingLeft: 20 }}>Name</th><th>Health</th><th>Status</th><th>Lead</th><th className="hide-sm">Client</th><th>Progress</th>
+              <th>Name</th><th>Health</th><th>Status</th><th>Lead</th><th className="hide-sm">Client</th><th>Progress</th>
               <th className="hide-sm">Target</th><th className="num">Tracked / est.</th><th className="hide-sm">Members</th>{manage && <th style={{ width: 44 }} />}
             </tr>
           </thead>
@@ -83,7 +83,7 @@ export default function Projects() {
               const over = p.estimatedHours != null && tracked / 60 > p.estimatedHours;
               return (
                 <tr key={p.id} className={`${locked ? "" : "clickable"} ${p.archived ? s.archived : ""}`} onClick={() => !locked && nav(`/projects/${p.id}`)} title={locked ? "You're not a member of this project" : undefined}>
-                  <td style={{ paddingLeft: 20 }}>
+                  <td>
                     <div className={s.nameCell}>
                       <ProjectDot color={p.color} size={9} />
                       <span className={`${s.name} ellipsis`}>{p.name}</span>

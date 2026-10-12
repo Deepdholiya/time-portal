@@ -33,7 +33,7 @@
 .item.active svg { color: var(--text); }
 .itemWrap:has(.quick) .item { padding-right: 36px; }
 .quick {
-  position: absolute; right: 8px; top: 8px; width: 20px; height: 20px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 6px;
+  position: absolute; right: 10px; top: calc(50% - 10px); width: 20px; height: 20px; padding: 0; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 6px;
   background: var(--bg); color: var(--text-2); cursor: pointer; opacity: 0; transition: opacity 0.12s;
 }
 .itemWrap:hover .quick, .quick:focus-visible { opacity: 1; }

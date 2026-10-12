@@ -1,10 +1,10 @@
 /* Task list rows */
-.row { gap: 8px; padding-left: 14px; }
+.row { gap: 8px; padding-left: var(--gutter); position: relative; }
 .row :global(.key) { width: 58px; }
 .row:focus { outline: none; }
 .focused { box-shadow: inset 2px 0 0 var(--accent); }
 .title { color: var(--text); font-weight: 450; flex: 0 1 auto; }
-.check { width: 18px; display: inline-flex; justify-content: center; opacity: 0; transition: opacity 0.1s; flex-shrink: 0; }
+.check { position: absolute; left: max(0px, calc((var(--gutter) - 18px) / 2)); width: 18px; display: inline-flex; justify-content: center; opacity: 0; transition: opacity 0.1s; flex-shrink: 0; }
 .row:hover .check, .checkOn, .selecting .check { opacity: 1; }
 .assignee { display: inline-flex; flex-shrink: 0; }
 .due { font-size: 12px; color: var(--text-2); min-width: 64px; white-space: nowrap; text-align: right; flex-shrink: 0; font-family: var(--mono); font-variant-numeric: tabular-nums; }
@@ -24,7 +24,7 @@
 }
 
 /* Group headers */
-.groupHeader { padding-left: 14px; gap: 8px; cursor: pointer; user-select: none; }
+.groupHeader { padding-left: var(--gutter); position: relative; gap: 8px; cursor: pointer; user-select: none; }
 .groupHeader:hover { background: var(--bg-hover); }
 .groupCount { color: var(--text-3); font-weight: 400; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .chev { color: var(--text-3); transition: transform 0.12s; }

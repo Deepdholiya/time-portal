@@ -130,12 +130,14 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
             <DayDetail date={date} bucket={buckets[date]} canReschedule={canReschedule} showUser={showUser} canLog={canLog} canEdit={canEdit} logFor={logFor} onChanged={reload} />
           </div>
         ) : (
+          <div className={s.gridCard}>
           <CalendarGrid
             days={days} view={view} month={view === "month" ? date.slice(0, 7) : undefined} buckets={buckets} layers={layers} workDays={workDays}
             canReschedule={canReschedule} showUser={showUser} onOpenDay={setOpenDay} onMoveTask={moveTask}
             onLog={canLog ? (d) => shell.logTime({ date: d, userId: logFor }, reload) : undefined}
             onEditEntry={canEdit ? (id) => shell.editEntry(id, reload) : undefined}
           />
+          </div>
         )}
       <Sheet
         open={!!openDay} onClose={() => setOpenDay(null)} width={520}

@@ -84,8 +84,9 @@
 .box.on { background: var(--accent); border-color: var(--accent); color: var(--accent-foreground); }
 .empty { padding: 12px; color: var(--text-3); text-align: center; font-size: 12px; }
 .pickerFooter { border-top: 1px solid var(--border); padding: 4px; display: flex; justify-content: space-between; }
-.calendarPop { padding: 12px; }
-.calendarFoot { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.calendarPop { padding: 12px; width: 296px; }
+.calendarValue { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.calendarFoot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 10px -12px -12px; padding: 10px 12px; border-top: 1px solid var(--border); }
 
 /* Menus on the Radix dropdown primitive with Arc's dropdown-menu styles */
 .menuHeading { padding: 6px 11px 2px; font-size: 11px; font-weight: 500; color: var(--text-3); }

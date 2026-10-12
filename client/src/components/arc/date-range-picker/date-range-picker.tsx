@@ -305,7 +305,7 @@ export function DateRangePicker({ value, defaultValue = null, onChange, label = 
 
   /* ---------- One surface: the trigger's box springs to the panel's box and back ---------- */
   // Before the first measurement the surface simply fills the root and the root wraps the trigger, so server markup already looks right.
-  const width = useMotionValue<number | string>("100%"), height = useMotionValue<number | string>("100%"), radius = useMotionValue(TRIGGER_RADIUS), x = useMotionValue(0), rootWidth = useMotionValue<number | string>("auto");
+  const width = useMotionValue<number | string>("100%"), height = useMotionValue<number | string>("100%"), radius = useMotionValue(TRIGGER_RADIUS), x = useMotionValue(0), y = useMotionValue(0), rootWidth = useMotionValue<number | string>("auto");
   const sizes = useRef<{ trigger: Size; panel: Size | null }>({ trigger: { w: 0, h: 0 }, panel: null });
   const live = useRef({ open: false, reduced: false, ready: false });
   const queued = useRef(false);
@@ -333,15 +333,17 @@ export function DateRangePicker({ value, defaultValue = null, onChange, label = 
       offset = Math.max(offset, box.left + EDGE - rect.left);
     }
     const r = openPanel ? PANEL_RADIUS : TRIGGER_RADIUS;
+    // The panel opens just below the trigger, which stays visible above it.
+    const drop = openPanel ? trigger.h + 6 : 0;
     if (!state.ready || state.reduced) {
-      width.jump(target.w); height.jump(target.h); radius.jump(r); x.jump(offset); rootWidth.jump(trigger.w);
+      width.jump(target.w); height.jump(target.h); radius.jump(r); x.jump(offset); y.jump(drop); rootWidth.jump(trigger.w);
       state.ready = true;
       return;
     }
     const spring = openPanel ? GROW : state.open ? GROW : SHRINK;
-    animate(width, target.w, spring); animate(height, target.h, spring); animate(radius, r, spring); animate(x, offset, spring);
+    animate(width, target.w, spring); animate(height, target.h, spring); animate(radius, r, spring); animate(x, offset, spring); animate(y, drop, spring);
     animate(rootWidth, trigger.w, motionTokens.spring.morph);
-  }, [bounds, height, radius, rootWidth, width, x]);
+  }, [bounds, height, radius, rootWidth, width, x, y]);
 
   const schedule = useCallback(() => {
     if (queued.current) return;
@@ -563,11 +565,11 @@ export function DateRangePicker({ value, defaultValue = null, onChange, label = 
   const shownText = shown ? format(shown) : "No dates";
   const countText = shown ? `${days} ${days === 1 ? "day" : "days"}` : "";
   const status = !open ? "" : anchor ? `Start ${formatters.label.format(anchor)}. Choose an end date.` : shown ? `${shownText}, ${countText}` : "";
-  const layoutId = reduced ? undefined : `${uid}-value`;
+  const layoutId: string | undefined = undefined;
 
   const cellSize = compact && panelWidth ? Math.max(32, Math.min(42, Math.floor((panelWidth - 24) / 7))) : WIDE_CELL;
 
-  const quiet = open ? (reduced ? { opacity: 0 } : { opacity: 0, filter: `blur(${blur.subtle}px)` }) : { opacity: 1, filter: "blur(0px)" };
+  const quiet = { opacity: 1, filter: "blur(0px)" };
   const quietTransition = open ? { duration: .12, ease: standardEase } : { duration: .22, ease: enterEase, delay: reduced ? 0 : .1 };
 
   return <motion.div ref={rootRef} className={[styles.root, className].filter(Boolean).join(" ")} style={{ width: rootWidth }} data-open={open || undefined} onKeyDown={onRootKey} onBlur={onRootBlur}>
@@ -576,7 +578,7 @@ export function DateRangePicker({ value, defaultValue = null, onChange, label = 
       aria-label={`${label}: ${committedText}`} disabled={!today} inert={open || undefined} onClick={openPanel}>
       <motion.span className={styles.triggerIcon} initial={false} animate={quiet} transition={quietTransition}><CalendarDays size={16} strokeWidth={1.75} aria-hidden="true" /></motion.span>
       {open || !layoutId
-        ? <motion.span key="resting" className={styles.value} data-empty={!committed || undefined} initial={false} animate={open ? { opacity: 0 } : { opacity: 1 }} transition={quietTransition}>
+        ? <motion.span key="resting" className={styles.value} data-empty={!committed || undefined} initial={false} animate={{ opacity: 1 }} transition={quietTransition}>
           <Rolling text={committedText} direction={committedDirection} reduced={reduced} />
         </motion.span>
         : <motion.span key="shared" layoutId={layoutId} layout="position" className={styles.value} data-empty={!committed || undefined} transition={SHRINK}>
@@ -585,7 +587,7 @@ export function DateRangePicker({ value, defaultValue = null, onChange, label = 
       <motion.span className={styles.chevron} initial={false} animate={quiet} transition={quietTransition}><ChevronDown size={16} strokeWidth={1.75} aria-hidden="true" /></motion.span>
     </button>
 
-    <motion.div className={styles.surface} style={{ width, height, borderRadius: radius, x }}>
+    <motion.div className={styles.surface} style={{ width, height, borderRadius: radius, x, y }}>
       <AnimatePresence>
         {open && today && <motion.div key="panel" ref={panelRef} id={`${uid}-panel`} className={styles.panel} role="dialog" aria-label={label} data-compact={compact || undefined}
           style={{ "--cell": `${cellSize}px`, width: compact && panelWidth ? panelWidth : undefined } as CSSProperties} exit={{ opacity: 1, transition: { duration: .14 } }}>

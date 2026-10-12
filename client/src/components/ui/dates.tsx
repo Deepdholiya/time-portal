@@ -3,6 +3,7 @@ import { CalendarDays } from "lucide-react";
 import { Calendar } from "../arc/calendar/calendar";
 import { DatePicker as ArcDatePicker } from "../arc/date-picker/date-picker";
 import { DateRangePicker as ArcDateRangePicker, type DateRangePreset } from "../arc/date-range-picker/date-range-picker";
+import { Button } from "./button";
 import { Popover } from "./popover";
 import { controlLabel, cx, ownsField, useField } from "./shared";
 import s from "./ui.module.css";
@@ -11,6 +12,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 export const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 export const parse = (v: string) => { const [y, m, d] = v.split("-").map(Number); return new Date(y, m - 1, d); };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export const longDate = (v: string) => parse(v).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 export const shortDate = (v: string) => { const [y, m, d] = v.split("-").map(Number); return `${MONTHS[m - 1]} ${d}${y !== new Date().getFullYear() ? `, ${y}` : ""}`; };
 
 export interface DatePickerProps {
@@ -62,10 +64,12 @@ export const DatePicker = ownsField(function DatePicker({ value, onChange, place
     <Popover trigger={t} open={open} onOpenChange={setOpen} padded={false}>
       {(close) => (
         <div className={s.calendarPop}>
-          <Calendar value={value ? parse(value) : undefined} onChange={(d) => { onChange(iso(d)); close(); }} maxDate={max ? parse(max) : undefined} showToday />
+          <Calendar value={value ? parse(value) : undefined} onChange={(d) => { onChange(iso(d)); close(); }} maxDate={max ? parse(max) : undefined} />
           <div className={s.calendarFoot}>
-            <button type="button" className="link small" style={{ background: "none", border: 0 }} onClick={() => { onChange(iso(new Date())); close(); }}>Today</button>
-            {clearable && value && <button type="button" className="link small" style={{ background: "none", border: 0 }} onClick={() => { onChange(null); close(); }}>Clear</button>}
+            <span className={s.calendarValue}>{value ? longDate(value) : "No date"}</span>
+            <span className="grow" />
+            {clearable && value && <Button size="sm" variant="ghost" onClick={() => { onChange(null); close(); }}>Clear</Button>}
+            <Button size="sm" variant="secondary" disabled={value === iso(new Date())} onClick={() => { onChange(iso(new Date())); close(); }}>Today</Button>
           </div>
         </div>
       )}

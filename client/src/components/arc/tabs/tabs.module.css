@@ -26,3 +26,10 @@
 .content:focus-visible { --focus-outline-offset: 3px; border-radius: var(--radius-control); }
 @media (prefers-reduced-motion: reduce) { .trigger { transition: none; } }
 :global(:root[data-theme="dark"]) .selection { background: var(--sh-muted); }
+
+/* Tabs share the segmented control's look everywhere: a grey track with the active tab raised in white. */
+.listShell { border-radius: var(--radius-lg); background: var(--sh-muted); padding: 3px; }
+.list { gap: 2px; }
+.trigger { min-height: calc(var(--control-height-sm) - 6px); padding: 0 12px; color: var(--text-muted); }
+.selection { background: var(--surface); box-shadow: var(--shadow-resting); border-radius: var(--radius-md); }
+:global(:root[data-theme="dark"]) .selection { border: 1px solid var(--sh-input); background: color-mix(in oklab, var(--sh-input) 30%, var(--sh-background)); }
