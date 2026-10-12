@@ -39,14 +39,15 @@ export const refreshCounts = () => window.dispatchEvent(new Event("tp:counts"));
  * for people who can invite. Collapsed, it becomes an icon rail: every page keeps its icon and names itself in a tooltip.
  */
 export function Sidebar({ onNavigate, collapsed = false }: { onNavigate?: () => void; collapsed?: boolean }) {
-  const { me, can, switchCompany } = useSession();
+  const { me, can, navHidden, switchCompany } = useSession();
   const shell = useShell();
   const nav = useNavigate();
   const loc = useLocation();
   const counts = useCounts();
-  const sections = visibleNav(can);
-  const current = sectionFor(sections, loc.pathname);
-  const [folded, setFolded] = useLocal<Record<string, boolean>>("nav:folded", { admin: true });
+  const all = visibleNav(can, navHidden);
+  const current = sectionFor(all, loc.pathname);
+  const sections = all.filter((x) => !x.menu);
+  const [folded, setFolded] = useLocal<Record<string, boolean>>("nav:folded", { admin: true, logs: true });
   const [hideInvite, setHideInvite] = useLocal("nav:invite-hidden", false);
   if (!me) return null;
   const c = me.company;

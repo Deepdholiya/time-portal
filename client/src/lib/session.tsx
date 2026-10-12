@@ -20,6 +20,8 @@ interface SessionValue {
   /** True when the user's level for `feature` is at least `level` (defaults to the lowest non-zero level). */
   can: (feature: string, level?: string) => boolean;
   isAdmin: boolean;
+  /** Sidebar pages an admin hid for this person's role. */
+  navHidden: string[];
   isManager: boolean;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
@@ -72,7 +74,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const need = level ?? order[1] ?? order[0];
       return order.indexOf(have) >= order.indexOf(need);
     };
-    return { status, me, can, isAdmin: me?.user.role === "ADMIN", isManager: me?.user.role === "MANAGER", refresh, logout, switchCompany };
+    const navHidden = me && me.user.role !== "ADMIN" ? me.company.settings.navHidden?.[me.user.role] ?? [] : [];
+    return { status, me, can, navHidden, isAdmin: me?.user.role === "ADMIN", isManager: me?.user.role === "MANAGER", refresh, logout, switchCompany };
   }, [status, me, refresh, logout, switchCompany]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

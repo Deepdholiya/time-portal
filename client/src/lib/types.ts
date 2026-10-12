@@ -5,7 +5,7 @@ export type Permissions = Record<string, Level>;
 export interface CompanySettings {
   overloadPct: number; healthyPct: number; underPct: number; tempPasswordHours: number; sessionTimeoutMinutes: number;
   enforceAdminMfa: boolean; aiEnabled: boolean; allowOverlappingTimers: boolean; lockApprovedWeeks: boolean; invitationDays: number; taskKey: string;
-  autoSubmitTime: string; workdayStart: string; requireDescription: boolean; requireTags: boolean; billableEnabled: boolean;
+  autoSubmitTime: string; workdayStart: string; requireDescription: boolean; requireTags: boolean; billableEnabled: boolean; navHidden?: Record<string, string[]>;
 }
 export interface Company {
   id: number; name: string; slug: string; color: string; logoUrl?: string | null; country?: string | null; timezone: string; currency: string;

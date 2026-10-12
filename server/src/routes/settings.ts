@@ -109,6 +109,21 @@ settingsRouter.put("/permissions", admin, async (req, res) => {
   res.json(await getMatrix(cid(req)));
 });
 
+// Which sidebar pages each role sees. Admin always sees everything, so nobody can hide the way back.
+settingsRouter.put("/nav", admin, async (req, res) => {
+  const d = z.object({ role: z.string(), to: z.string().regex(/^\/[a-z0-9/-]*$/), visible: z.boolean() }).parse(req.body);
+  if (d.role === "ADMIN") throw new HttpError(400, "Admins always see every page");
+  if (!(await companyRoles(cid(req))).some((r) => r.key === d.role)) throw new HttpError(400, "Unknown role");
+  const c = req.company!;
+  const settings = companySettings(c);
+  const before = settings.navHidden[d.role] ?? [];
+  const hidden = d.visible ? before.filter((x) => x !== d.to) : [...new Set([...before, d.to])];
+  const navHidden = { ...settings.navHidden, [d.role]: hidden };
+  await prisma.company.update({ where: { id: c.id }, data: { settings: JSON.stringify({ ...settings, navHidden }) } });
+  await audit(req, "navigation_changed", "company", c.id, { old: { role: d.role, hidden: before }, new: { role: d.role, hidden } });
+  res.json(navHidden);
+});
+
 // ---- Holidays ----
 settingsRouter.get("/holidays", async (req, res) => {
   res.json(await prisma.holiday.findMany({ where: { companyId: cid(req) }, orderBy: { date: "asc" } }));

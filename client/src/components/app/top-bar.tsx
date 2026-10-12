@@ -19,9 +19,9 @@ export interface TopBarHandle { focus: () => void }
 
 /** Where you are: the area, then the page ("Work › Tasks"). */
 function Crumbs() {
-  const { can } = useSession();
+  const { can, navHidden } = useSession();
   const { pathname } = useLocation();
-  const sections = visibleNav(can);
+  const sections = visibleNav(can, navHidden);
   const sec = sections.find((x) => x.id === sectionFor(sections, pathname));
   let page: { label: string; to: string } | undefined;
   for (const g of sec?.groups ?? []) for (const i of g.items) {
@@ -59,7 +59,7 @@ function useUnread() {
 export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSidebar: () => void }>(function TopBar({ onMenu, onToggleSidebar }, ref) {
   const nav = useNavigate();
   const shell = useShell();
-  const { me, can, logout } = useSession();
+  const { me, can, navHidden, logout } = useSession();
   const unread = useUnread();
   const [dark, setDark] = useState(() => document.documentElement.dataset.theme === "dark");
   const input = useRef<HTMLInputElement>(null);
@@ -113,12 +113,12 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
         { id: "theme", group: "Actions", label: "Toggle dark mode", hint: "⇧D", icon: <Moon size={15} />, run: () => { close(); toggleTheme(); } },
       );
     }
-    out.push(...navItems(can).filter((i) => match(i.label, i.keywords, i.section)).slice(0, t ? 6 : 8).map((i) => ({ id: "nav" + i.to, group: "Go to", label: i.label, hint: i.section, icon: <i.icon size={15} />, run: go(i.to) })));
+    out.push(...navItems(can, navHidden).filter((i) => match(i.label, i.keywords, i.section)).slice(0, t ? 6 : 8).map((i) => ({ id: "nav" + i.to, group: "Go to", label: i.label, hint: i.section, icon: <i.icon size={15} />, run: go(i.to) })));
     if (t) out.push(...projects.filter((p) => match(p.name)).slice(0, 5).map((p) => ({ id: "p" + p.id, group: "Projects", label: p.name, icon: <FolderKanban size={15} color={p.color} />, run: go(`/projects/${p.id}`) })));
     out.push(...tasks.map((tk) => ({ id: "t" + tk.id, group: "Tasks", label: tk.title, hint: tk.key, icon: <StatusIcon status={tk.status} />, run: () => { close(); setQ(""); shell.openTask(tk.id); } })));
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, can, projects, tasks]);
+  }, [q, can, navHidden, projects, tasks]);
 
   useEffect(() => setHi(0), [q]);
   const showAnswer = asking || answer || askError;
@@ -204,6 +204,7 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
             items={[
               { type: "heading", label: `${me.user.name} · ${me.user.email}` },
               { label: "Account settings", icon: <UserRound size={14} />, onSelect: () => nav("/settings/account") },
+              ...visibleNav(can, navHidden).filter((x) => x.menu).flatMap((x) => x.groups.flatMap((g) => g.items)).map((i) => ({ label: i.label, icon: <i.icon size={14} />, onSelect: () => nav(i.to) })),
               { label: dark ? "Light mode" : "Dark mode", icon: dark ? <Sun size={14} /> : <Moon size={14} />, onSelect: () => { toggleTheme(); setDark(document.documentElement.dataset.theme === "dark"); }, shortcut: "⇧D" },
               { type: "separator" },
               { label: "Log out", icon: <LogOut size={14} />, onSelect: logout },

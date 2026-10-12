@@ -1,6 +1,6 @@
 import {
   Inbox, CircleUserRound, Clock, Sheet as SheetIcon, ListTodo, FolderKanban, Map, Building2, Users, UsersRound, BarChart3,
-  FileSpreadsheet, Gauge, ClipboardCheck, Clock3, Plane, Receipt, UserCog, ShieldCheck, Building, Settings, Plug, Workflow, ScrollText, Mail, Home, Tags,
+  FileSpreadsheet, Gauge, ClipboardCheck, Clock3, Plane, Receipt, UserCog, ShieldCheck, Building, Settings, Plug, Workflow, ScrollText, Mail, Home,
   LayoutDashboard,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -8,7 +8,7 @@ import type { LucideIcon } from "lucide-react";
 export interface NavItem { to: string; label: string; icon: LucideIcon; perm?: [string, string?]; anyPerm?: [string, string?][]; badge?: "inbox" | "approvals"; keywords?: string }
 export interface NavGroup { title?: string; items: NavItem[] }
 /** One icon in the rail and the panel it opens. */
-export interface NavSection { id: string; label: string; icon: LucideIcon; groups: NavGroup[]; bottom?: boolean }
+export interface NavSection { id: string; label: string; icon: LucideIcon; groups: NavGroup[]; bottom?: boolean; menu?: boolean }
 
 /**
  * Role-based navigation, grouped the way Intercom groups its inbox: a narrow rail of areas, and a panel listing each area's pages.
@@ -62,36 +62,42 @@ export const NAV: NavSection[] = [
     ] }],
   },
   {
-    id: "admin", label: "Admin", icon: Settings, bottom: true,
-    groups: [
-      { title: "People & access", items: [
-        { to: "/admin/users", label: "Users & invites", icon: UserCog, perm: ["people", "invite"] },
-        { to: "/admin/roles", label: "Roles & permissions", icon: ShieldCheck, perm: ["settings", "yes"] },
-        { to: "/admin/companies", label: "Companies", icon: Building, perm: ["companies", "yes"] },
-      ] },
-      { title: "Configuration", items: [
-        { to: "/admin/settings", label: "Company settings", icon: Settings, perm: ["settings", "yes"], keywords: "cutoff submission rules" },
-        { to: "/admin/tags", label: "Time tags", icon: Tags, perm: ["settings", "yes"], keywords: "labels categories" },
-        { to: "/admin/integrations", label: "Integrations", icon: Plug, perm: ["settings", "yes"], keywords: "sso slack google microsoft" },
-        { to: "/admin/automations", label: "Automations", icon: Workflow, perm: ["settings", "yes"] },
-      ] },
-      { title: "Logs", items: [
-        { to: "/admin/audit", label: "Audit log", icon: ScrollText, perm: ["audit", "yes"] },
-        { to: "/admin/outbox", label: "Email log", icon: Mail, perm: ["settings", "yes"] },
-      ] },
-    ],
+    id: "admin", label: "Admin", icon: ShieldCheck, bottom: true,
+    groups: [{ items: [
+      { to: "/admin/users", label: "Users & invites", icon: UserCog, perm: ["people", "invite"] },
+      { to: "/admin/roles", label: "Roles & permissions", icon: ShieldCheck, perm: ["settings", "yes"] },
+      { to: "/admin/companies", label: "Companies", icon: Building, perm: ["companies", "yes"] },
+    ] }],
+  },
+  {
+    id: "logs", label: "Logs", icon: ScrollText, bottom: true,
+    groups: [{ items: [
+      { to: "/admin/audit", label: "Audit log", icon: ScrollText, perm: ["audit", "yes"] },
+      { to: "/admin/outbox", label: "Email log", icon: Mail, perm: ["settings", "yes"] },
+    ] }],
+  },
+  {
+    // Not in the sidebar: these open from the account menu at the top right.
+    id: "settings", label: "Settings", icon: Settings, menu: true,
+    groups: [{ items: [
+      { to: "/admin/settings", label: "Company settings", icon: Settings, perm: ["settings", "yes"], keywords: "cutoff submission rules colour brand" },
+      { to: "/admin/integrations", label: "Integrations", icon: Plug, perm: ["settings", "yes"], keywords: "sso slack google microsoft" },
+      { to: "/admin/automations", label: "Automations", icon: Workflow, perm: ["settings", "yes"] },
+    ] }],
   },
 ];
 
-type Can = (f: string, l?: string) => boolean;
-const allowed = (can: Can) => (i: NavItem) => (!i.perm || can(i.perm[0], i.perm[1])) && (!i.anyPerm || i.anyPerm.some(([f, l]) => can(f, l)));
+export type Can = (f: string, l?: string) => boolean;
+/** Whether a role's permissions let it open the page at all. */
+export const permits = (can: Can, i: NavItem) => (!i.perm || can(i.perm[0], i.perm[1])) && (!i.anyPerm || i.anyPerm.some(([f, l]) => can(f, l)));
 
-export function visibleNav(can: Can): NavSection[] {
-  return NAV.map((s) => ({ ...s, groups: s.groups.map((g) => ({ ...g, items: g.items.filter(allowed(can)) })).filter((g) => g.items.length) })).filter((s) => s.groups.length);
+/** Pages the person may open and their role hasn't had hidden by an admin (Roles & permissions → Navigation). */
+export function visibleNav(can: Can, hidden: readonly string[] = []): NavSection[] {
+  return NAV.map((s) => ({ ...s, groups: s.groups.map((g) => ({ ...g, items: g.items.filter((i) => permits(can, i) && !hidden.includes(i.to)) })).filter((g) => g.items.length) })).filter((s) => s.groups.length);
 }
 
 /** Every page the person can open, for search. */
-export const navItems = (can: Can) => visibleNav(can).flatMap((s) => s.groups.flatMap((g) => g.items.map((i) => ({ ...i, section: s.label }))));
+export const navItems = (can: Can, hidden?: readonly string[]) => visibleNav(can, hidden).flatMap((s) => s.groups.flatMap((g) => g.items.map((i) => ({ ...i, section: s.label }))));
 
 /** The area a path belongs to (the longest matching item wins, so /time and /timesheet stay apart). */
 export function sectionFor(sections: NavSection[], path: string) {

@@ -10,6 +10,7 @@ import { titleCase } from "@/lib/format";
 import { PermissionsDialog, type FeatureDef } from "./user-dialogs";
 import type { AdminUser } from "./users-members";
 import { RoleBadge, useRoleOptions } from "./shared";
+import { NAV, permits, type NavItem } from "@/components/app/nav";
 import s from "./roles.module.css";
 
 type Matrix = Record<string, Record<string, string>>;
@@ -46,7 +47,7 @@ function permRows(key: string, f: FeatureDef): PermRow[] {
 export default function Roles() {
   const { data, error, loading, reload, mutate } = useApi<Resp>("/settings/permissions");
   const { refresh } = useMe();
-  const [tab, setTab] = useState<"roles" | "people">("roles");
+  const [tab, setTab] = useState<"roles" | "nav" | "people">("roles");
   const [saving, setSaving] = useState<string | null>(null);
   const [form, setForm] = useState<RoleInfo | "new" | null>(null);
   const [removing, setRemoving] = useState<RoleInfo | null>(null);
@@ -91,10 +92,10 @@ export default function Roles() {
       title="Roles & permissions"
       icon={<ShieldCheck size={15} />}
       actions={tab === "roles" ? <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setForm("new")}>New role</Button> : undefined}
-      tabs={<Tabs value={tab} onChange={(v) => setTab(v as "roles" | "people")} items={[{ value: "roles", label: "Roles" }, { value: "people", label: "People" }]} />}
-      toolbar={<span className="small muted">{tab === "roles" ? "What each role can do. Changes save immediately and are written to the audit log." : "Give one person a different role, or more or less access than their role, feature by feature."}</span>}
+      tabs={<Tabs value={tab} onChange={(v) => setTab(v as "roles" | "nav" | "people")} items={[{ value: "roles", label: "Roles" }, { value: "nav", label: "Navigation" }, { value: "people", label: "People" }]} />}
+      toolbar={<span className="small muted">{tab === "roles" ? "What each role can do. Changes save immediately and are written to the audit log." : tab === "nav" ? "Which pages each role sees in the sidebar. A page a role has no permission for stays hidden." : "Give one person a different role, or more or less access than their role, feature by feature."}</span>}
     >
-      {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : data && (tab === "people" ? <PeopleAccess roles={data.roleList} onChanged={reload} /> : (
+      {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : data && (tab === "people" ? <PeopleAccess roles={data.roleList} onChanged={reload} /> : tab === "nav" ? <NavAccess data={data} admin={admin} roles={editable} /> : (
         <div className={s.wrap}>
           <div className={s.scroller}>
             <table className={`table ${s.matrix}`}>
@@ -203,6 +204,85 @@ function RoleDialog({ role, roles, onClose, onSaved }: { role: RoleInfo | null; 
         )}
       </div>
     </Dialog>
+  );
+}
+
+/** Sidebar pages per role: on means the role sees the page; pages the role's permissions don't allow can't be turned on. */
+function NavAccess({ data, admin, roles }: { data: Resp; admin?: RoleInfo; roles: RoleInfo[] }) {
+  const { me, refresh } = useMe();
+  const [hidden, setHidden] = useState<Record<string, string[]>>(me.company.settings.navHidden ?? {});
+  const [busy, setBusy] = useState<string | null>(null);
+  const [closed, setClosed] = useState<string[]>([]);
+  const canFor = (role: string) => (f: string, l?: string) => {
+    const levels = data.features[f]?.levels ?? [];
+    const need = l ?? levels[1] ?? levels[0];
+    return levels.indexOf(data.matrix[role]?.[f] ?? levels[0]) >= levels.indexOf(need);
+  };
+  const toggle = async (role: RoleInfo, item: NavItem, visible: boolean) => {
+    const prev = hidden;
+    setHidden({ ...prev, [role.key]: visible ? (prev[role.key] ?? []).filter((x) => x !== item.to) : [...(prev[role.key] ?? []), item.to] });
+    setBusy(`${role.key}:${item.to}`);
+    try {
+      setHidden(await put<Record<string, string[]>>("/settings/nav", { role: role.key, to: item.to, visible }));
+      toast.success(`${role.name}: ${item.label} ${visible ? "shown" : "hidden"}`);
+      refresh();
+    } catch (e) { setHidden(prev); toast.error(e); } finally { setBusy(null); }
+  };
+  const locked = (i: NavItem) => i.to === "/";
+  return (
+    <div className={s.wrap}>
+      <div className={s.scroller}>
+        <table className={`table ${s.matrix}`}>
+          <thead>
+            <tr>
+              <th className={s.featureCol}>Page</th>
+              {admin && <th className={s.roleCol}><span className="row gap-4"><Lock size={12} className="faint" /><span className={s.roleHead}>{admin.name}</span></span></th>}
+              {roles.map((r) => <th key={r.key} className={s.roleCol}><span className={s.roleHead}><span className="ellipsis">{r.name}</span></span></th>)}
+              <th className={s.fill} aria-hidden />
+            </tr>
+          </thead>
+          {NAV.map((sec) => {
+            const items = sec.groups.flatMap((g) => g.items);
+            const shut = closed.includes(sec.id);
+            return (
+              <tbody key={sec.id}>
+                <tr className={s.group}>
+                  <td className={s.featureCol}>
+                    <button type="button" className={s.groupBtn} aria-expanded={!shut} onClick={() => setClosed(shut ? closed.filter((x) => x !== sec.id) : [...closed, sec.id])}>
+                      <ChevronDown size={14} className={shut ? s.chevShut : s.chev} />{sec.menu ? "Account menu" : sec.label}<span className={s.groupCount}>{items.length}</span>
+                    </button>
+                  </td>
+                  <td colSpan={roles.length + 2} />
+                </tr>
+                {!shut && items.map((i) => (
+                  <tr key={i.to} className={s.permRow}>
+                    <td className={s.featureCol}><span className="row gap-8"><i.icon size={15} className="faint" />{i.label}</span></td>
+                    <td className={s.roleCol}><span className={s.cell}><Switch checked disabled onChange={() => {}} aria-label={`Admin: ${i.label}`} /></span></td>
+                    {roles.map((r) => {
+                      const allowed = permits(canFor(r.key), i);
+                      const sw = (
+                        <Switch
+                          checked={allowed && !(hidden[r.key] ?? []).includes(i.to)}
+                          disabled={!allowed || locked(i) || busy === `${r.key}:${i.to}`}
+                          onChange={(v) => toggle(r, i, v)}
+                          aria-label={`${r.name}: ${i.label}`}
+                        />
+                      );
+                      return (
+                        <td key={r.key} className={s.roleCol}>
+                          <span className={s.cell}>{allowed ? sw : <Tooltip content={`${r.name} has no permission for this page. Change it on the Roles tab.`}><span>{sw}</span></Tooltip>}</span>
+                        </td>
+                      );
+                    })}
+                    <td className={s.fill} />
+                  </tr>
+                ))}
+              </tbody>
+            );
+          })}
+        </table>
+      </div>
+    </div>
   );
 }
 
