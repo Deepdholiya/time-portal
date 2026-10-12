@@ -4,9 +4,9 @@ import { Archive, Building2, CircleDot, FolderKanban, Lock, Plus, Receipt, Tag, 
 import { Avatar, AvatarGroup, Button, EmptyState, ErrorState, SkeletonRows } from "@/components/ui";
 import { FilterMenu } from "@/components/app/filter-menu";
 import { ProjectDot } from "@/components/app/icons";
-import { HealthBadge } from "./health-badge";
+import { StatusChip } from "./health-badge";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
-import { fmtDate, hours, pct } from "@/lib/format";
+import { fmtDate, pct } from "@/lib/format";
 import { useMe } from "@/lib/session";
 import { useOptions } from "../tasks/lib";
 import { BILLING, BILLING_TYPES, PROJECT_STATUS, PROJECT_STATUSES, type Project } from "./lib";
@@ -72,15 +72,13 @@ export default function Projects() {
         <table className={`table ${s.table}`}>
           <thead>
             <tr>
-              <th>Name</th><th>Health</th><th>Status</th><th>Lead</th><th className="hide-sm">Client</th><th>Progress</th>
-              <th className="hide-sm">Target</th><th className="num">Tracked / est.</th><th className="hide-sm">Members</th>{manage && <th style={{ width: 44 }} />}
+              <th>Name</th><th style={{ width: 130 }}>Status</th><th style={{ width: 170 }}>Lead</th><th className="hide-sm" style={{ width: 190 }}>Client</th>
+              <th style={{ width: 170 }}>Progress</th><th className="hide-sm" style={{ width: 120 }}>Target</th><th className="hide-sm" style={{ width: 130 }}>Members</th>{manage && <th style={{ width: 44 }} aria-label="Actions" />}
             </tr>
           </thead>
           <tbody>
             {list.data.map((p) => {
               const locked = p.access === "none" && !manage;
-              const tracked = (p.stats?.trackedMinutes ?? 0);
-              const over = p.estimatedHours != null && tracked / 60 > p.estimatedHours;
               return (
                 <tr key={p.id} className={`${locked ? "" : "clickable"} ${p.archived ? s.archived : ""}`} onClick={() => !locked && nav(`/projects/${p.id}`)} title={locked ? "You're not a member of this project" : undefined}>
                   <td>
@@ -93,13 +91,11 @@ export default function Projects() {
                       {p.archived && <Archive size={12} className="faint" aria-label="Archived" />}
                     </div>
                   </td>
-                  <td><HealthBadge p={p} /></td>
-                  <td><span className="muted">{PROJECT_STATUS[p.status]?.label}</span></td>
+                  <td><StatusChip p={p} /></td>
                   <td>{p.manager ? <span className="row gap-4"><Avatar name={p.manager.name} size={18} /><span className="ellipsis" style={{ maxWidth: 110 }}>{p.manager.name}</span></span> : <span className="faint">—</span>}</td>
                   <td className="hide-sm"><span className="ellipsis muted" style={{ maxWidth: 160, display: "block" }}>{p.client?.name ?? "—"}</span></td>
                   <td><div className={s.progressCell}><div className="progress"><span style={{ width: pct(p.stats?.progress) }} /></div><span className="small muted num">{pct(p.stats?.progress)}</span></div></td>
                   <td className="hide-sm"><span className={p.endDate && p.endDate < new Date().toISOString().slice(0, 10) && p.status !== "COMPLETED" ? "danger" : "muted"}>{p.endDate ? fmtDate(p.endDate) : "—"}</span></td>
-                  <td className="num"><span className={over ? "danger" : ""}>{hours(tracked, 0)}h</span><span className="faint"> / {p.estimatedHours != null ? `${p.estimatedHours}h` : "—"}</span></td>
                   <td className="hide-sm">{p.members.length ? <AvatarGroup names={p.members.map((m) => m.name)} max={4} size={18} /> : <span className="faint">—</span>}</td>
                   {manage && <td><ProjectActions p={p} onChanged={list.reload} /></td>}
                 </tr>

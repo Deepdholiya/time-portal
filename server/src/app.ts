@@ -19,6 +19,7 @@ import { analyticsRouter } from "./routes/analytics.js";
 import { reportsRouter } from "./routes/reports.js";
 import { roadmapRouter, calendarRouter, leaveRouter } from "./routes/planning.js";
 import { settingsRouter } from "./routes/settings.js";
+import { reimbursementsRouter } from "./routes/reimbursements.js";
 import { notificationsRouter, aiRouter, publicRouter } from "./routes/misc.js";
 
 /** The Express app, shared by the local server (index.ts) and the Vercel function (api/index.mjs). */
@@ -51,6 +52,7 @@ app.use("/api/reports", reportsRouter);
 app.use("/api/roadmap", roadmapRouter);
 app.use("/api/calendar", calendarRouter);
 app.use("/api/leave", leaveRouter);
+app.use("/api/reimbursements", reimbursementsRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/ai", aiRouter);

@@ -61,11 +61,11 @@ export default function Clients() {
           <table className="table">
             <thead>
               <tr>
-                <th>Client</th><th>Contact</th><th>Email</th><th>Phone</th>
-                {fin && <th className="num">Rate / h</th>}
-                <th className="num">Active projects</th><th className="num">Tracked</th>
-                {fin && <th className="num">Revenue</th>}
-                <th style={{ width: 40 }} />
+                <th>Client</th><th style={{ width: 170 }}>Contact</th><th>Email</th><th className="hide-sm" style={{ width: 170 }}>Phone</th>
+                {fin && <th className="num" style={{ width: 110 }}>Rate / h</th>}
+                <th className="num" style={{ width: 130 }}>Active projects</th><th className="num" style={{ width: 110 }}>Tracked</th>
+                {fin && <th className="num" style={{ width: 140 }}>Revenue</th>}
+                <th style={{ width: 44 }} aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
@@ -78,8 +78,8 @@ export default function Clients() {
                     </span>
                   </td>
                   <td className="muted">{c.contactName ?? <span className="faint">—</span>}</td>
-                  <td>{c.email ? <a className="link" href={`mailto:${c.email}`} onClick={(e) => e.stopPropagation()}>{c.email}</a> : <span className="faint">—</span>}</td>
-                  <td className="muted num">{c.phone ?? <span className="faint">—</span>}</td>
+                  <td>{c.email ? <a className="muted" href={`mailto:${c.email}`} onClick={(e) => e.stopPropagation()}>{c.email}</a> : <span className="faint">—</span>}</td>
+                  <td className="hide-sm muted tnum">{c.phone ?? <span className="faint">—</span>}</td>
                   {fin && <td className="num">{c.rate != null ? money(c.rate, currency) : <span className="faint">—</span>}</td>}
                   <td className="num">{c.activeProjects}<span className="faint"> / {c.projects.length}</span></td>
                   <td className="num">{hours(c.trackedMinutes)}h</td>

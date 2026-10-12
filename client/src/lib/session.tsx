@@ -6,6 +6,7 @@ import type { Me } from "./types";
 // Ordered levels per feature, mirroring server/src/permissions.ts. The server is the authority; this only hides UI.
 export const LEVELS: Record<string, string[]> = {
   timesheetsView: ["own", "all"], editOthersTime: ["no", "yes"], approveTimesheets: ["no", "yes"], leaveApprove: ["no", "yes"],
+  expenseApprove: ["no", "yes"],
   analytics: ["none", "own", "all"], financials: ["none", "view"], export: ["none", "own", "all"], roadmap: ["none", "view", "edit"],
   projects: ["view", "manage"], tasks: ["own", "create", "manage"], directory: ["limited", "full"], people: ["none", "invite", "manage"],
   aiAssist: ["no", "yes"], clientEmail: ["no", "yes"], audit: ["no", "yes"], settings: ["no", "yes"], companies: ["no", "yes"],

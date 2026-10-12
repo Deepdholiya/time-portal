@@ -338,6 +338,27 @@ async function main() {
   await prisma.leaveRequest.create({ data: { companyId: bux.id, userId: users.ananya.id, type: "VACATION", from: addDays(TODAY, 14), to: addDays(TODAY, 18), status: "APPROVED", reviewedById: users.rohan.id } });
   await prisma.leaveRequest.create({ data: { companyId: bux.id, userId: users.neha.id, type: "PERSONAL", from: addDays(TODAY, 20), to: addDays(TODAY, 20), halfDay: true, status: "PENDING", reason: "Appointment" } });
 
+  // ---- Reimbursements: expense claims with a mix of statuses ----
+  const claims: [string, number, number, string, string, string, string?, string?][] = [
+    ["karan", -3, 1850, "TRAVEL", "Cab to Greenleaf office for user interviews", "PENDING"],
+    ["neha", -6, 2499, "SOFTWARE", "Figma plugin licence (annual)", "PENDING"],
+    ["sneha", -9, 640, "MEALS", "Team lunch during the checkout sprint review", "APPROVED", "rohan", "Thanks for keeping receipts tidy."],
+    ["vikram", -12, 4200, "SUPPLIES", "USB-C dock for the test device lab", "APPROVED", "rohan"],
+    ["meera", -18, 3500, "OTHER", "Stock photo pack for the brand refresh", "REJECTED", "priya", "Use the licensed library we already pay for."],
+    ["arjun", -2, 980, "TRAVEL", "Metro and auto fares for on-site QA", "PENDING"],
+  ];
+  const claimProject = ["Website Redesign", "Website Redesign", "Mobile Banking App", "Mobile Banking App", "Brand Refresh", undefined];
+  for (const [i, [who, ago, amount, category, description, status, reviewer, note]] of claims.entries()) {
+    const proj = claimProject[i] ? projectsByName[claimProject[i]!] : undefined;
+    await prisma.reimbursement.create({
+      data: {
+        companyId: bux.id, userId: users[who].id, projectId: proj ?? null, date: addDays(TODAY, ago), amount, currency: "INR", category, description, status,
+        ...(reviewer ? { reviewerId: users[reviewer].id, reviewedAt: new Date(addDays(TODAY, ago + 2) + "T10:00:00Z"), reviewNote: note ?? null } : {}),
+        ...(i === 0 ? { receiptUrl: "https://example.com/receipts/cab-1850.pdf" } : {}),
+      },
+    });
+  }
+
   // ---- Custom fields, templates, automations, saved report ----
   await prisma.customField.create({ data: { companyId: bux.id, name: "Sprint", type: "SELECT", options: JSON.stringify(["Sprint 18", "Sprint 19", "Sprint 20", "Sprint 21"]) } });
   await prisma.customField.create({ data: { companyId: bux.id, name: "Story points", type: "NUMBER" } });
@@ -383,6 +404,7 @@ async function main() {
       { companyId: bux.id, userId: users.sneha.id, type: "TIMESHEET_REJECTED", title: `Your time for ${addDays(lastWeek, 1)} needs corrections`, body: "3h on Cart and checkout with no description of what changed. Please add detail.", link: `/timesheet?from=${addDays(lastWeek, 1)}&to=${addDays(lastWeek, 1)}` },
       { companyId: bux.id, userId: users.rohan.id, type: "PROJECT_AT_RISK", title: "Mobile Banking App is at risk", body: "1 dependency conflict · 1 blocked", link: `/projects/${projectsByName["Mobile Banking App"]}` },
       { companyId: bux.id, userId: users.priya.id, type: "LEAVE_REQUESTED", title: "Karan Patel requested leave", link: "/approvals?tab=leave" },
+      { companyId: bux.id, userId: users.priya.id, type: "REIMBURSEMENT_REQUESTED", title: "Karan Patel requested a reimbursement of INR 1,850", body: "Cab to Greenleaf office for user interviews", link: "/approvals?tab=reimbursements" },
     ],
   });
 

@@ -97,7 +97,7 @@ function TableView({ tabs }: { tabs: ReactNode }) {
       actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button>}
       toolbar={
         <>
-          <TimeRangeControl value={range} onChange={setRange} />
+          <TimeRangeControl value={range} onChange={setRange} rangeOnly />
           {viewAll && (
             <div style={{ width: 210, marginLeft: 4 }}>
               <Combobox size="sm" options={userOptions} value={userId} onChange={(v) => pickUser(v ? Number(v) : null)} searchPlaceholder="Search people…" aria-label="Employee" />

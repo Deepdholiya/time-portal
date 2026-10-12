@@ -32,29 +32,31 @@ model Company {
   status       String   @default("ACTIVE") // ACTIVE | ARCHIVED
   createdAt    DateTime @default(now())
 
-  memberships   Membership[]
-  teams         Team[]
-  clients       Client[]
-  projects      Project[]
-  initiatives   Initiative[]
-  tasks         Task[]
-  timeEntries   TimeEntry[]
-  holidays      Holiday[]
-  customFields  CustomField[]
-  invitations   Invitation[]
-  auditLogs     AuditLog[]
-  notifications Notification[]
-  savedViews    SavedView[]
-  reports       SavedReport[]
-  templates     Template[]
-  emails        EmailMessage[]
-  leaves        LeaveRequest[]
-  periods       TimesheetPeriod[]
-  days          TimesheetDay[]
-  tags          Tag[]
-  automations   Automation[]
-  integrations  Integration[]
-  permissions   RolePermission[]
+  memberships    Membership[]
+  teams          Team[]
+  clients        Client[]
+  projects       Project[]
+  initiatives    Initiative[]
+  tasks          Task[]
+  timeEntries    TimeEntry[]
+  holidays       Holiday[]
+  customFields   CustomField[]
+  invitations    Invitation[]
+  auditLogs      AuditLog[]
+  notifications  Notification[]
+  savedViews     SavedView[]
+  reports        SavedReport[]
+  templates      Template[]
+  emails         EmailMessage[]
+  leaves         LeaveRequest[]
+  reimbursements Reimbursement[]
+  periods        TimesheetPeriod[]
+  days           TimesheetDay[]
+  tags           Tag[]
+  automations    Automation[]
+  integrations   Integration[]
+  permissions    RolePermission[]
+  customRoles    CustomRole[]
 }
 
 model Membership {
@@ -96,30 +98,32 @@ model User {
   emailVerifiedAt       DateTime?
   createdAt             DateTime  @default(now())
 
-  memberships   Membership[]
-  sessions      Session[]
-  managed       Project[]         @relation("ProjectManager")
-  projectRoles  ProjectMember[]
-  timeEntries   TimeEntry[]
-  assigned      Task[]            @relation("Assignee")
-  created       Task[]            @relation("Creator")
-  comments      Comment[]
-  attachments   Attachment[]
-  following     TaskFollower[]
-  periods       TimesheetPeriod[] @relation("PeriodOwner")
-  reviewed      TimesheetPeriod[] @relation("PeriodReviewer")
-  days          TimesheetDay[]    @relation("DayOwner")
-  reviewedDays  TimesheetDay[]    @relation("DayReviewer")
-  leaves        LeaveRequest[]    @relation("LeaveOwner")
-  leaveReviews  LeaveRequest[]    @relation("LeaveReviewer")
-  notifications Notification[]
-  auditLogs     AuditLog[]
-  invitesSent   Invitation[]      @relation("InvitedBy")
-  savedViews    SavedView[]
-  reports       SavedReport[]
-  emails        EmailMessage[]
-  resets        PasswordReset[]
-  permissions   UserPermission[]
+  memberships          Membership[]
+  sessions             Session[]
+  managed              Project[]         @relation("ProjectManager")
+  projectRoles         ProjectMember[]
+  timeEntries          TimeEntry[]
+  assigned             Task[]            @relation("Assignee")
+  created              Task[]            @relation("Creator")
+  comments             Comment[]
+  attachments          Attachment[]
+  following            TaskFollower[]
+  periods              TimesheetPeriod[] @relation("PeriodOwner")
+  reviewed             TimesheetPeriod[] @relation("PeriodReviewer")
+  days                 TimesheetDay[]    @relation("DayOwner")
+  reviewedDays         TimesheetDay[]    @relation("DayReviewer")
+  leaves               LeaveRequest[]    @relation("LeaveOwner")
+  leaveReviews         LeaveRequest[]    @relation("LeaveReviewer")
+  reimbursements       Reimbursement[]   @relation("ReimbursementOwner")
+  reimbursementReviews Reimbursement[]   @relation("ReimbursementReviewer")
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  invitesSent          Invitation[]      @relation("InvitedBy")
+  savedViews           SavedView[]
+  reports              SavedReport[]
+  emails               EmailMessage[]
+  resets               PasswordReset[]
+  permissions          UserPermission[]
 }
 
 model Session {
@@ -186,6 +190,19 @@ model RolePermission {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@id([companyId, role, feature])
+}
+
+// Roles an admin adds next to Admin, Manager and Employee. Keyed "CUSTOM_<id>"; permissions live in RolePermission.
+model CustomRole {
+  id          Int      @id @default(autoincrement())
+  companyId   Int
+  key         String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
 }
 
 // Per-person overrides on top of their role.
@@ -264,6 +281,7 @@ model Project {
   milestones       Milestone[]
   tasks            Task[]
   timeEntries      TimeEntry[]
+  reimbursements   Reimbursement[]
 }
 
 model ProjectMember {
@@ -517,6 +535,33 @@ model LeaveRequest {
   company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user         User     @relation("LeaveOwner", fields: [userId], references: [id], onDelete: Cascade)
   reviewedBy   User?    @relation("LeaveReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+}
+
+// An expense claim: someone paid for something on the company's behalf and asks to be paid back.
+model Reimbursement {
+  id          Int       @id @default(autoincrement())
+  companyId   Int
+  userId      Int
+  projectId   Int?
+  date        String // YYYY-MM-DD the expense was incurred
+  amount      Float
+  currency    String    @default("INR")
+  category    String    @default("OTHER") // TRAVEL | MEALS | SUPPLIES | SOFTWARE | OTHER
+  description String
+  receiptUrl  String?
+  status      String    @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED
+  reviewerId  Int?
+  reviewedAt  DateTime?
+  reviewNote  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user        User      @relation("ReimbursementOwner", fields: [userId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  reviewer    User?     @relation("ReimbursementReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, status])
+  @@index([userId])
 }
 
 model Holiday {

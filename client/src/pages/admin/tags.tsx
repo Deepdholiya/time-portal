@@ -31,7 +31,7 @@ export default function TagsAdmin() {
 
   return (
     <Page title="Time tags" icon={<TagsIcon size={15} className="faint" />} actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>New tag</Button>}>
-      <div className="page-pad" style={{ maxWidth: 920 }}>
+      <div className="page-pad">
         <p className="small muted" style={{ margin: "0 0 12px" }}>Tags label time entries (meetings, bug fixes, client calls) for reports. Limit a tag to teams to keep each team's list short. Whether a tag is required is set in Company settings → Time.</p>
         {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows rows={5} /> : !data?.length ? (
           <EmptyState icon={<TagsIcon size={24} />} title="No tags yet" description="Create the tags your teams should use on their time." action={<Button variant="secondary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>New tag</Button>} />

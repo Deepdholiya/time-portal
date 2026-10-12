@@ -198,3 +198,4 @@ button[class*="kpi"]:hover .metric-icon, .metric-label:hover .metric-icon { tran
 :is(.page-body > .table-wrap, .page-body > * > .table-wrap) .table :is(th, td):first-child { padding-left: var(--gutter); }
 :is(.page-body > .table-wrap, .page-body > * > .table-wrap) .table :is(th, td):last-child { padding-right: var(--gutter); }
 :is(.page-body > .table-wrap, .page-body > * > .table-wrap) .table th:last-child[style*="width"] { width: calc(44px + var(--gutter)) !important; }
+.tnum { font-variant-numeric: tabular-nums; }

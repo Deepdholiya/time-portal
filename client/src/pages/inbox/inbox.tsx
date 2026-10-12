@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlarmClock, AtSign, BellRing, CalendarCheck, CalendarX, CheckCheck, CircleAlert, CircleCheck, CircleDot, Clock, FileBarChart, Flag, FolderKanban, Inbox as InboxIcon,
-  KeyRound, Link2Off, Link2, MessageSquare, MailOpen, Mail, Send, Trash2, UserPlus, UserCheck, Workflow, XCircle, Zap,
+  KeyRound, Link2Off, Link2, MessageSquare, MailOpen, Mail, Receipt, Send, Trash2, UserPlus, UserCheck, Workflow, XCircle, Zap,
 } from "lucide-react";
 import { Button, EmptyState, IconButton, SegmentedControl, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { Page } from "@/components/app/page";
@@ -33,6 +33,9 @@ const ICONS: Record<string, { icon: ReactNode; color: string }> = {
   TIMESHEET_REJECTED: { icon: <XCircle size={15} />, color: "var(--red)" },
   LEAVE_REQUESTED: { icon: <CalendarCheck size={15} />, color: "var(--blue)" },
   LEAVE_REVIEWED: { icon: <CalendarX size={15} />, color: "var(--text-2)" },
+  REIMBURSEMENT_REQUESTED: { icon: <Receipt size={15} />, color: "var(--blue)" },
+  REIMBURSEMENT_APPROVED: { icon: <CircleCheck size={15} />, color: "var(--green)" },
+  REIMBURSEMENT_REJECTED: { icon: <XCircle size={15} />, color: "var(--red)" },
   INVITATION_ACCEPTED: { icon: <UserCheck size={15} />, color: "var(--green)" },
   ACCESS_CHANGED: { icon: <KeyRound size={15} />, color: "var(--orange)" },
   REPORT_READY: { icon: <FileBarChart size={15} />, color: "var(--accent)" },

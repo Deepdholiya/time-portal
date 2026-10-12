@@ -1,5 +1,5 @@
 // Shapes returned by the API. Only fields the UI relies on are typed; extra fields pass through.
-export type Role = "ADMIN" | "MANAGER" | "EMPLOYEE";
+export type Role = "ADMIN" | "MANAGER" | "EMPLOYEE" | (string & {});
 export type Level = string;
 export type Permissions = Record<string, Level>;
 export interface CompanySettings {
@@ -16,6 +16,8 @@ export interface Me {
   permissions: Permissions;
   company: Company;
   companies: { id: number; name: string; color: string; slug: string }[];
+  /** Every role in the current company, built-in ones first, with display names. */
+  roles: { key: string; name: string }[];
   mfaSetupRequired: boolean;
 }
 export interface UserLite { id: number; name: string; email?: string; title?: string | null; role?: Role; team?: { id: number; name: string; color?: string } | null }

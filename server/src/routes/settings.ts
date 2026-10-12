@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma, audit, companySettings, parseJson, DEFAULT_SETTINGS } from "../db.js";
 import { HttpError, cid, requirePerm, uid } from "../auth.js";
-import { FEATURES, ROLES, getMatrix, type Feature } from "../permissions.js";
+import { FEATURES, companyRoles, getMatrix, isCustomRole, rolePermissions, type Feature } from "../permissions.js";
 import { DATE } from "../scope.js";
 import { mailConfigured } from "../mail.js";
 
@@ -42,15 +42,64 @@ settingsRouter.put("/company", admin, async (req, res) => {
 });
 
 // ---- Roles & permissions ----
+async function rolesWithCounts(companyId: number) {
+  const roles = await companyRoles(companyId);
+  const members = await prisma.membership.findMany({ where: { companyId, user: { status: { not: "DEACTIVATED" } } }, select: { user: { select: { role: true } } } });
+  const count = new Map<string, number>();
+  for (const m of members) count.set(m.user.role, (count.get(m.user.role) ?? 0) + 1);
+  return roles.map((r) => ({ ...r, members: count.get(r.key) ?? 0 }));
+}
+
 settingsRouter.get("/permissions", admin, async (req, res) => {
-  res.json({ features: FEATURES, roles: ROLES, matrix: await getMatrix(cid(req)) });
+  const roles = await rolesWithCounts(cid(req));
+  res.json({ features: FEATURES, roles: roles.map((r) => r.key), roleList: roles, matrix: await getMatrix(cid(req)) });
+});
+
+// Custom roles: start from an existing role's permissions, then edit them in the matrix like any other role.
+settingsRouter.post("/roles", admin, async (req, res) => {
+  const d = z.object({ name: z.string().trim().min(2).max(40), description: z.string().trim().max(200).optional(), copyFrom: z.string().default("EMPLOYEE") }).parse(req.body);
+  const roles = await companyRoles(cid(req));
+  if (roles.some((r) => r.name.toLowerCase() === d.name.toLowerCase())) throw new HttpError(409, "A role with that name already exists");
+  const from = roles.find((r) => r.key === d.copyFrom && r.key !== "ADMIN") ? d.copyFrom : "EMPLOYEE";
+  const created = await prisma.customRole.create({ data: { companyId: cid(req), key: `CUSTOM_PENDING_${Date.now()}`, name: d.name, description: d.description || null } });
+  const key = `CUSTOM_${created.id}`;
+  await prisma.customRole.update({ where: { id: created.id }, data: { key } });
+  const levels = await rolePermissions(cid(req), from);
+  await prisma.rolePermission.createMany({ data: Object.entries(levels).map(([feature, level]) => ({ companyId: cid(req), role: key, feature, level })) });
+  await audit(req, "role_created", "role", created.id, { new: { key, name: d.name, copyFrom: from } });
+  res.status(201).json({ key, roles: await rolesWithCounts(cid(req)), matrix: await getMatrix(cid(req)) });
+});
+
+settingsRouter.patch("/roles/:key", admin, async (req, res) => {
+  const d = z.object({ name: z.string().trim().min(2).max(40).optional(), description: z.string().trim().max(200).nullable().optional() }).parse(req.body);
+  const role = await prisma.customRole.findUnique({ where: { companyId_key: { companyId: cid(req), key: String(req.params.key) } } });
+  if (!role) throw new HttpError(404, "Built-in roles can't be renamed");
+  await prisma.customRole.update({ where: { id: role.id }, data: { name: d.name, description: d.description } });
+  await audit(req, "role_updated", "role", role.id, { old: { name: role.name }, new: d });
+  res.json({ roles: await rolesWithCounts(cid(req)) });
+});
+
+// Deleting a role moves its people to Employee so nobody is left without access rules.
+settingsRouter.delete("/roles/:key", admin, async (req, res) => {
+  const key = String(req.params.key);
+  const role = await prisma.customRole.findUnique({ where: { companyId_key: { companyId: cid(req), key } } });
+  if (!role) throw new HttpError(404, "Built-in roles can't be deleted");
+  const members = await prisma.membership.findMany({ where: { companyId: cid(req), user: { role: key } }, select: { userId: true } });
+  await prisma.$transaction([
+    prisma.user.updateMany({ where: { id: { in: members.map((m) => m.userId) } }, data: { role: "EMPLOYEE" } }),
+    prisma.rolePermission.deleteMany({ where: { companyId: cid(req), role: key } }),
+    prisma.customRole.delete({ where: { id: role.id } }),
+  ]);
+  await audit(req, "role_deleted", "role", role.id, { old: { key, name: role.name }, new: { movedToEmployee: members.length } });
+  res.json({ moved: members.length, roles: await rolesWithCounts(cid(req)), matrix: await getMatrix(cid(req)) });
 });
 
 settingsRouter.put("/permissions", admin, async (req, res) => {
-  const d = z.object({ role: z.enum(["MANAGER", "EMPLOYEE"]), feature: z.string(), level: z.string() }).parse(req.body);
+  const d = z.object({ role: z.string(), feature: z.string(), level: z.string() }).parse(req.body);
+  if (d.role !== "MANAGER" && d.role !== "EMPLOYEE" && !(isCustomRole(d.role) && await prisma.customRole.findUnique({ where: { companyId_key: { companyId: cid(req), key: d.role } } }))) throw new HttpError(400, "That role can't be edited");
   const f = FEATURES[d.feature as Feature];
   if (!f || !(f.levels as readonly string[]).includes(d.level)) throw new HttpError(400, "Unknown permission level");
-  if (d.role === "MANAGER" && ["companies"].includes(d.feature) && d.level !== "no") throw new HttpError(400, "Managers can't be given company management");
+  if (d.role !== "EMPLOYEE" && ["companies"].includes(d.feature) && d.level !== "no") throw new HttpError(400, "Managers can't be given company management");
   const before = (await getMatrix(cid(req)))[d.role][d.feature as Feature];
   await prisma.rolePermission.upsert({
     where: { companyId_role_feature: { companyId: cid(req), role: d.role, feature: d.feature } },

@@ -6,7 +6,7 @@ import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { fmtDateTime, titleCase } from "@/lib/format";
 import type { Options } from "@/lib/types";
-import { copyText, SecretOnce } from "./shared";
+import { copyText, SecretOnce, useRoleOptions } from "./shared";
 
 type InviteResult = { invitation: { email: string; name: string; role: string; expiresAt: string }; tempPassword: string | null; existing: boolean };
 
@@ -68,6 +68,7 @@ export function InviteDialog({ onClose }: { onClose: () => void }) {
   }
 
   const projects = (opts.data?.projects ?? []).filter((p) => !p.parentId);
+  const roleOptions = useRoleOptions(isAdmin);
   return (
     <Dialog open onClose={onClose} title="Invite people" description={`They'll get an email with a temporary password for ${me.company.name}.`} size="lg" onSubmit={submit} dismissable={false}
       footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitation</Button></>}>
@@ -76,7 +77,7 @@ export function InviteDialog({ onClose }: { onClose: () => void }) {
         <Field label="Email" required error={errors.email}><Input type="email" value={f.email} onChange={(e) => set("email", e.target.value)} placeholder="jane@company.com" name="email" /></Field>
         <Field label="Role" hint={!isAdmin ? "Only admins can invite admins." : undefined}>
           <Select value={f.role} onChange={(v) => set("role", v)} aria-label="Role"
-            options={[{ value: "EMPLOYEE", label: "Employee" }, { value: "MANAGER", label: "Manager" }, ...(isAdmin ? [{ value: "ADMIN", label: "Admin" }] : [])]} />
+            options={roleOptions} />
         </Field>
         <Field label="Title"><Input value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Frontend Developer" /></Field>
         <Field label="Team"><Select value={f.teamId} onChange={(v) => set("teamId", v)} options={[{ value: "", label: "No team" }, ...(opts.data?.teams ?? []).map((t) => ({ value: String(t.id), label: t.name }))]} /></Field>

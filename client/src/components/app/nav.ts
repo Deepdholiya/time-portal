@@ -1,6 +1,6 @@
 import {
   Inbox, CircleUserRound, Clock, Sheet as SheetIcon, ListTodo, FolderKanban, Map, Building2, Users, UsersRound, BarChart3,
-  FileSpreadsheet, Gauge, ClipboardCheck, Clock3, Plane, UserCog, ShieldCheck, Building, Settings, Plug, Workflow, ScrollText, Mail, Home, Tags,
+  FileSpreadsheet, Gauge, ClipboardCheck, Clock3, Plane, Receipt, UserCog, ShieldCheck, Building, Settings, Plug, Workflow, ScrollText, Mail, Home, Tags,
   LayoutDashboard,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -30,9 +30,10 @@ export const NAV: NavSection[] = [
         { to: "/time", label: "Time tracker", icon: Clock, keywords: "log entries manual" },
         { to: "/timesheet", label: "Timesheet", icon: SheetIcon, keywords: "grid hours calendar schedule month" },
         { to: "/leave", label: "Leave", icon: Plane, keywords: "vacation holiday time off" },
+        { to: "/reimbursements", label: "Reimbursements", icon: Receipt, keywords: "expenses expense claims receipts reimbursement" },
       ] },
       { title: "Team", items: [
-        { to: "/approvals", label: "Approvals", icon: ClipboardCheck, perm: ["leaveApprove", "yes"], badge: "approvals", keywords: "leave requests" },
+        { to: "/approvals", label: "Approvals", icon: ClipboardCheck, anyPerm: [["leaveApprove", "yes"], ["expenseApprove", "yes"]], badge: "approvals", keywords: "leave requests reimbursements expenses" },
         { to: "/team-time", label: "Team timesheets", icon: Clock3, perm: ["timesheetsView", "all"], keywords: "combined employee project time" },
       ] },
     ],

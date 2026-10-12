@@ -1,8 +1,14 @@
-.wrap { padding: 24px var(--gutter) 48px; max-width: 920px; }
-.matrix { border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.wrap { padding: 24px var(--gutter) 48px; }
+.scroller { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); }
+.matrix { border-collapse: separate; border-spacing: 0; min-width: 100%; }
 .matrix th { position: static; }
 .matrix tr:last-child td { border-bottom: 0; }
-.roleCol { width: 170px; }
+.featureCol { min-width: 240px; position: sticky; left: 0; background: var(--bg); z-index: 1; }
+.roleCol { width: 180px; min-width: 180px; }
+.roleHead { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.members { display: inline-flex; align-items: center; gap: 3px; height: 20px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--bg-active); color: var(--text-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+.roleHead > :last-child:not(.members):not(span) { margin-left: auto; }
 .group td { background: var(--bg-subtle); color: var(--text-2); font-size: 12px; font-weight: 500; height: 30px; }
 .matrix tbody tr.group:hover td { background: var(--bg-subtle); }
 .locked { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; color: var(--text-3); }
+.peopleBar { padding: 16px var(--gutter) 12px; max-width: calc(320px + var(--gutter) * 2); }

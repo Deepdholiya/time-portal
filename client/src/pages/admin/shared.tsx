@@ -3,12 +3,25 @@ import { useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
 import { Badge, IconButton, toast, type BadgeTone } from "@/components/ui";
 import { titleCase } from "@/lib/format";
+import { useSession } from "@/lib/session";
 import s from "./shared.module.css";
 
 export const ROLE_TONE: Record<string, BadgeTone> = { ADMIN: "purple", MANAGER: "blue", EMPLOYEE: "gray" };
+/** Display name for a role key, including the company's custom roles. */
+export function useRoleName() {
+  const { me } = useSession();
+  return (role: string) => me?.roles?.find((r) => r.key === role)?.name ?? (role.startsWith("CUSTOM_") ? "Custom role" : titleCase(role));
+}
+/** Role choices for pickers: Employee and Manager, the company's custom roles, then Admin when allowed. */
+export function useRoleOptions(withAdmin: boolean) {
+  const { me } = useSession();
+  const custom = (me?.roles ?? []).filter((r) => r.key.startsWith("CUSTOM_")).map((r) => ({ value: r.key, label: r.name }));
+  return [{ value: "EMPLOYEE", label: "Employee" }, { value: "MANAGER", label: "Manager" }, ...custom, ...(withAdmin ? [{ value: "ADMIN", label: "Admin" }] : [])];
+}
 export function RoleBadge({ role }: { role?: string | null }) {
+  const name = useRoleName();
   if (!role) return null;
-  return <Badge tone={ROLE_TONE[role] ?? "gray"} size="sm">{titleCase(role)}</Badge>;
+  return <Badge tone={ROLE_TONE[role] ?? (role.startsWith("CUSTOM_") ? "accent" : "gray")} size="sm">{name(role)}</Badge>;
 }
 
 const STATUS_TONE: Record<string, BadgeTone> = {

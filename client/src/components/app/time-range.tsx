@@ -19,24 +19,28 @@ export function presetRange(name: string, today: string, startsOn = 1): Range {
   switch (name as Preset) {
     case "Today": return { from: today, to: today };
     case "Last week": return { from: addDays(ws, -7), to: addDays(ws, -1) };
-    case "This month": return { from: monthStart(today), to: today };
-    default: return { from: ws, to: today };
+    case "This month": return { from: monthStart(today), to: monthEnd(today) > endOfWeek(today, startsOn) ? endOfWeek(today, startsOn) : monthEnd(today) };
+    default: return { from: ws, to: addDays(ws, 6) };
   }
 }
+
+/** The last day of the week holding `day`: ranges may run to the end of the current week, never further. */
+export const endOfWeek = (day: string, startsOn = 1) => addDays(weekStart(day, startsOn), 6);
 
 /** Today in the company's timezone and its week start, which every range in the time module uses. */
 export function useCompanyDay() {
   const { me } = useMe();
-  return { today: todayIn(me.company.timezone), startsOn: me.company.weekStartsOn || 1 };
+  const today = todayIn(me.company.timezone), startsOn = me.company.weekStartsOn || 1;
+  return { today, startsOn, limit: endOfWeek(today, startsOn) };
 }
 
 /**
  * The selected range, kept in the URL (?from=&to=) so it survives reloads and moving between Timesheet and Time tracker.
- * Future dates are clamped to today.
+ * Dates past the end of the current week are clamped to it.
  */
 export function useRangeParam(fallback: Preset = "This week") {
   const [params, setParams] = useSearchParams();
-  const { today, startsOn } = useCompanyDay();
+  const { today, startsOn, limit } = useCompanyDay();
   const range = useMemo<Range>(() => {
     let from = params.get("from") ?? "", to = params.get("to") ?? "";
     // Older links point at a week (?week=YYYY-MM-DD).
@@ -44,11 +48,11 @@ export function useRangeParam(fallback: Preset = "This week") {
     if ((!DATE.test(from) || !DATE.test(to)) && week && DATE.test(week)) { from = weekStart(week, startsOn); to = addDays(from, 6); }
     if (!DATE.test(from) || !DATE.test(to)) return presetRange(fallback, today, startsOn);
     if (from > to) [from, to] = [to, from];
-    if (to > today) to = today;
-    if (from > today) from = today;
+    if (to > limit) to = limit;
+    if (from > limit) from = limit;
     if (daysBetween(from, to) >= MAX_RANGE_DAYS) from = addDays(to, -(MAX_RANGE_DAYS - 1));
     return { from, to };
-  }, [params, today, startsOn, fallback]);
+  }, [params, today, startsOn, limit, fallback]);
   const setRange = useCallback((r: Range) => {
     const p = new URLSearchParams(params);
     const def = presetRange(fallback, today, startsOn);
@@ -60,65 +64,70 @@ export function useRangeParam(fallback: Preset = "This week") {
 }
 
 /** The range one step earlier or later: whole weeks and months stay whole, anything else moves by its own length. */
-function step(r: Range, dir: -1 | 1, today: string, startsOn: number): Range {
+function step(r: Range, dir: -1 | 1, limit: string, startsOn: number): Range {
   const n = daysBetween(r.from, r.to) + 1;
   // A single day moves by a day, even on the first day of the week.
   if (n > 1 && r.from === weekStart(r.from, startsOn) && n <= 7) {
     const from = addDays(r.from, 7 * dir);
-    return { from, to: addDays(from, 6) > today ? today : addDays(from, 6) };
+    return { from, to: addDays(from, 6) > limit ? limit : addDays(from, 6) };
   }
-  if (r.from === monthStart(r.from) && (r.to === monthEnd(r.from) || r.to === today) && n > 7) {
+  if (r.from === monthStart(r.from) && (r.to === monthEnd(r.from) || r.to === limit) && n > 7) {
     const from = monthStart(dir < 0 ? addDays(r.from, -1) : addDays(monthEnd(r.from), 1));
     const end = monthEnd(from);
-    return { from, to: end > today ? today : end };
+    return { from, to: end > limit ? limit : end };
   }
   const from = addDays(r.from, n * dir);
   const to = addDays(r.to, n * dir);
-  return { from, to: to > today ? today : to };
+  return { from, to: to > limit ? limit : to };
 }
 
 /**
  * Shared date range control for the time module: single day or range, Today / This week / Last week / This month presets,
  * previous and next, future dates disabled. Weeks start on the company's week start and "today" is the company's today.
  */
-export function TimeRangeControl({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
-  const { today, startsOn } = useCompanyDay();
-  const single = value.from === value.to;
-  const next = step(value, 1, today, startsOn);
-  const atEnd = value.to >= today;
+export function TimeRangeControl({ value, onChange, rangeOnly }: { value: Range; onChange: (r: Range) => void; rangeOnly?: boolean }) {
+  const { today, startsOn, limit } = useCompanyDay();
+  const single = !rangeOnly && value.from === value.to;
+  const next = step(value, 1, limit, startsOn);
+  const atEnd = value.to >= limit;
+  const week = presetRange("This week", today, startsOn);
   const label = single ? `${fmtDate(value.from)}${value.from === today ? " (today)" : ""}` : `${fmtDate(value.from)} – ${fmtDate(value.to)}`;
   return (
     <div className="row gap-4" style={{ flexWrap: "wrap" }}>
-      <SegmentedControl<"day" | "range">
-        aria-label="Date mode"
-        value={single ? "day" : "range"}
-        onChange={(m) => onChange(m === "day" ? { from: value.to, to: value.to } : presetRange("This week", value.to, startsOn))}
-        options={[{ value: "day", label: "Day" }, { value: "range", label: "Range" }]}
-      />
-      <span className="range-break" aria-hidden />
+      {!rangeOnly && (
+        <>
+          <SegmentedControl<"day" | "range">
+            aria-label="Date mode"
+            value={single ? "day" : "range"}
+            onChange={(m) => onChange(m === "day" ? { from: value.to > today ? today : value.to, to: value.to > today ? today : value.to } : presetRange("This week", value.to, startsOn))}
+            options={[{ value: "day", label: "Day" }, { value: "range", label: "Range" }]}
+          />
+          <span className="range-break" aria-hidden />
+        </>
+      )}
       <PeriodNav
         unit={single ? "day" : "period"}
         label={label}
         date={value.from}
-        max={today}
-        onPick={(v) => { const d = v > today ? today : v; onChange({ from: d, to: d }); }}
+        max={limit}
+        onPick={(v) => { const d = v > limit ? limit : v; onChange({ from: d, to: d }); }}
         picker={single ? undefined : (
           <DateRangePicker
             size="sm"
             value={value}
-            max={today}
+            max={limit}
             weekStartsOn={startsOn === 7 ? 0 : 1}
             presets={[...RANGE_PRESETS]}
             presetFn={(name) => presetRange(name, today, startsOn)}
-            onChange={(r) => onChange({ from: r.from, to: r.to > today ? today : r.to })}
+            onChange={(r) => onChange({ from: r.from, to: r.to > limit ? limit : r.to })}
           />
         )}
-        onPrev={() => onChange(step(value, -1, today, startsOn))}
+        onPrev={() => onChange(step(value, -1, limit, startsOn))}
         onNext={() => onChange(next)}
         nextDisabled={atEnd}
-        onToday={() => onChange(single ? { from: today, to: today } : presetRange("This week", today, startsOn))}
+        onToday={() => onChange(single ? { from: today, to: today } : week)}
         todayLabel={single ? "Today" : "This week"}
-        atToday={single ? value.from === today : (value.from === presetRange("This week", today, startsOn).from && value.to === today)}
+        atToday={single ? value.from === today : (value.from === week.from && value.to === week.to)}
       />
     </div>
   );

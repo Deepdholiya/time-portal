@@ -19,7 +19,7 @@ export function AppLayout() {
   const loc = useLocation();
   const search = useRef<TopBarHandle>(null);
   const [drawer, setDrawer] = useState(false);
-  const [hideNav, setHideNav] = useLocal("nav:hidden", false);
+  const [collapsed, setCollapsed] = useLocal("nav:collapsed", false);
   const [taskId, setTaskId] = useState<number | null>(null);
   const [newTask, setNewTask] = useState<{ open: boolean; defaults?: NewTaskDefaults; onCreated?: (t: { id: number }) => void }>({ open: false });
   const [entry, setEntry] = useState<EntryState>({ open: false });
@@ -45,8 +45,8 @@ export function AppLayout() {
 
   return (
     <ShellContext.Provider value={shell}>
-      <div className={`${s.app} ${hideNav ? s.sidebarHidden : ""}`}>
-        <div className={s.desktopSidebar}><Sidebar /></div>
+      <div className={s.app}>
+        <div className={s.desktopSidebar}><Sidebar collapsed={collapsed} /></div>
         {drawer && (
           <div className={s.drawer}>
             <div className={s.drawerBackdrop} onClick={() => setDrawer(false)} />
@@ -54,7 +54,7 @@ export function AppLayout() {
           </div>
         )}
         <main className={s.main}>
-          <TopBar ref={search} onMenu={() => setDrawer(true)} onToggleSidebar={() => setHideNav(!hideNav)} />
+          <TopBar ref={search} onMenu={() => setDrawer(true)} onToggleSidebar={() => setCollapsed(!collapsed)} />
           <div className={s.content}>
             <Suspense fallback={<Loading />}>
               <Outlet />

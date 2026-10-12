@@ -49,7 +49,7 @@ export default function TeamTime() {
       toolbar={
         <div style={{ width: "100%" }}>
           <FilterBar value={filters} onChange={setStored} showRange={false} hide={["status"]}
-            leading={<TimeRangeControl value={rangeSel} onChange={setRange} />}
+            leading={<TimeRangeControl value={rangeSel} onChange={setRange} rangeOnly />}
             trailing={<Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>}
             extra={{ sections: [{ key: "rows", label: "Rows", icon: <Rows3 size={13} />, single: true, required: true, defaultValue: "employee", options: GROUPS }], value: { rows: [groupBy] }, onChange: (v) => setGroupBy((v.rows?.[0] as GroupBy) ?? "employee") }} />
         </div>

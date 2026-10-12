@@ -31,7 +31,7 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
   const { me, can } = useMe();
   const shell = useShell();
   const [params, setParams] = useSearchParams();
-  const view = (["month", "week", "day"].includes(params.get("cal") ?? "") ? params.get("cal") : "month") as View;
+  const view = (["month", "week", "day"].includes(params.get("cal") ?? "") ? params.get("cal") : "week") as View;
   const date = params.get("date") || today();
   const startsOn = me.company.weekStartsOn || 1;
   const viewAll = can("timesheetsView", "all");
@@ -100,7 +100,7 @@ export function CalendarView({ tabs }: { tabs: ReactNode }) {
       actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button>}
       toolbar={
         <>
-          <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ cal: v === "month" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
+          <SegmentedControl<View> aria-label="Calendar view" value={view} onChange={(v) => set({ cal: v === "week" ? null : v })} options={[{ value: "month", label: "Month" }, { value: "week", label: "Week" }, { value: "day", label: "Day" }]} />
           <PeriodNav
             unit={view}
             label={title}

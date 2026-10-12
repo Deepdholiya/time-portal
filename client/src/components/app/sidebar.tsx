@@ -16,11 +16,12 @@ function useCounts() {
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      const [n, lv] = await Promise.all([
+      const [n, lv, rb] = await Promise.all([
         get<{ unread: number }>("/notifications/count").catch(() => ({ unread: 0 })),
         can("leaveApprove", "yes") ? get<unknown[]>("/leave/approvals").catch(() => []) : Promise.resolve([]),
+        can("expenseApprove", "yes") ? get<unknown[]>("/reimbursements", { scope: "approvals", status: "PENDING" }).catch(() => []) : Promise.resolve([]),
       ]);
-      if (alive) setCounts({ inbox: n.unread, approvals: lv.length });
+      if (alive) setCounts({ inbox: n.unread, approvals: lv.length + rb.length });
     };
     load();
     const i = setInterval(load, 45_000);
@@ -35,9 +36,9 @@ export const refreshCounts = () => window.dispatchEvent(new Event("tp:counts"));
 /**
  * One-column navigation in the style of ElevenLabs: the product name, a workspace switcher, then every area's pages under a
  * small heading. Areas fold away (Admin starts folded unless you are on one of its pages). An invite card sits at the bottom
- * for people who can invite.
+ * for people who can invite. Collapsed, it becomes an icon rail: every page keeps its icon and names itself in a tooltip.
  */
-export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+export function Sidebar({ onNavigate, collapsed = false }: { onNavigate?: () => void; collapsed?: boolean }) {
   const { me, can, switchCompany } = useSession();
   const shell = useShell();
   const nav = useNavigate();
@@ -59,13 +60,17 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const item = (it: NavItem) => {
     const n = it.badge ? counts[it.badge] : 0;
     const q = quick[it.to];
+    const link = (
+      <NavLink to={it.to} end={it.to === "/"} onClick={onNavigate} aria-label={collapsed ? it.label : undefined} className={({ isActive }) => `${s.item} ${isActive ? s.active : ""}`}>
+        <it.icon size={18} strokeWidth={1.7} />
+        {!collapsed && <span className="ellipsis">{it.label}</span>}
+        {n > 0 && <span className={`${s.count} ${it.badge === "inbox" ? s.brandCount : ""}`}>{n}</span>}
+      </NavLink>
+    );
+    if (collapsed) return <div key={it.to} className={s.itemWrap}><Tooltip content={n > 0 ? `${it.label} (${n})` : it.label} side="right"><span className={s.tipWrap}>{link}</span></Tooltip></div>;
     return (
       <div key={it.to} className={s.itemWrap}>
-        <NavLink to={it.to} end={it.to === "/"} onClick={onNavigate} className={({ isActive }) => `${s.item} ${isActive ? s.active : ""}`}>
-          <it.icon size={18} strokeWidth={1.7} />
-          <span className="ellipsis">{it.label}</span>
-          {n > 0 && <span className={`${s.count} ${it.badge === "inbox" ? s.brandCount : ""}`}>{n}</span>}
-        </NavLink>
+        {link}
         {q && (
           <Tooltip content={q.label} side="right">
             <button type="button" className={s.quick} aria-label={q.label} onClick={q.run}><Plus size={13} /></button>
@@ -78,6 +83,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const section = (sec: NavSection) => {
     const items = sec.groups.flatMap((g) => g.items);
     if (sec.id === "home") return <div key={sec.id} className={s.section}>{items.map(item)}</div>;
+    if (collapsed) return <div key={sec.id} className={s.section}><span className={s.railRule} aria-hidden />{items.map(item)}</div>;
     const closed = !!folded[sec.id] && sec.id !== current;
     return (
       <div key={sec.id} className={s.section}>
@@ -91,10 +97,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   };
 
   return (
-    <aside className={s.sidebar} aria-label="Main navigation">
+    <aside className={`${s.sidebar} ${collapsed ? s.collapsed : ""}`} aria-label="Main navigation">
       <div className={s.brandRow}>
         <ProductMark size={24} />
-        <span className={s.wordmark}>Time Portal</span>
+        {!collapsed && <span className={s.wordmark}>Time Portal</span>}
       </div>
       <div className={s.workspaceRow}>
         <Menu
@@ -102,8 +108,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           trigger={
             <button type="button" className={s.workspace} aria-label={`${c.name}: switch workspace`}>
               <span className={s.logo} style={{ background: c.color }}>{c.name[0]}</span>
-              <span className="ellipsis grow">{c.name}</span>
-              <ChevronsUpDown size={14} className="faint" />
+              {!collapsed && <span className="ellipsis grow">{c.name}</span>}
+              {!collapsed && <ChevronsUpDown size={14} className="faint" />}
             </button>
           }
           items={[
@@ -121,7 +127,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
       <nav className={s.scroll} aria-label="Pages">
         {sections.map(section)}
-      {can("people", "invite") && !hideInvite && (
+      {can("people", "invite") && !hideInvite && !collapsed && (
         <div className={s.invite}>
           <button type="button" className={s.inviteClose} aria-label="Hide" onClick={() => setHideInvite(true)}>×</button>
           <span className={s.inviteIcon}><Send size={14} /></span>

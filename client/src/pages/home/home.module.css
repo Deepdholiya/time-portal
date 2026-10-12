@@ -1,4 +1,4 @@
-.body { padding: 24px var(--gutter) 48px; display: flex; flex-direction: column; gap: 16px; max-width: 1320px; }
+.body { padding: 24px var(--gutter) 48px; display: flex; flex-direction: column; gap: 16px; }
 .greet { display: flex; align-items: baseline; gap: 10px; }
 .greet h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
 .kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); }

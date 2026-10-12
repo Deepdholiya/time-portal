@@ -1,22 +1,24 @@
 import { useState } from "react";
-import { Check, X } from "lucide-react";
-import { Avatar, Badge, Button, Dialog, EmptyState, Field, SegmentedControl, SkeletonRows, Textarea, toast } from "@/components/ui";
+import { CalendarCheck, Check, X } from "lucide-react";
+import { Avatar, Badge, Button, Dialog, EmptyState, Field, SkeletonRows, Textarea, toast } from "@/components/ui";
 import { refreshCounts } from "@/components/app/sidebar";
 import { post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { fmtDate, relTime, titleCase } from "@/lib/format";
 import { LoadError } from "../analytics/entries";
-import s from "./approvals.module.css";
 
-type Status = "PENDING" | "APPROVED" | "REJECTED";
+export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
+type Status = ApprovalStatus;
 interface Leave {
   id: number; type: string; from: string; to: string; halfDay: boolean; reason: string | null; status: Status; reviewNote: string | null; createdAt: string;
   user: { id: number; name: string }; reviewedBy: { name: string } | null; days: number;
 }
 const TYPE_TONE: Record<string, "blue" | "red" | "purple" | "gray"> = { VACATION: "blue", SICK: "red", PERSONAL: "purple", OTHER: "gray" };
 
-export function LeaveApprovals() {
-  const [status, setStatus] = useState<Status>("PENDING");
+export const STATUS_OPTIONS: { value: ApprovalStatus; label: string }[] = [{ value: "PENDING", label: "Pending" }, { value: "APPROVED", label: "Approved" }, { value: "REJECTED", label: "Declined" }];
+
+/** Leave requests for one status. The status switch lives in the Approvals page toolbar. */
+export function LeaveApprovals({ status }: { status: Status }) {
   const { data, error, loading, reload } = useApi<Leave[]>("/leave/approvals", { status });
   const [busy, setBusy] = useState<number | null>(null);
   const [reject, setReject] = useState<Leave | null>(null);
@@ -34,12 +36,8 @@ export function LeaveApprovals() {
 
   return (
     <div>
-      <div className={s.bar}>
-        <SegmentedControl aria-label="Status" value={status} onChange={setStatus}
-          options={[{ value: "PENDING", label: "Pending" }, { value: "APPROVED", label: "Approved" }, { value: "REJECTED", label: "Declined" }]} />
-      </div>
       {error ? <LoadError error={error} onRetry={reload} what="leave approvals" /> : loading && !data ? <SkeletonRows rows={5} /> : !data?.length ? (
-        <EmptyState title={status === "PENDING" ? "No leave requests waiting" : "Nothing here"} />
+        <EmptyState icon={<CalendarCheck size={22} />} title={status === "PENDING" ? "No leave requests waiting" : "Nothing here"} />
       ) : (
         <div className="table-wrap">
           <table className="table">

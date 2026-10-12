@@ -127,7 +127,7 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
   return (
     <header className={s.bar}>
       <IconButton className={s.menuBtn} label="Open menu" icon={<PanelLeft size={18} />} onClick={onMenu} />
-      <Tooltip content="Toggle sidebar"><IconButton className={s.hideSm} label="Toggle sidebar" icon={<PanelLeft size={18} />} onClick={onToggleSidebar} /></Tooltip>
+      <Tooltip content="Collapse or expand the sidebar"><IconButton className={s.hideSm} label="Collapse or expand the sidebar" icon={<PanelLeft size={18} />} onClick={onToggleSidebar} /></Tooltip>
       <Crumbs />
       <span className="grow" />
       <div className={s.searchWrap} ref={box}>

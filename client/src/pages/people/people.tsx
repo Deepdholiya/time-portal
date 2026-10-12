@@ -7,7 +7,7 @@ import { FilterMenu } from "@/components/app/filter-menu";
 import { InviteDialog } from "../admin/invite-dialogs";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
-import { addDays, hours, money, today, weekStart } from "@/lib/format";
+import { addDays, hours, today, weekStart } from "@/lib/format";
 import { RoleBadge, StatusBadge } from "../admin/shared";
 import s from "./people.module.css";
 import { SearchField } from "@/components/app/search-field";
@@ -22,7 +22,7 @@ export interface DirPerson {
 type Group = { id: number | string | null; minutes: number };
 
 export default function People() {
-  const { me, can, currency } = useMe();
+  const { me, can } = useMe();
   const nav = useNavigate();
   const [q, setQ] = useState("");
   const [team, setTeam] = useLocal(`people:team:${me.company.id}`, "");
@@ -38,8 +38,7 @@ export default function People() {
   const allHours = can("analytics", "all");
   const week = useApi<Group[]>(can("analytics", "own") ? "/analytics/group" : null, { groupBy: "employee", from: ws, to: addDays(ws, 6) });
   const minutesBy = useMemo(() => new Map((week.data ?? []).map((g) => [Number(g.id), g.minutes])), [week.data]);
-  const showRates = (data ?? []).some((p) => p.billRate !== undefined);
-  const cols = ["minmax(220px, 2.2fr)", "minmax(110px, 1fr)", "90px", "minmax(160px, 1.4fr)", ...(full ? ["100px", "70px"] : []), "120px", ...(showRates ? ["90px"] : [])].join(" ");
+  const cols = ["minmax(220px, 2.2fr)", "minmax(110px, 1fr)", "90px", "minmax(160px, 1.4fr)", ...(full ? ["100px", "70px"] : []), "120px"].join(" ");
 
   const toolbar = (
     <>
@@ -47,7 +46,7 @@ export default function People() {
       <FilterMenu placement="bottom-start"
         sections={[
           { key: "team", label: "Team", single: true, options: (teams.data ?? []).map((x) => ({ value: String(x.id), label: x.name, icon: <span className="dot" style={{ background: x.color }} /> })) },
-          { key: "role", label: "Role", single: true, options: [{ value: "ADMIN", label: "Admins" }, { value: "MANAGER", label: "Managers" }, { value: "EMPLOYEE", label: "Employees" }] },
+          { key: "role", label: "Role", single: true, options: (me.roles ?? []).map((r) => ({ value: r.key, label: r.name })) },
           ...(full ? [{ key: "status", label: "Status", single: true, required: true, defaultValue: "ACTIVE", options: [{ value: "", label: "Any status" }, { value: "ACTIVE", label: "Active" }, { value: "INVITED", label: "Invited" }, { value: "DEACTIVATED", label: "Inactive" }] }] : []),
         ]}
         value={{ team: team ? [team] : [], role: role ? [role] : [], status: [status] }}
@@ -70,7 +69,6 @@ export default function People() {
             {full && <span >Status</span>}
             {full && <span className="right">Capacity</span>}
             <span className="right">This week</span>
-            {showRates && <span className="right">Bill rate</span>}
           </div>
           {data.map((p) => {
             const min = minutesBy.get(p.id);
@@ -100,7 +98,6 @@ export default function People() {
                     </Tooltip>
                   ) : visible ? <span className="faint">0h</span> : <span className="faint">—</span>}
                 </span>
-                {showRates && <span className="right num muted">{p.billRate != null ? money(p.billRate, currency) : "—"}</span>}
               </div>
             );
           })}

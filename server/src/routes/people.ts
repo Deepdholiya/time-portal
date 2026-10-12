@@ -3,13 +3,13 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma, audit, notify, companySettings, parseJson } from "../db.js";
 import { HttpError, can, cid, requirePerm, tempPassword, uid } from "../auth.js";
-import { FEATURES, getPermissions, rolePermissions, type Feature } from "../permissions.js";
+import { FEATURES, getPermissions, isCustomRole, isRoleKey, rolePermissions, type Feature } from "../permissions.js";
 import { appUrl, sendMail } from "../mail.js";
 
 export const peopleRouter = Router();
 const canInvite = requirePerm("people", "invite");
 const canManage = requirePerm("people", "manage");
-const ROLE = z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]);
+const ROLE = z.string().refine(isRoleKey, "Unknown role");
 
 async function member(req: Request, userId: number) {
   const m = await prisma.membership.findUnique({ where: { companyId_userId: { companyId: cid(req), userId } }, include: { user: true, team: true } });
@@ -83,8 +83,9 @@ const inviteSchema = z.object({
 
 async function deliverInvite(req: Request, inv: { id: number; email: string; name: string; role: string }, password: string, expiresAt: Date) {
   const company = req.company!;
+  const roleName = (await prisma.customRole.findUnique({ where: { companyId_key: { companyId: company.id, key: inv.role } } }))?.name ?? inv.role.toLowerCase();
   const body = (pw: string) =>
-    `Hi ${inv.name},\n\n${req.user!.name} invited you to ${company.name} on Time Portal as ${inv.role.toLowerCase()}.\n\nSign in at: ${appUrl()}/login\nEmail: ${inv.email}\nTemporary password: ${pw}\n\nThe temporary password works until ${expiresAt.toUTCString()}. You'll be asked to choose your own password the first time you sign in, and the temporary one stops working after that.`;
+    `Hi ${inv.name},\n\n${req.user!.name} invited you to ${company.name} on Time Portal as ${roleName}.\n\nSign in at: ${appUrl()}/login\nEmail: ${inv.email}\nTemporary password: ${pw}\n\nThe temporary password works until ${expiresAt.toUTCString()}. You'll be asked to choose your own password the first time you sign in, and the temporary one stops working after that.`;
   await sendMail({ companyId: company.id, kind: "INVITATION", to: inv.email, subject: `You're invited to ${company.name} on Time Portal`, body: body(password), logBody: body("•••••• (shown once to the inviter)"), sentById: uid(req) });
 }
 
@@ -202,6 +203,7 @@ peopleRouter.put("/:id", canManage, async (req, res) => {
   if (d.role && d.role !== m.user.role) {
     if (!isAdmin) throw new HttpError(403, "Only admins can change roles");
     if (m.userId === uid(req)) throw new HttpError(400, "You can't change your own role");
+    if (isCustomRole(d.role) && !await prisma.customRole.findUnique({ where: { companyId_key: { companyId: cid(req), key: d.role } } })) throw new HttpError(400, "That role doesn't exist in this company");
   }
   if (d.costRate !== undefined && !isAdmin) throw new HttpError(403, "Only admins can set cost rates");
   if (d.billRate !== undefined && !can(req, "financials", "view")) throw new HttpError(403, "You can't set bill rates");
@@ -223,7 +225,7 @@ peopleRouter.put("/:id", canManage, async (req, res) => {
     if (remove.length) await prisma.membership.deleteMany({ where: { userId: m.userId, companyId: { in: remove } } });
   }
   await audit(req, "user_updated", "user", m.userId, { old: before, new: d });
-  if (d.role && d.role !== m.user.role) await notify([m.userId], { companyId: cid(req), type: "ACCESS_CHANGED", title: `Your role is now ${d.role.toLowerCase()}`, link: "/profile" });
+  if (d.role && d.role !== m.user.role) await notify([m.userId], { companyId: cid(req), type: "ACCESS_CHANGED", title: `Your role is now ${(await prisma.customRole.findUnique({ where: { companyId_key: { companyId: cid(req), key: d.role } } }))?.name ?? d.role.toLowerCase()}`, link: "/profile" });
   res.json({ ok: true });
 });
 

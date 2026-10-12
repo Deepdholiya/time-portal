@@ -9,6 +9,7 @@ export const FEATURES = {
   editOthersTime: { label: "Edit others' time", group: "Time", levels: ["no", "yes"], help: "Add, edit and delete time for other people" },
   approveTimesheets: { label: "Approve timesheets", group: "Time", levels: ["no", "yes"], help: "Approve or send back weekly timesheets, unlock approved weeks" },
   leaveApprove: { label: "Approve leave", group: "Time", levels: ["no", "yes"], help: "Approve or reject leave requests" },
+  expenseApprove: { label: "Approve reimbursements", group: "Time", levels: ["no", "yes"], help: "Approve or reject reimbursement requests" },
   analytics: { label: "Analytics", group: "Insights", levels: ["none", "own", "all"], help: "Dashboards, reports and drill-down" },
   financials: { label: "Financials", group: "Insights", levels: ["none", "view"], help: "Rates, revenue, cost, profit and budgets" },
   export: { label: "Export", group: "Insights", levels: ["none", "own", "all"], help: "Excel, CSV and PDF exports" },
@@ -31,12 +32,12 @@ const ALL_MAX = Object.fromEntries(Object.entries(FEATURES).map(([k, f]) => [k, 
 export const DEFAULTS: Record<Role, Permissions> = {
   ADMIN: ALL_MAX,
   MANAGER: {
-    timesheetsView: "all", editOthersTime: "yes", approveTimesheets: "yes", leaveApprove: "yes", analytics: "all", financials: "none",
+    timesheetsView: "all", editOthersTime: "yes", approveTimesheets: "yes", leaveApprove: "yes", expenseApprove: "yes", analytics: "all", financials: "none",
     export: "all", roadmap: "edit", projects: "manage", tasks: "manage", directory: "full", people: "none", aiAssist: "yes",
     clientEmail: "yes", audit: "no", settings: "no", companies: "no",
   },
   EMPLOYEE: {
-    timesheetsView: "own", editOthersTime: "no", approveTimesheets: "no", leaveApprove: "no", analytics: "own", financials: "none",
+    timesheetsView: "own", editOthersTime: "no", approveTimesheets: "no", leaveApprove: "no", expenseApprove: "no", analytics: "own", financials: "none",
     export: "own", roadmap: "view", projects: "view", tasks: "create", directory: "limited", people: "none", aiAssist: "yes",
     clientEmail: "no", audit: "no", settings: "no", companies: "no",
   },
@@ -46,6 +47,10 @@ const valid = (feature: string, level: string) => {
   const f = FEATURES[feature as Feature];
   return !!f && (f.levels as readonly string[]).includes(level);
 };
+
+/** Custom roles are keyed "CUSTOM_<id>"; they start from Employee defaults and store every level they change. */
+export const isCustomRole = (role: string) => role.startsWith("CUSTOM_");
+export const isRoleKey = (role: string) => (ROLES as readonly string[]).includes(role) || /^CUSTOM_\d+$/.test(role);
 
 export async function rolePermissions(companyId: number, role: string): Promise<Permissions> {
   const base = { ...(DEFAULTS[role as Role] ?? DEFAULTS.EMPLOYEE) };
@@ -71,8 +76,20 @@ export const atLeast = (perms: Permissions, feature: Feature, level: string) => 
 
 export async function getMatrix(companyId: number) {
   const out: Record<string, Permissions> = {};
-  for (const role of ROLES) out[role] = await rolePermissions(companyId, role);
+  const custom = await prisma.customRole.findMany({ where: { companyId }, select: { key: true }, orderBy: { id: "asc" } });
+  for (const role of [...ROLES, ...custom.map((c) => c.key)]) out[role] = await rolePermissions(companyId, role);
   return out;
+}
+
+/** Every role in the company with its display name, built-in ones first. */
+export async function companyRoles(companyId: number) {
+  const custom = await prisma.customRole.findMany({ where: { companyId }, orderBy: { id: "asc" } });
+  return [
+    { key: "ADMIN", name: "Admin", builtIn: true, description: "Full access to everything, always." },
+    { key: "MANAGER", name: "Manager", builtIn: true, description: "Runs projects and teams, approves time and leave." },
+    { key: "EMPLOYEE", name: "Employee", builtIn: true, description: "Logs time, works on tasks, requests leave." },
+    ...custom.map((c) => ({ key: c.key, name: c.name, builtIn: false, description: c.description ?? "" })),
+  ];
 }
 
 // Project ids (including sub-projects) inside the company that the user can see and log time against.
