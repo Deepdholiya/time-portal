@@ -75,9 +75,9 @@ export function CalendarGrid({ days, view, month, buckets, layers, workDays, can
             );
           }
           const off = !workDays.has(weekday(d));
-          // A day with nothing on it opens the log time dialog straight away; a busy day opens its details.
+          // Clicking a day opens Log time for it; days that can't take time (future, or no permission) open their details.
           const canLogDay = !!onLog && d <= t0;
-          const open = () => (canLogDay && chips.length === 0 ? onLog!(d) : onOpenDay(d));
+          const open = () => (canLogDay ? onLog!(d) : onOpenDay(d));
           const outside = month ? d.slice(0, 7) !== month : false;
           return (
             <div

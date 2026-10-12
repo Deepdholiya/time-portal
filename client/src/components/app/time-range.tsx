@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { Button, DatePicker, DateRangePicker, IconButton, SegmentedControl } from "@/components/ui";
+import { DatePicker, DateRangePicker, IconButton, SegmentedControl } from "@/components/ui";
 import { addDays, daysBetween, fmtDate, monthEnd, monthStart, todayIn, weekStart } from "@/lib/format";
 import { useMe } from "@/lib/session";
 
@@ -137,9 +137,10 @@ export function TimeRangeControl({ value, onChange, rangeOnly }: { value: Range;
  * The one period selector used across the app: previous, the period itself (click to pick a date on a calendar), next, and a
  * jump back to the current period. Every week, month or day view uses this, in this order.
  */
-export function PeriodNav({ label, date, onPick, onPrev, onNext, onToday, todayLabel = "Today", atToday, nextDisabled, max, picker, unit = "period" }: {
-  label: ReactNode; date?: string; onPick?: (d: string) => void; onPrev: () => void; onNext: () => void; onToday?: () => void; todayLabel?: string;
-  atToday?: boolean; nextDisabled?: boolean; max?: string; picker?: ReactNode; unit?: string;
+export function PeriodNav({ label, date, onPick, onPrev, onNext, nextDisabled, max, picker, unit = "period" }: {
+  label: ReactNode; date?: string; onPick?: (d: string) => void; onPrev: () => void; onNext: () => void;
+  /** No longer drawn: the picker's own presets jump back to today or this week. Kept so callers needn't change. */
+  onToday?: () => void; todayLabel?: string; atToday?: boolean; nextDisabled?: boolean; max?: string; picker?: ReactNode; unit?: string;
 }) {
   // Drawn like the date range picker's trigger: calendar icon, the period, a chevron.
   const chip = (
@@ -154,7 +155,6 @@ export function PeriodNav({ label, date, onPick, onPrev, onNext, onToday, todayL
       <IconButton size="sm" variant="secondary" label={`Previous ${unit}`} icon={<ChevronLeft size={14} />} onClick={onPrev} />
       {picker ?? (onPick ? <DatePicker value={date ?? null} max={max} clearable={false} size="sm" onChange={(v) => v && onPick(v)} trigger={chip} /> : chip)}
       <IconButton size="sm" variant="secondary" label={`Next ${unit}`} icon={<ChevronRight size={14} />} disabled={nextDisabled} onClick={onNext} />
-      {onToday && <Button size="sm" variant="ghost" disabled={atToday} onClick={onToday}>{todayLabel}</Button>}
     </div>
   );
 }

@@ -9,9 +9,10 @@
   --font-body: var(--font);
   --mono: var(--font);
 
-  --brand: #ff4c00;
-  --brand-hover: #e84500;
-  --brand-foreground: #ffffff;
+  /* The company's colour (Company settings → Colour) drives the brand; orange is the fallback. */
+  --brand: var(--company-brand, #ff4c00);
+  --brand-hover: color-mix(in oklab, var(--brand) 86%, black);
+  --brand-foreground: var(--company-brand-fg, #ffffff);
 
   /* One corner radius everywhere: 8px for controls, cards, menus, sheets and charts. Pills stay for counts, tags and avatars. */
   --sh-radius: 8px;
@@ -53,8 +54,8 @@
   --sh-sidebar: #fafafa;
   --sh-sidebar-accent: #efefef;
   --sh-sidebar-border: #ebebeb;
-  --brand-soft: #fff1ea;
-  --brand-text: #d94000;
+  --brand-soft: color-mix(in oklab, var(--brand) 9%, white);
+  --brand-text: color-mix(in oklab, var(--brand) 82%, black);
   --text-3: #9a9a9a;
   --bg-active: #ebebeb;
   --bg-subtle: #fafafa;
@@ -75,8 +76,8 @@
   --sh-accent: #1f1f1f;
   --sh-sidebar: #0b0b0b;
   --sh-sidebar-accent: #222222;
-  --brand-soft: #2f1a10;
-  --brand-text: #ff7a40;
+  --brand-soft: color-mix(in oklab, var(--brand) 18%, #111111);
+  --brand-text: color-mix(in oklab, var(--brand) 72%, white);
   --bg-subtle: #151515;
 }
 

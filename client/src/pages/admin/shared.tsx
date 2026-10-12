@@ -64,10 +64,10 @@ export function SecretOnce({ label = "Temporary password", value, children }: { 
 }
 
 /** Colour picker limited to a quiet palette plus a custom value. */
-export const PALETTE = ["#5e6ad2", "#26b5ce", "#4cb782", "#e0b400", "#f2994a", "#eb5757", "#bb87fc", "#d96ba4", "#4ea7fc", "#95a2b3"];
+export const PALETTE = ["#ff4c00", "#5e6ad2", "#26b5ce", "#4cb782", "#e0b400", "#f2994a", "#eb5757", "#bb87fc", "#d96ba4", "#4ea7fc", "#95a2b3"];
 export function ColorPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div className="row wrap gap-4">
+    <div className={s.colors}>
       {PALETTE.map((c) => (
         <button
           key={c} type="button" aria-label={`Colour ${c}`} className={s.colorBtn} data-active={c.toLowerCase() === value.toLowerCase() || undefined}

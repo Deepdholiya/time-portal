@@ -14,7 +14,7 @@ export function CompanyDialog({ company, onClose, onCreated }: { company: Compan
   const [f, setF] = useState({
     name: company?.name ?? "", color: company?.color ?? "#5e6ad2", logoUrl: company?.logoUrl ?? "", country: company?.country ?? "India", timezone: company?.timezone ?? "Asia/Kolkata",
     currency: company?.currency ?? "INR", workWeek: company?.workWeek ?? "1,2,3,4,5", weekStartsOn: String(company?.weekStartsOn ?? 1), hoursPerDay: String(company?.hoursPerDay ?? 8),
-    billingNotes: company?.billingNotes ?? "", taskKey: company?.settings.taskKey ?? "",
+    billingNotes: company?.billingNotes ?? "", taskKey: company?.settings.taskKey ?? "", workdayStart: company?.settings.workdayStart ?? "09:30",
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<Record<string, string>>({});
@@ -33,6 +33,7 @@ export function CompanyDialog({ company, onClose, onCreated }: { company: Compan
         name: f.name.trim(), color: f.color, logoUrl: f.logoUrl.trim() || null, country: f.country.trim(), timezone: f.timezone, currency: f.currency,
         workWeek: f.workWeek, weekStartsOn: Number(f.weekStartsOn), hoursPerDay: Number(f.hoursPerDay) || 8, billingNotes: f.billingNotes.trim() || null,
         ...(f.taskKey ? { taskKey: f.taskKey } : {}),
+        workdayStart: f.workdayStart,
       };
       if (company) {
         await put(`/companies/${company.id}`, body);
@@ -63,6 +64,7 @@ export function CompanyDialog({ company, onClose, onCreated }: { company: Compan
         <Field label="Timezone"><Select value={f.timezone} onChange={(v) => set("timezone", v)} options={[...new Set([f.timezone, ...TIMEZONES])].map((t) => ({ value: t, label: t }))} /></Field>
         <Field label="Currency"><Select value={f.currency} onChange={(v) => set("currency", v)} options={[...new Set([f.currency, ...CURRENCIES])].map((c) => ({ value: c, label: c }))} /></Field>
         <Field label="Hours per day"><Input type="number" min={1} max={24} step="0.5" value={f.hoursPerDay} onChange={(e) => set("hoursPerDay", e.target.value)} suffix="h" /></Field>
+        <Field label="Work starts at" hint="Default start time for the first entry of a day."><Input type="time" value={f.workdayStart} onChange={(e) => set("workdayStart", e.target.value)} /></Field>
         <Field label="Work week" error={err.workWeek}><WorkWeekPicker value={f.workWeek} onChange={(v) => set("workWeek", v)} /></Field>
         <Field label="Week starts on"><Select value={f.weekStartsOn} onChange={(v) => set("weekStartsOn", v)} options={DAYS.map((d) => ({ value: String(d.value), label: d.label }))} /></Field>
         <Field label="Colour" className="full"><ColorPicker value={f.color} onChange={(v) => set("color", v)} /></Field>

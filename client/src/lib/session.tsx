@@ -1,3 +1,4 @@
+import { applyBrand } from "./brand";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, ApiError, post } from "./api";
 import { invalidate } from "./hooks";
@@ -43,6 +44,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { applyBrand(me?.company.color); }, [me?.company.color]);
   useEffect(() => {
     const h = () => refresh();
     window.addEventListener("tp:session", h);

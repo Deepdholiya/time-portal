@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { Info, Lock, MoreHorizontal, Pencil, Plus, ShieldCheck, Trash2, UserCog, Users } from "lucide-react";
+import { ChevronDown, Lock, MoreHorizontal, Pencil, Plus, ShieldCheck, Trash2, UserCog, Users } from "lucide-react";
 import { Page } from "@/components/app/page";
 import { SearchField } from "@/components/app/search-field";
-import { Avatar, Button, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, Select, SkeletonRows, Tabs, Textarea, Tooltip, toast } from "@/components/ui";
+import { Avatar, Button, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, Select, SkeletonRows, Switch, Tabs, Textarea, Tooltip, toast } from "@/components/ui";
 import { del, patch, post, put } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
@@ -16,6 +16,29 @@ type Matrix = Record<string, Record<string, string>>;
 type RoleInfo = { key: string; name: string; builtIn: boolean; description: string; members: number };
 type Resp = { features: Record<string, FeatureDef>; roles: string[]; roleList: RoleInfo[]; matrix: Matrix };
 
+/** Plain-language names for each step of a feature. The first step is everyone's floor, so it gets no toggle. */
+const STEP_LABELS: Record<string, Record<string, string>> = {
+  timesheetsView: { all: "View everyone's timesheets" },
+  analytics: { own: "View own analytics", all: "View everyone's analytics" },
+  financials: { view: "View rates, revenue and budgets" },
+  export: { own: "Export own data", all: "Export everyone's data" },
+  roadmap: { view: "View roadmap", edit: "Edit roadmap" },
+  projects: { manage: "Create and manage projects" },
+  tasks: { create: "Create tasks", manage: "Assign and manage all tasks" },
+  directory: { full: "See confidential employee details" },
+  people: { invite: "Invite people", manage: "Manage users" },
+};
+
+type PermRow = { feature: string; index: number; label: string; help: string };
+/** One toggle row per step above the floor. Levels are cumulative, so turning a step on grants every step below it. */
+function permRows(key: string, f: FeatureDef): PermRow[] {
+  return f.levels.slice(1).map((level, i) => ({
+    feature: key, index: i + 1,
+    label: f.levels.length === 2 && !STEP_LABELS[key]?.[level] ? f.label : STEP_LABELS[key]?.[level] ?? `${f.label}: ${titleCase(level)}`,
+    help: f.help,
+  }));
+}
+
 /**
  * Roles & permissions. "Roles" is the matrix: Admin is locked to full access, every other role (built-in or one the admin
  * added) is edited cell by cell. "People" sets one person's role and their own access on top of it, feature by feature.
@@ -27,6 +50,7 @@ export default function Roles() {
   const [saving, setSaving] = useState<string | null>(null);
   const [form, setForm] = useState<RoleInfo | "new" | null>(null);
   const [removing, setRemoving] = useState<RoleInfo | null>(null);
+  const [closed, setClosed] = useState<string[]>([]);
 
   const editable = (data?.roleList ?? []).filter((r) => r.key !== "ADMIN");
   const change = async (role: RoleInfo, feature: string, level: string) => {
@@ -37,7 +61,7 @@ export default function Roles() {
     try {
       const matrix = await put<Matrix>("/settings/permissions", { role: role.key, feature, level });
       mutate({ ...data, matrix });
-      toast.success(`${role.name}: ${data.features[feature].label} → ${titleCase(level)}`);
+      toast.success(`${role.name}: ${data.features[feature].label} set to ${titleCase(level)}`);
       refresh();
     } catch (e) {
       mutate({ ...data, matrix: prev });
@@ -76,39 +100,54 @@ export default function Roles() {
             <table className={`table ${s.matrix}`}>
               <thead>
                 <tr>
-                  <th className={s.featureCol}>Feature</th>
-                  {admin && <th className={s.roleCol}><span className="row gap-4"><Lock size={12} />{roleHead(admin)}</span></th>}
+                  <th className={s.featureCol}>Permission</th>
+                  {admin && <th className={s.roleCol}><span className="row gap-4"><Lock size={12} className="faint" />{roleHead(admin)}</span></th>}
                   {editable.map((r) => <th key={r.key} className={s.roleCol}>{roleHead(r)}</th>)}
+                  <th className={s.fill} aria-hidden />
                 </tr>
               </thead>
-              {groups.map((g) => (
-                <tbody key={g}>
-                  <tr className={s.group}><td colSpan={editable.length + 2}>{g}</td></tr>
-                  {Object.entries(data.features).filter(([, f]) => f.group === g).map(([k, f]) => (
-                    <tr key={k}>
+              {groups.map((g) => {
+                const shut = closed.includes(g);
+                const rows = Object.entries(data.features).filter(([, f]) => f.group === g).flatMap(([k, f]) => permRows(k, f));
+                return (
+                  <tbody key={g}>
+                    <tr className={s.group}>
                       <td className={s.featureCol}>
-                        <Tooltip content={f.help}>
-                          <span className="row gap-4">{f.label}<Info size={12} className="faint" /></span>
-                        </Tooltip>
+                        <button type="button" className={s.groupBtn} aria-expanded={!shut} onClick={() => setClosed(shut ? closed.filter((x) => x !== g) : [...closed, g])}>
+                          <ChevronDown size={14} className={shut ? s.chevShut : s.chev} />{g}<span className={s.groupCount}>{rows.length}</span>
+                        </button>
                       </td>
-                      <td className={s.roleCol}><span className={s.locked}>{titleCase(data.matrix.ADMIN?.[k] ?? "")}</span></td>
-                      {editable.map((role) => {
-                        const blocked = role.key !== "EMPLOYEE" && k === "companies";
-                        return (
-                          <td key={role.key} className={s.roleCol}>
-                            <Select
-                              size="sm" value={data.matrix[role.key]?.[k] ?? f.levels[0]} onChange={(v) => change(role, k, v)} aria-label={`${role.name} ${f.label}`}
-                              disabled={saving === `${role.key}:${k}` || (blocked && role.key === "MANAGER")}
-                              options={f.levels.map((l) => ({ value: l, label: titleCase(l) }))}
-                              title={blocked && role.key === "MANAGER" ? "Managers can't be given company management" : undefined}
-                            />
-                          </td>
-                        );
-                      })}
+                      <td colSpan={editable.length + 2} />
                     </tr>
-                  ))}
-                </tbody>
-              ))}
+                    {!shut && rows.map((row) => (
+                      <tr key={`${row.feature}:${row.index}`} className={s.permRow}>
+                        <td className={s.featureCol}>
+                          <Tooltip content={row.help}><span className={s.permLabel}>{row.label}</span></Tooltip>
+                        </td>
+                        <td className={s.roleCol}><span className={s.cell}><Switch checked disabled onChange={() => {}} aria-label={`Admin: ${row.label}`} /></span></td>
+                        {editable.map((role) => {
+                          const levels = data.features[row.feature].levels;
+                          const cur = levels.indexOf(data.matrix[role.key]?.[row.feature] ?? levels[0]);
+                          const blocked = row.feature === "companies" && role.key !== "EMPLOYEE";
+                          return (
+                            <td key={role.key} className={s.roleCol}>
+                              <span className={s.cell}>
+                                <Switch
+                                  checked={cur >= row.index}
+                                  disabled={saving === `${role.key}:${row.feature}` || blocked}
+                                  onChange={(on) => change(role, row.feature, levels[on ? row.index : row.index - 1])}
+                                  aria-label={`${role.name}: ${row.label}`}
+                                />
+                              </span>
+                            </td>
+                          );
+                        })}
+                        <td className={s.fill} />
+                      </tr>
+                    ))}
+                  </tbody>
+                );
+              })}
             </table>
           </div>
         </div>

@@ -36,7 +36,7 @@ async function main() {
   // ---------------- Company A: Bridge UX ----------------
   const bux = await prisma.company.create({
     data: {
-      name: "Bridge UX", slug: "bridge-ux", color: "#5e6ad2", country: "India", timezone: "Asia/Kolkata", currency: "INR",
+      name: "Bridge UX", slug: "bridge-ux", color: "#ff4c00", country: "India", timezone: "Asia/Kolkata", currency: "INR",
       settings: JSON.stringify({ taskKey: "BUX", overloadPct: 100, healthyPct: 80, underPct: 60, tempPasswordHours: 72, sessionTimeoutMinutes: 480, enforceAdminMfa: false, aiEnabled: true, allowOverlappingTimers: false, lockApprovedWeeks: false, invitationDays: 7 }),
     },
   });

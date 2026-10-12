@@ -18,6 +18,7 @@ const companySchema = z.object({
   hoursPerDay: z.number().min(1).max(24).default(8),
   billingNotes: z.string().max(2000).nullish(),
   taskKey: z.string().trim().regex(/^[A-Z]{2,5}$/, "Use 2 to 5 capital letters").optional(),
+  workdayStart: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM").optional(),
 });
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "company";
@@ -31,10 +32,10 @@ companiesRouter.get("/", canCompanies, async (req, res) => {
 });
 
 companiesRouter.post("/", canCompanies, async (req, res) => {
-  const { taskKey, ...d } = companySchema.parse(req.body);
+  const { taskKey, workdayStart, ...d } = companySchema.parse(req.body);
   let slug = slugify(d.name);
   for (let i = 2; await prisma.company.findUnique({ where: { slug } }); i++) slug = `${slugify(d.name)}-${i}`;
-  const c = await prisma.company.create({ data: { ...d, logoUrl: d.logoUrl || null, slug, settings: JSON.stringify({ ...DEFAULT_SETTINGS, taskKey: taskKey ?? d.name.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase().padEnd(2, "X") }) } });
+  const c = await prisma.company.create({ data: { ...d, logoUrl: d.logoUrl || null, slug, settings: JSON.stringify({ ...DEFAULT_SETTINGS, ...(workdayStart ? { workdayStart } : {}), taskKey: taskKey ?? d.name.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase().padEnd(2, "X") }) } });
   // The creator joins the new company so they can switch into it.
   await prisma.membership.create({ data: { companyId: c.id, userId: uid(req) } });
   await audit(req, "company_created", "company", c.id, { companyId: c.id, new: d });
@@ -44,8 +45,8 @@ companiesRouter.post("/", canCompanies, async (req, res) => {
 companiesRouter.put("/:id", canCompanies, async (req, res) => {
   const c = await prisma.company.findUnique({ where: { id: Number(req.params.id) } });
   if (!c) throw new HttpError(404, "Company not found");
-  const { taskKey, ...d } = companySchema.parse(req.body);
-  const settings = { ...companySettings(c), ...(taskKey ? { taskKey } : {}) };
+  const { taskKey, workdayStart, ...d } = companySchema.parse(req.body);
+  const settings = { ...companySettings(c), ...(taskKey ? { taskKey } : {}), ...(workdayStart ? { workdayStart } : {}) };
   const updated = await prisma.company.update({ where: { id: c.id }, data: { ...d, logoUrl: d.logoUrl || null, settings: JSON.stringify(settings) } });
   await audit(req, "company_updated", "company", c.id, { companyId: c.id, old: c, new: d });
   res.json(updated);
