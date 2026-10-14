@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbit0</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Orbit0 brings time logging, projects, leave and reports into one workspace. Your team logs time in seconds and you see where every hour goes.">
+<meta property="og:title" content="Orbit0 · Know where every hour goes">
+<meta property="og:description" content="Time tracking, projects, leave and reports in one workspace for agencies, studios and service teams.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 16 16"><path d="M8 1.5l1.6 4.2 4.4 1.3-4.4 1.3L8 12.5 6.4 8.3 2 7l4.4-1.3z" fill="currentColor"/></symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a href="#top" class="logo" aria-label="Orbit0 home">
+      <svg class="logo-mark" viewBox="0 0 28 28" aria-hidden="true">
+        <circle cx="14" cy="14" r="6" fill="var(--brand)"/>
+        <g class="orbit"><ellipse cx="14" cy="14" rx="12.5" ry="12.5" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 3.2"/><circle cx="26.5" cy="14" r="2.4" fill="var(--ink)"/></g>
+      </svg>
+      Orbit0
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#product">Product</a>
+      <a href="#solutions">Solutions</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#demo">Live demo</a>
+      <a href="#faq">Company</a>
+    </nav>
+    <div class="nav-right">
+      <a class="signin" href="#" data-link="signin">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="#access">Request access</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 9h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="wrap mobile-menu" id="mobileMenu">
+    <a href="#product">Product</a>
+    <a href="#solutions">Solutions</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#demo">Live demo</a>
+    <a href="#" data-link="signin">Sign in</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero" id="access">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <a href="#ai" class="pill load" style="--d:0ms"><b>New</b> AI helpers that draft, you decide <svg width="14" height="14"><use href="#i-arrow"/></svg></a>
+      <h1 class="load" style="--d:80ms">Know where <span class="hl">every hour<svg viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14 C 80 4, 200 4, 296 12"/></svg></span> goes.</h1>
+      <p class="lede load" style="--d:160ms">Orbit0 brings time logging, projects, leave and reports into one calm workspace, so your team logs in seconds and you see the whole picture.</p>
+      <form class="access-form load js-access" style="--d:240ms" novalidate>
+        <div class="email-field">
+          <label for="hero-email" class="sr">Work email</label>
+          <input id="hero-email" name="email" type="email" placeholder="you@company.com" autocomplete="email" required>
+          <button class="btn btn-primary" type="submit">Request access <svg class="arrow" width="16" height="16"><use href="#i-arrow"/></svg></button>
+        </div>
+        <a class="btn btn-ghost" href="#demo">Try the live demo</a>
+        <div class="form-note">
+          <span><svg width="14" height="14"><use href="#i-check"/></svg>Set up personally for your team</span>
+          <span><svg width="14" height="14"><use href="#i-check"/></svg>Pricing on request</span>
+        </div>
+      </form>
+    </div>
+
+    <div class="stage load" style="--d:360ms" id="stage">
+      <div class="frame" id="frame">
+        <div class="frame-bar">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <span class="frame-url">app.orbit0 / timesheet</span>
+        </div>
+        <div class="app">
+          <aside class="app-side" aria-hidden="true">
+            <div class="ws"><i></i>Northwind Studio</div>
+            <span>Home</span><span>My tasks</span><span class="on">Timesheet</span><span>Projects</span><span>Roadmap</span><span>Analytics</span><span>Approvals</span>
+          </aside>
+          <div class="app-main">
+            <div class="app-head">
+              <h4>Timesheet</h4>
+              <div class="seg"><span class="on">Table</span><span>Calendar</span></div>
+              <span class="week">13 – 17 Oct 2026</span>
+            </div>
+            <div class="ts-scroll">
+              <table class="ts" id="ts">
+                <thead><tr><th>Project / sub-project</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Total</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td>Week total</td><td class="num" data-day="0">0:00</td><td class="num" data-day="1">0:00</td><td class="num" data-day="2">0:00</td><td class="num" data-day="3">0:00</td><td class="num" data-day="4">0:00</td><td class="num grand" id="grand">0:00</td></tr></tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="float timer" aria-hidden="true">
+        <div class="row"><span class="live">Running</span><button class="stop" tabindex="-1"><i></i></button></div>
+        <div class="clock" id="clock">01:24:37</div>
+        <div class="meta">Northwind Studio › Website redesign<br>Homepage hero QA</div>
+      </div>
+      <div class="float toast" aria-hidden="true">
+        <div class="t-row">
+          <span class="ic"><svg width="16" height="16"><use href="#i-check"/></svg></span>
+          <div><b>Leave approved</b><span>Ana R. · Thu 16 Oct · shows on the timesheet</span></div>
+        </div>
+      </div>
+      <div class="float chart" aria-hidden="true">
+        <h5>Hours by project <b>this week</b></h5>
+        <div class="bars">
+          <div><span>Website</span><em style="width:100%;animation-delay:1.2s"></em><i>14:30</i></div>
+          <div><span>Brand sprint</span><em style="width:62%;animation-delay:1.35s"></em><i>9:00</i></div>
+          <div><span>Internal</span><em style="width:38%;animation-delay:1.5s;background:var(--info)"></em><i>5:30</i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<div class="proof">
+  <div class="wrap"><p>Built for agencies, studios and service teams who bill by the project.</p></div>
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track" id="marquee">
+      <span class="chip"><i></i>Time tracking</span><span class="chip"><i></i>Timesheets</span><span class="chip"><i></i>Projects &amp; sub-projects</span><span class="chip"><i></i>Roadmap</span><span class="chip"><i></i>Analytics</span><span class="chip"><i></i>Excel, PDF &amp; CSV exports</span><span class="chip"><i></i>Leave &amp; holidays</span><span class="chip"><i></i>Reimbursements</span><span class="chip"><i></i>Approvals</span><span class="chip"><i></i>Roles &amp; permissions</span><span class="chip"><i></i>Two-factor sign-in</span><span class="chip"><i></i>Audit log</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="band">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">The problem</span>
+      <h2>Spreadsheets don't tell you where the week went.</h2>
+    </div>
+    <div class="problems">
+      <div class="problem reveal" style="--d:0ms">
+        <span class="tag">Fri · 17:42</span>
+        <div class="strike">"Mon… maybe 3h on Northwind?"</div>
+        <p>Hours logged on Friday from memory.</p>
+      </div>
+      <div class="problem reveal" style="--d:100ms">
+        <span class="tag">Budget · 120h</span>
+        <div class="strike"><span class="num" style="color:var(--brand)">147h logged · +22%</span></div>
+        <p>Projects that run over before anyone notices.</p>
+      </div>
+      <div class="problem reveal" style="--d:200ms">
+        <span class="tag">3 tabs open</span>
+        <div class="strike">leave.xlsx · expenses.pdf · hours.csv</div>
+        <p>Leave, expenses and timesheets in three different tools.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="band" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps from set-up to the full picture.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal" style="--d:0ms"><span class="n">1</span><h3>Set up projects and sub-projects</h3><p>For each client, with people, dates and billing. A new project needs only a name.</p></div>
+      <div class="step reveal" style="--d:100ms"><span class="n">2</span><h3>Your team logs time</h3><p>In the tracker or straight into timesheet cells, with a description of what they did.</p></div>
+      <div class="step reveal" style="--d:200ms"><span class="n">3</span><h3>You see it all</h3><p>In analytics, workload and exports grouped by employee, project or client.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES BENTO -->
+<section class="band" id="product" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">Product</span>
+      <h2>Everything about the work, next to the time.</h2>
+      <p class="lede">Six areas that share one set of projects, people and permissions.</p>
+    </div>
+
+    <div class="bento">
+      <!-- Time tracking -->
+      <article class="tile span-4 reveal">
+        <div class="copy">
+          <h3>Time tracking</h3>
+          <p>Log a duration, pick a project, add what you did. Days submit themselves at cutoff.</p>
+        </div>
+        <div class="widget" id="logWidget">
+          <span class="cutoff">Auto-submits at <b>23:59</b></span>
+          <div class="logform">
+            <div class="lf-row"><label>Duration</label><div class="lf-input num" data-lf="dur"></div></div>
+            <div class="lf-row"><label>Project</label><div class="lf-input" data-lf="proj"></div></div>
+            <div class="lf-row"><label>What you did</label><div class="lf-input" data-lf="desc"></div></div>
+            <div class="lf-foot"><span data-lf="start">Starts 14:30, after your last entry</span><span class="lf-btn" data-lf="btn">Log time</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Timesheets -->
+      <article class="tile span-2 reveal" style="--d:80ms">
+        <div class="copy">
+          <h3>Timesheets</h3>
+          <p>A table and a calendar of the same week, with leave and holidays alongside.</p>
+        </div>
+        <div class="widget">
+          <div class="cal" id="cal"></div>
+        </div>
+      </article>
+
+      <!-- Roadmap -->
+      <article class="tile span-3 reveal">
+        <div class="copy">
+          <h3>Projects and roadmap</h3>
+          <p>Projects, sub-projects, milestones and tasks on a timeline you can drag.</p>
+        </div>
+        <div class="widget">
+          <div class="road" id="road">
+            <div class="road-scale"><span></span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span></div>
+            <div class="road-row"><span>Website redesign<small>Northwind</small></span><div class="road-track"><div class="today"></div><div class="road-bar" style="left:4%;width:58%;background:var(--brand)">Build</div><i class="ms" style="left:63%"></i></div></div>
+            <div class="road-row"><span>Brand sprint<small>Northwind</small></span><div class="road-track"><div class="road-bar" id="dragBar" style="left:30%;width:34%;background:var(--violet)">Discovery → Identity</div></div></div>
+            <div class="road-row"><span>Mobile app<small>Halcyon</small></span><div class="road-track"><div class="road-bar" style="left:50%;width:46%;background:var(--info)">Design</div><i class="ms" style="left:93%"></i></div></div>
+            <div class="road-row"><span>Internal tools<small>Bridge UX</small></span><div class="road-track"><div class="road-bar" style="left:12%;width:30%;background:var(--ok)">Q3</div></div></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Analytics -->
+      <article class="tile span-3 reveal" style="--d:80ms">
+        <div class="copy">
+          <h3>Analytics and reports</h3>
+          <p>Drill from a total down to the single entry, then export to Excel, PDF or CSV.</p>
+        </div>
+        <div class="widget">
+          <div class="an">
+            <svg class="donut" viewBox="0 0 120 120" id="donut" aria-hidden="true">
+              <circle cx="60" cy="60" r="46" stroke="var(--line)"/>
+              <circle class="seg-anim" cx="60" cy="60" r="46" stroke="var(--brand)" stroke-dasharray="0 289" data-v="0.46" data-o="0"/>
+              <circle class="seg-anim" cx="60" cy="60" r="46" stroke="var(--violet)" stroke-dasharray="0 289" data-v="0.29" data-o="0.46"/>
+              <circle class="seg-anim" cx="60" cy="60" r="46" stroke="var(--info)" stroke-dasharray="0 289" data-v="0.17" data-o="0.75"/>
+              <text x="60" y="60" text-anchor="middle" font-size="18" id="donutTotal">0h</text>
+              <text x="60" y="76" text-anchor="middle" font-size="9" class="sub">October</text>
+            </svg>
+            <div class="drill" id="drill">
+              <div><span><i style="background:var(--brand)"></i>Website redesign</span><b>142h</b></div>
+              <div><span><i style="background:var(--violet)"></i>Brand sprint</span><b>89h</b></div>
+              <div><span><i style="background:var(--info)"></i>Mobile app</span><b>52h</b></div>
+              <div class="exports"><span>XLSX</span><span>PDF</span><span>CSV</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Leave & reimbursements -->
+      <article class="tile span-2 reveal">
+        <div class="copy">
+          <h3>Leave and reimbursements</h3>
+          <p>Requests, approvals and company holidays in the same workspace.</p>
+        </div>
+        <div class="widget">
+          <div class="stack" id="stack"></div>
+        </div>
+      </article>
+
+      <!-- Roles -->
+      <article class="tile span-4 reveal" style="--d:80ms">
+        <div class="copy">
+          <h3>Roles and permissions</h3>
+          <p>Admins decide what each role, and each person, can see and do. Each company's portal also takes its own brand colour.</p>
+        </div>
+        <div class="widget" id="rolesWidget">
+          <table class="matrix" id="matrix">
+            <thead><tr><th>Feature</th><th>Admin</th><th>Manager</th><th>Employee</th></tr></thead>
+            <tbody>
+              <tr><td>Log own time</td><td><i class="tog on"></i></td><td><i class="tog on"></i></td><td><i class="tog on"></i></td></tr>
+              <tr><td>Team timesheets</td><td><i class="tog on"></i></td><td><i class="tog on"></i></td><td><i class="tog"></i></td></tr>
+              <tr><td>Billable rates and budgets</td><td><i class="tog on"></i></td><td><i class="tog" data-flip></i></td><td><i class="tog"></i></td></tr>
+              <tr><td>Approve leave</td><td><i class="tog on"></i></td><td><i class="tog on" data-flip></i></td><td><i class="tog"></i></td></tr>
+            </tbody>
+          </table>
+          <div class="swatches" role="group" aria-label="Try a brand colour">
+            Try a company colour:
+            <button type="button" style="background:#ff4c00" data-c="#ff4c00" aria-pressed="true" aria-label="Orange"></button>
+            <button type="button" style="background:#2f6fed" data-c="#2f6fed" aria-pressed="false" aria-label="Blue"></button>
+            <button type="button" style="background:#0f9d6b" data-c="#0f9d6b" aria-pressed="false" aria-label="Green"></button>
+            <button type="button" style="background:#7a5af8" data-c="#7a5af8" aria-pressed="false" aria-label="Violet"></button>
+            <button type="button" style="background:#e11d74" data-c="#e11d74" aria-pressed="false" aria-label="Pink"></button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- TOUR -->
+<section class="band" style="background:var(--surface-2)">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Product tour</span>
+      <h2>One workspace, four everyday jobs.</h2>
+    </div>
+    <div class="tour">
+      <div class="tour-tabs" role="tablist" aria-label="Product tour" id="tourTabs">
+        <button class="tour-tab" role="tab" aria-selected="true" data-i="0"><b>Log time</b><span>Type a duration and the start fills itself from where your last entry ended. Overlaps and future dates are blocked.</span><i class="prog"></i></button>
+        <button class="tour-tab" role="tab" aria-selected="false" data-i="1"><b>Plan work</b><span>List or board view, sub-tasks and dependencies, with the time logged against each task in the side panel.</span><i class="prog"></i></button>
+        <button class="tour-tab" role="tab" aria-selected="false" data-i="2"><b>See insights</b><span>Budget and hour variance per project, with alerts when a project is at risk or a milestone is due.</span><i class="prog"></i></button>
+        <button class="tour-tab" role="tab" aria-selected="false" data-i="3"><b>Approve</b><span>Leave and reimbursements in one queue, with every change kept in the audit log.</span><i class="prog"></i></button>
+      </div>
+      <div class="tour-view" id="tourView" role="tabpanel" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- AI -->
+<section class="band" id="ai">
+  <div class="wrap ai">
+    <div class="reveal">
+      <span class="eyebrow"><svg width="14" height="14"><use href="#i-spark"/></svg>AI helpers</span>
+      <h2 style="margin-top:14px">A little help where it saves time.</h2>
+      <p class="lede" style="margin-top:16px">Ask questions about your time from the search bar, tidy up descriptions, draft tasks and summaries. Nothing is sent until you press send.</p>
+      <div class="ai-list">
+        <div><svg width="16" height="16"><use href="#i-check"/></svg>Ask about your own time from the search bar</div>
+        <div><svg width="16" height="16"><use href="#i-check"/></svg>Tidy time entry and expense descriptions</div>
+        <div><svg width="16" height="16"><use href="#i-check"/></svg>Draft tasks from a short note</div>
+        <div><svg width="16" height="16"><use href="#i-check"/></svg>Summarise a project or a report in plain words</div>
+        <div><svg width="16" height="16"><use href="#i-check"/></svg>Draft a client update email you review before it is sent</div>
+      </div>
+    </div>
+    <div class="chat reveal" style="--d:120ms" id="chat">
+      <div class="chat-search"><svg width="16" height="16" aria-hidden="true"><use href="#i-spark"/></svg><span id="chatQ"></span><span class="k">⌘K</span></div>
+      <div class="chat-a">
+        <div class="who"><i></i>Orbit0</div>
+        <p id="chatA"></p>
+        <div class="chat-bars" id="chatBars">
+          <div><span>Website</span><em style="width:100%"></em><b>64:30</b></div>
+          <div><span>Brand sprint</span><em style="width:46%"></em><b>29:45</b></div>
+          <div><span>Mobile app</span><em style="width:22%;background:var(--info)"></em><b>14:15</b></div>
+        </div>
+        <span class="chat-note">Example answer with sample data.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROLES -->
+<section class="band" id="solutions" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">Solutions</span>
+      <h2>Built for every role.</h2>
+    </div>
+    <div class="roles">
+      <a class="role reveal" href="#product">
+        <span class="kicker">For leaders</span>
+        <h3>See utilisation, budgets and project health without asking.</h3>
+        <ul><li>Analytics and financials</li><li>Workload across teams</li><li>Every company you run, kept separate</li></ul>
+      </a>
+      <a class="role reveal" href="#product" style="--d:100ms">
+        <span class="kicker">For project managers</span>
+        <h3>Plan the work and know it's on track.</h3>
+        <ul><li>Projects, sub-projects and tasks</li><li>Roadmap with milestones</li><li>Client status links, no account needed</li></ul>
+      </a>
+      <a class="role reveal" href="#product" style="--d:200ms">
+        <span class="kicker">For employees</span>
+        <h3>Log your day in a minute and get back to work.</h3>
+        <ul><li>Quick logging and My tasks</li><li>Leave and reimbursement requests</li><li>Dark mode and keyboard shortcuts</li></ul>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="band" id="demo" style="padding-top:0">
+  <div class="wrap">
+    <div class="demo reveal">
+      <div style="position:relative;z-index:1">
+        <span class="eyebrow">Live demo</span>
+        <h2 style="margin-top:12px">Click around a real workspace.</h2>
+        <p>Two demo companies with four months of sample data. Sign in with one click as any role.</p>
+        <div class="co"><span>Bridge UX · INR</span><span>Northwind Studio · USD</span></div>
+      </div>
+      <div class="demo-roles">
+        <a href="#" data-link="demo" data-role="admin"><div><b>Admin</b><span>Settings, roles, every report</span></div><svg width="18" height="18"><use href="#i-arrow"/></svg></a>
+        <a href="#" data-link="demo" data-role="manager"><div><b>Manager</b><span>Team timesheets, approvals, roadmap</span></div><svg width="18" height="18"><use href="#i-arrow"/></svg></a>
+        <a href="#" data-link="demo" data-role="employee"><div><b>Employee</b><span>Log time, my tasks, leave</span></div><svg width="18" height="18"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING + FAQ -->
+<section class="band" id="pricing" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Pricing</span>
+      <h2>Pricing on request.</h2>
+      <p class="lede">Every team is set up personally. Tell us about yours and we'll send a quote with your access.</p>
+    </div>
+    <div class="pricing">
+      <div class="price-card reveal">
+        <div>
+          <div class="big">Everything included</div>
+          <p style="margin-top:8px">One plan with every feature area. No per-feature add-ons.</p>
+        </div>
+        <ul class="incl">
+          <li><svg width="14" height="14"><use href="#i-check"/></svg>Time tracking and timesheets</li>
+          <li><svg width="14" height="14"><use href="#i-check"/></svg>Unlimited projects and sub-projects</li>
+          <li><svg width="14" height="14"><use href="#i-check"/></svg>Tasks and roadmap</li>
+          <li><svg width="14" height="14"><use href="#i-check"/></svg>Analytics and exports</li>
+          <li><svg width="14" height="14"><use href="#i-check"/></svg>Leave and reimbursements</li>
+          <li><svg width="14" height="14"><use href="#i-check"/></svg>Roles and permissions</li>
+          <li><svg width="14" height="14"><use href="#i-check"/></svg>AI helpers</li>
+          <li><svg width="14" height="14"><use href="#i-check"/></svg>Two-factor sign-in and audit log</li>
+        </ul>
+        <form class="access-form js-access" novalidate>
+          <div class="email-field" style="max-width:none">
+            <label for="price-email" class="sr">Work email</label>
+            <input id="price-email" name="email" type="email" placeholder="you@company.com" autocomplete="email" required>
+            <button class="btn btn-primary" type="submit">Request access</button>
+          </div>
+        </form>
+      </div>
+      <div class="faq reveal" id="faq" style="--d:100ms">
+        <details open><summary>How does pricing work?<span class="pm">+</span></summary><p>We set each team up personally. Request access with your work email and we'll reply with a quote and your workspace.</p></details>
+        <details><summary>What happens after I request access?<span class="pm">+</span></summary><p>The Orbit0 team creates your company workspace and sends you an invite. You then invite your team from the portal.</p></details>
+        <details><summary>Can I try it first?<span class="pm">+</span></summary><p>Yes. The live demo has two sample companies and one-click sign-ins for Admin, Manager and Employee.</p></details>
+        <details><summary>Can one person belong to more than one company?<span class="pm">+</span></summary><p>Yes. One login can belong to several companies, and each company's data stays its own.</p></details>
+        <details><summary>Who builds Orbit0?<span class="pm">+</span></summary><p>Orbit0 is built by Bridge UX, who use it to run their own projects.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="band final">
+  <div class="orbits" aria-hidden="true"><i></i><i></i><i></i><i class="sat"></i><i class="sat s2"></i><i class="sat s3"></i></div>
+  <div class="wrap">
+    <h2 class="reveal">See your team's week in one place.</h2>
+    <p class="lede reveal" style="--d:80ms">Request access with your work email, or look around the demo first.</p>
+    <form class="access-form js-access reveal" style="--d:160ms" novalidate>
+      <div class="email-field">
+        <label for="final-email" class="sr">Work email</label>
+        <input id="final-email" name="email" type="email" placeholder="you@company.com" autocomplete="email" required>
+        <button class="btn btn-primary" type="submit">Request access <svg class="arrow" width="16" height="16"><use href="#i-arrow"/></svg></button>
+      </div>
+      <a class="btn btn-ghost" href="#demo">Try the live demo</a>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a href="#top" class="logo">
+          <svg class="logo-mark" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="6" fill="var(--brand)"/><g class="orbit"><ellipse cx="14" cy="14" rx="12.5" ry="12.5" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 3.2"/><circle cx="26.5" cy="14" r="2.4" fill="var(--ink)"/></g></svg>
+          Orbit0
+        </a>
+        <p>Time, projects, leave and reports in one workspace.</p>
+      </div>
+      <div><h6>Product</h6><ul><li><a href="#product">Time tracking</a></li><li><a href="#product">Projects and roadmap</a></li><li><a href="#product">Analytics</a></li><li><a href="#product">Leave</a></li><li><a href="#ai">AI helpers</a></li></ul></div>
+      <div><h6>Solutions</h6><ul><li><a href="#solutions">For leaders</a></li><li><a href="#solutions">For project managers</a></li><li><a href="#solutions">For employees</a></li></ul></div>
+      <div><h6>Company</h6><ul><li><a href="#faq">About</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#demo">Live demo</a></li><li><a href="#faq">Contact</a></li></ul></div>
+      <div><h6>Legal</h6><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">Security</a></li></ul></div>
+    </div>
+    <div class="legal">
+      <span>© 2026 Orbit0 by Bridge UX</span>
+      <div class="theme-toggle" role="group" aria-label="Theme" id="themeToggle">
+        <button type="button" data-t="light" aria-pressed="false">Light</button>
+        <button type="button" data-t="system" aria-pressed="true">System</button>
+        <button type="button" data-t="dark" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>
