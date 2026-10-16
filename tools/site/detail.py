@@ -2,7 +2,7 @@
 from shared import *
 from visuals import *
 
-PAIRS = [("typist", "astro"), ("walker", "pointer"), ("astro", "typist"), ("pointer", "walker")]
+PAIRS = [("maya", "dev"), ("sam", "astro"), ("astro", "maya"), ("dev", "sam")]
 
 def marquee(items):
     row = "".join(f'<span class="mq-i">{icon(i, "ico-s")}{t}</span>' for i, t in items)
@@ -45,9 +45,9 @@ def solution_page(slug, d):
                     f'<div class="pf-b" aria-hidden="true"><span class="tile-ico ok">{icon("check")}</span><b>{fb}</b><p>{ft}</p></div></div>'
                     for (ic, b, t), (fb, ft) in zip(d["pains"], d["fixes"]))
     body += sec('<div class="pf-head">' + sec_head(d["pain_h"], eyebrow="What gets in the way") + sw + '</div><div class="tiles c3 pf" data-pf-box>' + cards + "</div>") + "\n"
-    rows = "".join(frow(f"{slug}-{n}", e, h, p, items, v, flip=n % 2 == 1, link=(f"See {t.lower()}", "{p}product/" + ps + "/"))
-                   for n, (e, h, p, items, v, ps, t) in enumerate(d["rows"]))
-    body += sec(sec_head("How Orbit0 helps.", eyebrow="For " + name.lower()) + rows) + "\n"
+    rows = scrolly([dict(id=f"{slug}-{n}", short=e, eyebrow=f"{n + 1:02d} · {e}", title=h, text=p, items=items, visual=v, link=(f"See {t.lower()}", "{p}product/" + ps + "/"))
+                    for n, (e, h, p, items, v, ps, t) in enumerate(d["rows"])])
+    body += sec(sec_head("How Orbit0 helps.", "Scroll through a week of work. The screen follows along.", eyebrow="For " + name.lower()) + rows) + "\n"
     body += sec(sec_head(d["week_h"], eyebrow="A typical week", center=True) + hsteps(d["week"])) + "\n"
     body += sec(faq_block("Questions from " + name.lower() + ".", d["faq"])) + "\n"
     others = [x for x in ROLES + TEAMS if x[0] != slug]

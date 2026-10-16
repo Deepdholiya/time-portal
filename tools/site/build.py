@@ -17,9 +17,39 @@ sprite = '<svg width="0" height="0" style="position:absolute" aria-hidden="true"
 
 # ---- home page: shared nav, footer and closing card, plus the design refresh ----
 idx = idx[:m.start()] + sprite + idx[m.end():]
+# characters are re-placed on every run (see below), so strip the old ones first
+idx = re.sub(r'<span class="char [^"]*" aria-hidden="true"><svg class="ch .*?</svg></span>', "", idx, flags=re.S)
 idx = re.sub(r'<header class="nav" id="nav">.*?</header>', lambda _: nav().replace("{p}", ""), idx, flags=re.S)
 idx = re.sub(r'<footer class="foot">.*?</footer>', lambda _: footer().replace("{p}", ""), idx, flags=re.S)
 idx = re.sub(r'<!-- ============ FINAL CTA ============ -->\n<section class="sec sec-last" id="access">.*?</section>', lambda _: "<!-- ============ FINAL CTA ============ -->\n" + final_cta().replace("{p}", ""), idx, flags=re.S)
+
+# ---- home page: the feature tour is a scrolly built from the same mock-ups as the inner pages ----
+from visuals import V_BARS, V_ROAD, V_LOAD, V_APPROVE
+tour = scrolly([
+  dict(short="Budgets", eyebrow="Projects · Analytics", title="See where the budget goes", icon="funnel",
+       text="Each project shows hours by sub-project, task and person against its budget. Find the part that's running hot.",
+       items=["Hours by project and sub-project", "Budget and hour variance", "Alerts when a project is at risk"], visual=V_BARS, link=("See project health", "product/analytics/")),
+  dict(short="Roadmap", eyebrow="Roadmap · Tasks", title="Plan the work on a roadmap", icon="split",
+       text="Each project's dates make its bar, with milestones and dated tasks beneath. Drag a bar to reschedule.",
+       items=["Projects, milestones and tasks", "Dependencies between tasks", "List and board views"], visual=V_ROAD, link=("See the roadmap", "product/projects/")),
+  dict(short="Workload", eyebrow="Workload", title="Give the work to someone with room", icon="chart",
+       text="Workload shows planned and logged hours against each person's week, with leave counted, so the next task goes to someone with space.",
+       items=["Planned and logged hours per person", "Leave counted against capacity", "Utilisation per team"], visual=V_LOAD, link=("See workload", "product/analytics/")),
+  dict(short="Approvals", eyebrow="Leave · Approvals", title="Approve leave and expenses in one place", icon="route",
+       text="Leave and reimbursement requests land in one Approvals inbox and show on the timesheet calendar.",
+       items=["Leave and company holidays", "Reimbursements with receipts", "Every change in the audit log"], visual=V_APPROVE, link=("See leave and approvals", "product/leave/")),
+], tag="h3")
+idx = re.sub(r'<!-- ============ FIND WHAT TO FIX ============ -->\n<section class="sec" id="features">.*?\n</section>', lambda _: """<!-- ============ FIND WHAT TO FIX ============ -->
+<section class="sec" id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Projects</span>
+      <h2>Find where the hours go, then fix it.</h2>
+      <p>Follow every hour from the timesheet to the project, the client and the invoice. Scroll on and the screen follows along.</p>
+    </div>
+    """ + tour + """
+  </div>
+</section>""", idx, count=1, flags=re.S)
 
 def sub1(old, new):
     global idx
@@ -49,14 +79,12 @@ sub1('<p>Two demo companies with four months of sample data. Sign in with one cl
 sub1('<p>Every team is set up personally. Tell us about yours and we\'ll send a quote with your access.</p>', '<p>Every team is set up personally. Tell us about yours and we\'ll send a quote with your access.</p>\n      <a class="link" href="pricing/">Compare plans <svg class="ico-s"><use href="#i-arrow"/></svg></a>')
 sub1('<a class="faq-ask" href="mailto:hello@orbit0.app">', '<a class="faq-ask" href="contact/">')
 sub1('<a class="btn btn-outline btn-block" href="#access">Talk to us</a>', '<a class="btn btn-outline btn-block" href="contact/">Talk to us</a>')
-# one voice: sentence case headings, brand orange for every Request access button
+# characters: strip whatever is in the page, then place the current ones, so every run gives the same file
 from chars import char
-idx = idx.replace('<div class="orbits" aria-hidden="true"><i></i><i></i><i></i><span class="planet p1"></span><span class="planet p2"></span></div>',
-                  char("astro", "hero-ch hc-l") + char("pointer", "hero-ch hc-r"))
-idx = decorate(idx) if 'class="faq-ch' not in idx else idx.replace('<br><span class="soft">', '<br> <span class="soft">')
-for old, new in [('<div class="ai reveal">', '<div class="ai reveal">' + char("typist", "peek pk-r")),
-                 ('<div class="duo reveal">', '<div class="duo reveal">' + char("walker", "peek pk-l"))]:
-    if new not in idx: idx = idx.replace(old, new, 1)
+idx = re.sub(r'(<section class="hero">\n)\s*(<div class="wrap hero-inner">)', lambda m: m.group(1) + "  " + char("maya", "hero-ch hc-l") + char("dev", "hero-ch hc-r") + "\n  " + m.group(2), idx)
+idx = idx.replace('<div class="ai reveal">', '<div class="ai reveal">' + char("sam", "peek pk-r"), 1)
+idx = idx.replace('<br><span class="soft">', '<br> <span class="soft">')
+# one voice: sentence case headings, brand orange for every Request access button
 for old, new in [('data-a="Time Tracking and" data-b="Know where every">Time Tracking and<', 'data-a="Time tracking and" data-b="Know where every">Time tracking and<'),
                  ('data-a="Project Reports." data-b="hour goes.">Project Reports.<', 'data-a="project reports." data-b="hour goes.">project reports.<'),
                  ('<h2>Frequently Asked Questions.</h2>', '<h2>Frequently asked questions.</h2>'),
