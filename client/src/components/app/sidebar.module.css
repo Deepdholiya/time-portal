@@ -2,7 +2,7 @@
 
 .brandRow { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 20px; flex-shrink: 0; }
 .mark { width: 24px; height: 24px; border-radius: 8px; background: var(--brand); color: var(--brand-foreground); display: grid; place-items: center; font-size: 10px; font-weight: 750; letter-spacing: -0.02em; }
-.wordmark { font-size: 17px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+.wordmark { font-size: 17px; font-weight: 600; letter-spacing: -0.03em; color: var(--text); }
 
 .workspaceRow { padding: 0 12px 8px; }
 .workspace {

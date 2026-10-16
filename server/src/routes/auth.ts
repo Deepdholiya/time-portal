@@ -114,7 +114,7 @@ authRouter.post("/forgot", async (req, res) => {
     const token = randomToken();
     await prisma.passwordReset.create({ data: { token, userId: user.id, expiresAt: new Date(Date.now() + 60 * 60_000) } });
     const link = `${appUrl()}/reset/${token}`;
-    await sendMail({ companyId: user.lastCompanyId, kind: "PASSWORD_RESET", to: user.email, subject: "Reset your Time Portal password", body: `Hi ${user.name},\n\nUse this link within an hour to set a new password:\n${link}\n\nIf you didn't ask for this, ignore this email.` });
+    await sendMail({ companyId: user.lastCompanyId, kind: "PASSWORD_RESET", to: user.email, subject: "Reset your Orbit0 password", body: `Hi ${user.name},\n\nUse this link within an hour to set a new password:\n${link}\n\nIf you didn't ask for this, ignore this email.` });
     await audit(req, "password_reset_requested", "user", user.id, { userId: user.id, companyId: user.lastCompanyId });
     // Without a mail server, show the link in development so the flow can be completed.
     if (!mailConfigured() && process.env.NODE_ENV !== "production") devLink = `/reset/${token}`;
@@ -210,7 +210,7 @@ authRouter.post("/mfa/setup", async (req, res) => {
   if (user.mfaEnabled) throw new HttpError(400, "Two-factor authentication is already on");
   const secret = generateSecret();
   await prisma.user.update({ where: { id: user.id }, data: { mfaSecret: secret } });
-  const uri = keyUri(user.email, "Time Portal", secret);
+  const uri = keyUri(user.email, "Orbit0", secret);
   res.json({ secret, qr: await QRCode.toDataURL(uri, { margin: 1, width: 200 }) });
 });
 

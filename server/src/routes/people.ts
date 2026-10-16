@@ -85,8 +85,8 @@ async function deliverInvite(req: Request, inv: { id: number; email: string; nam
   const company = req.company!;
   const roleName = (await prisma.customRole.findUnique({ where: { companyId_key: { companyId: company.id, key: inv.role } } }))?.name ?? inv.role.toLowerCase();
   const body = (pw: string) =>
-    `Hi ${inv.name},\n\n${req.user!.name} invited you to ${company.name} on Time Portal as ${roleName}.\n\nSign in at: ${appUrl()}/login\nEmail: ${inv.email}\nTemporary password: ${pw}\n\nThe temporary password works until ${expiresAt.toUTCString()}. You'll be asked to choose your own password the first time you sign in, and the temporary one stops working after that.`;
-  await sendMail({ companyId: company.id, kind: "INVITATION", to: inv.email, subject: `You're invited to ${company.name} on Time Portal`, body: body(password), logBody: body("•••••• (shown once to the inviter)"), sentById: uid(req) });
+    `Hi ${inv.name},\n\n${req.user!.name} invited you to ${company.name} on Orbit0 as ${roleName}.\n\nSign in at: ${appUrl()}/login\nEmail: ${inv.email}\nTemporary password: ${pw}\n\nThe temporary password works until ${expiresAt.toUTCString()}. You'll be asked to choose your own password the first time you sign in, and the temporary one stops working after that.`;
+  await sendMail({ companyId: company.id, kind: "INVITATION", to: inv.email, subject: `You're invited to ${company.name} on Orbit0`, body: body(password), logBody: body("•••••• (shown once to the inviter)"), sentById: uid(req) });
 }
 
 async function createInvite(req: Request, d: z.infer<typeof inviteSchema>) {
@@ -248,8 +248,8 @@ peopleRouter.post("/:id/reset-password", canManage, async (req, res) => {
   const expiresAt = new Date(Date.now() + companySettings(req.company!).tempPasswordHours * 3600_000);
   await prisma.user.update({ where: { id: m.userId }, data: { passwordHash: await bcrypt.hash(password, 10), mustChangePassword: true, tempPasswordExpiresAt: expiresAt, failedLogins: 0, lockedUntil: null } });
   await prisma.session.updateMany({ where: { userId: m.userId, revokedAt: null }, data: { revokedAt: new Date() } });
-  const body = (pw: string) => `Hi ${m.user.name},\n\n${req.user!.name} reset your Time Portal password.\n\nSign in at ${appUrl()}/login with this temporary password: ${pw}\nYou'll choose a new password right after signing in.`;
-  await sendMail({ companyId: cid(req), kind: "PASSWORD_RESET", to: m.user.email, subject: "Your Time Portal password was reset", body: body(password), logBody: body("••••••"), sentById: uid(req) });
+  const body = (pw: string) => `Hi ${m.user.name},\n\n${req.user!.name} reset your Orbit0 password.\n\nSign in at ${appUrl()}/login with this temporary password: ${pw}\nYou'll choose a new password right after signing in.`;
+  await sendMail({ companyId: cid(req), kind: "PASSWORD_RESET", to: m.user.email, subject: "Your Orbit0 password was reset", body: body(password), logBody: body("••••••"), sentById: uid(req) });
   await audit(req, "password_force_reset", "user", m.userId);
   res.json({ tempPassword: password });
 });

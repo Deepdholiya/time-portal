@@ -30,12 +30,21 @@ function MicrosoftIcon() {
   );
 }
 
+/** The home page's "Sign in as …" buttons link to /login?demo=<role> and get these sample accounts filled in. */
+const DEMO_ACCOUNTS: Record<string, { email: string; label: string }> = {
+  admin: { email: "admin@example.com", label: "Admin" },
+  manager: { email: "priya@example.com", label: "Manager" },
+  employee: { email: "neha@example.com", label: "Employee" },
+};
+const DEMO_PASSWORD = "password123";
+
 export default function Login() {
   const { refresh } = useSession();
   const nav = useNavigate();
   const [params] = useSearchParams();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const demo = DEMO_ACCOUNTS[params.get("demo") ?? ""];
+  const [email, setEmail] = useState(demo?.email ?? "");
+  const [password, setPassword] = useState(demo ? DEMO_PASSWORD : "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(params.get("error") ? SSO_ERRORS[params.get("error")!] ?? "Sign-in failed." : null);
   const { data: sso } = useApi<{ google: boolean; microsoft: boolean }>("/auth/sso/providers");
@@ -62,10 +71,11 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Sign in to Time Portal"
+      title="Sign in to Orbit0"
       subtitle="Track time, plan work and ship on schedule."
       footer={<>
         <span>New here? Your admin sends you an invitation with a temporary password.</span>
+        <span>Don't have Orbit0 yet? <a className="link" href="/home/#access">Request access</a></span>
       </>}
     >
       {anySso && (
@@ -79,6 +89,7 @@ export default function Login() {
       )}
       <form className={s.form} onSubmit={submit} noValidate>
         {params.get("reset") === "1" && !error && <AuthNotice>Your password was changed. Sign in with the new one.</AuthNotice>}
+        {demo && !error && <AuthNotice>The demo {demo.label} account is filled in. Press Sign in to look around with sample data.</AuthNotice>}
         <AuthError>{error}</AuthError>
         <div className="field">
           <label htmlFor="login-email">Email</label>

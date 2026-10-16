@@ -31,7 +31,7 @@ const DEFS: Record<string, { title: string; desc: string; icon: React.ReactNode;
   },
   SMTP: {
     title: "Email (SMTP)", icon: <Mail size={16} />, desc: "Outgoing mail server for invitations, password resets, reports and client emails.",
-    fields: [{ key: "host", label: "Host", placeholder: "smtp.example.com" }, { key: "port", label: "Port", placeholder: "587" }, { key: "username", label: "Username" }, { key: "password", label: "Password", secret: true }, { key: "from", label: "From address", placeholder: "Time Portal <no-reply@company.com>" }],
+    fields: [{ key: "host", label: "Host", placeholder: "smtp.example.com" }, { key: "port", label: "Port", placeholder: "587" }, { key: "username", label: "Username" }, { key: "password", label: "Password", secret: true }, { key: "from", label: "From address", placeholder: "Orbit0 <no-reply@company.com>" }],
     note: "Delivery currently uses the server's SMTP_URL environment variable; every email is also kept in the Email log.",
   },
 };

@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Timesheets · Orbit0</title>
+<meta name="description" content="Orbit0 timesheets show your week as a table or a calendar, with leave and holidays in place and team exports for managers.">
+<meta property="og:title" content="Timesheets · Orbit0">
+<meta property="og:description" content="Orbit0 timesheets show your week as a table or a calendar, with leave and holidays in place and team exports for managers.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='5' fill='%23ff4c00'/%3E%3Ccircle cx='10' cy='10' r='3.4' fill='white'/%3E%3Ccircle cx='10' cy='10' r='6.6' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='2.2 2.4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3.5v9M3.5 8h9" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="M4.5 6.5L8 10l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.5 3.2v9.6L12.8 8z" fill="currentColor"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 16 16"><path d="M3.5 5.5v-3M3.5 5.5h3M3.8 5.3A5 5 0 1 1 3 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 16 16"><path d="M8 1.5l1.5 4.6L14 8l-4.5 1.9L8 14.5 6.5 9.9 2 8l4.5-1.9z" fill="currentColor"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.2l2 1.3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 6.5h11M6.5 6.5v7" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 16 16"><rect x="2.5" y="3.5" width="11" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 7h11M5.5 2v3M10.5 2v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-task" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.6 8.2l1.7 1.6 3.2-3.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M3 13V8M8 13V3M13 13V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-file" viewBox="0 0 16 16"><path d="M4 2.5h5l3 3v8H4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 2.5v3h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-link" viewBox="0 0 16 16"><path d="M6.8 9.2l2.4-2.4M7 4.8l1-1a2.6 2.6 0 0 1 3.7 3.7l-1 1M9 11.2l-1 1a2.6 2.6 0 0 1-3.7-3.7l1-1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-funnel" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="6" y="10.5" width="12" height="3" rx="1.5" fill="currentColor"/><rect x="9" y="16" width="6" height="3" rx="1.5" fill="var(--brand)"/></symbol>
+  <symbol id="i-split" viewBox="0 0 24 24"><rect x="4" y="5" width="6" height="14" rx="3" fill="currentColor" opacity=".35"/><rect x="14" y="5" width="6" height="14" rx="3" fill="currentColor"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><path d="M3 7c5 0 6 10 12 10M3 17c5 0 6-10 12-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="18.5" cy="12" r="2.6" fill="currentColor"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8l5 2v4c0 3.1-2.1 5.4-5 6.4-2.9-1-5-3.3-5-6.4v-4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.8 8.1l1.5 1.5 2.9-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M1.8 13.5c.5-2.4 2.2-3.6 4.2-3.6s3.7 1.2 4.2 3.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M10.6 3.4a2.3 2.3 0 0 1 0 4.4M12 9.9c1.1.4 1.9 1.6 2.2 3.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-key" viewBox="0 0 16 16"><circle cx="5.5" cy="10.5" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7.7 8.3L13.5 2.5M11.5 4.5l1.6 1.6M10 6l1.2 1.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-log" viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h6M3 12.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 4.5L8 8.6l5.5-4.1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-building" viewBox="0 0 16 16"><path d="M3 14V3.5L9 2v12M9 6h4v8M1.5 14h13M5 5.5h2M5 8h2M5 10.5h2M11 8.5v.01M11 11v.01" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 16 16"><path d="M2.5 9.5l1.6-5.2a1.5 1.5 0 0 1 1.4-1.1h5a1.5 1.5 0 0 1 1.4 1.1l1.6 5.2v3a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2.5 9.5h3l1 1.5h3l1-1.5h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.2 10.2l3.3 3.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13 9.6A5.5 5.5 0 0 1 6.4 3a5.5 5.5 0 1 0 6.6 6.6z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-leave" viewBox="0 0 16 16"><path d="M2 13.5h12M4 13.5c0-4 1.8-7 4-9 2.2 2 4 5 4 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 4.5v9" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 16 16"><path d="M3.5 2h9v12l-1.8-1.2L9 14l-1-1.2L7 14l-1.7-1.2L3.5 14z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 5.5h4M6 8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a href="../.././" class="logo" aria-label="Orbit0 home">
+      <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4" fill="#fff"/><circle cx="10" cy="10" r="6.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="2.2 2.4"/></svg></span>
+      <span class="logo-word">orbit0</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-product">Product <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-product"><div class="dd-box dd-mega"><div class="dd-col"><span class="dd-h">Track time</span><a href="../../product/time-tracking/"><span class="dd-ico"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>Time tracking</b><small>Log a day in a minute</small></span></a><a href="../../product/timesheets/"><span class="dd-ico"><svg class="ico"><use href="#i-grid"/></svg></span><span><b>Timesheets</b><small>Table and calendar views</small></span></a><a href="../../product/leave/"><span class="dd-ico"><svg class="ico"><use href="#i-leave"/></svg></span><span><b>Leave and expenses</b><small>Requests, holidays, approvals</small></span></a></div><div class="dd-col"><span class="dd-h">Plan and report</span><a href="../../product/projects/"><span class="dd-ico"><svg class="ico"><use href="#i-task"/></svg></span><span><b>Projects and roadmap</b><small>Plan work, drag to reschedule</small></span></a><a href="../../product/analytics/"><span class="dd-ico"><svg class="ico"><use href="#i-chart"/></svg></span><span><b>Analytics and reports</b><small>Budgets, workload, exports</small></span></a><a href="../../product/ai/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Ask AI</b><small>Answers about your time</small></span></a><a href="../../product/admin/"><span class="dd-ico"><svg class="ico"><use href="#i-users"/></svg></span><span><b>Admin and permissions</b><small>Roles, companies, automations</small></span></a></div><div class="dd-side"><span class="dd-h">Get to know Orbit0</span><a class="dd-card" href="../../product/"><b>Product overview</b><small>Every feature on one page</small><svg class="ico-s"><use href="#i-arrow"/></svg></a><a class="dd-card" href="../../demo/"><b>Live demo</b><small>Sample data, one-click sign in</small><svg class="ico-s"><use href="#i-arrow"/></svg></a><a class="dd-card" href="../../security/"><b>Security</b><small>Sign-in, access and audit log</small><svg class="ico-s"><use href="#i-arrow"/></svg></a></div></div></div></div>
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-solutions">Solutions <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-solutions"><div class="dd-box dd-two"><div class="dd-col"><span class="dd-h">By role</span><a href="../../solutions/leaders/"><span class="dd-ico"><svg class="ico"><use href="#i-chart"/></svg></span><span><b>Leaders</b><small>Utilisation, budgets, health</small></span></a><a href="../../solutions/project-managers/"><span class="dd-ico"><svg class="ico"><use href="#i-task"/></svg></span><span><b>Project managers</b><small>Plan and stay on track</small></span></a><a href="../../solutions/employees/"><span class="dd-ico"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>Employees</b><small>Log time, get back to work</small></span></a></div><div class="dd-col"><span class="dd-h">By team</span><a href="../../solutions/agencies/"><span class="dd-ico"><svg class="ico"><use href="#i-building"/></svg></span><span><b>Agencies</b><small>Clients, retainers, reports</small></span></a><a href="../../solutions/design-studios/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Design studios</b><small>Phases and creative work</small></span></a><a href="../../solutions/consultancies/"><span class="dd-ico"><svg class="ico"><use href="#i-users"/></svg></span><span><b>Consultancies</b><small>Billable time and utilisation</small></span></a></div><div class="dd-foot"><a class="link" href="../../solutions/">All solutions <svg class="ico-s"><use href="#i-arrow"/></svg></a></div></div></div></div>
+      <a href="../../pricing/">Pricing</a>
+      <a href="../../demo/">Live demo</a>
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-company">Company <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-company"><div class="dd-box dd-one"><div class="dd-col"><a href="../../about/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>About</b><small>Why we built Orbit0</small></span></a><a href="../../security/"><span class="dd-ico"><svg class="ico"><use href="#i-shield"/></svg></span><span><b>Security</b><small>How we protect your data</small></span></a><a href="../../contact/"><span class="dd-ico"><svg class="ico"><use href="#i-mail"/></svg></span><span><b>Contact</b><small>Talk to the team</small></span></a></div></div></div></div>
+    </nav>
+    <div class="nav-actions">
+      <a class="nav-login" data-link="signin" href="/login">Sign in</a>
+      <a class="btn btn-outline btn-sm hide-sm" data-link="demo" data-role="admin" href="/login">Try the demo</a>
+      <a class="btn btn-brand btn-sm" href="../../request-access/">Request access</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu"><details class="mm-group"><summary>Product <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="../../product/"><span class="mm-ico"><svg class="ico-s"><use href="#i-grid"/></svg></span>Overview</a><a href="../../product/time-tracking/"><span class="mm-ico"><svg class="ico-s"><use href="#i-clock"/></svg></span>Time tracking</a><a href="../../product/timesheets/"><span class="mm-ico"><svg class="ico-s"><use href="#i-grid"/></svg></span>Timesheets</a><a href="../../product/leave/"><span class="mm-ico"><svg class="ico-s"><use href="#i-leave"/></svg></span>Leave and expenses</a><a href="../../product/projects/"><span class="mm-ico"><svg class="ico-s"><use href="#i-task"/></svg></span>Projects and roadmap</a><a href="../../product/analytics/"><span class="mm-ico"><svg class="ico-s"><use href="#i-chart"/></svg></span>Analytics and reports</a><a href="../../product/ai/"><span class="mm-ico"><svg class="ico-s"><use href="#i-spark"/></svg></span>Ask AI</a><a href="../../product/admin/"><span class="mm-ico"><svg class="ico-s"><use href="#i-users"/></svg></span>Admin and permissions</a></div></details><details class="mm-group"><summary>Solutions <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="../../solutions/"><span class="mm-ico"><svg class="ico-s"><use href="#i-grid"/></svg></span>All solutions</a><a href="../../solutions/leaders/"><span class="mm-ico"><svg class="ico-s"><use href="#i-chart"/></svg></span>Leaders</a><a href="../../solutions/project-managers/"><span class="mm-ico"><svg class="ico-s"><use href="#i-task"/></svg></span>Project managers</a><a href="../../solutions/employees/"><span class="mm-ico"><svg class="ico-s"><use href="#i-clock"/></svg></span>Employees</a><a href="../../solutions/agencies/"><span class="mm-ico"><svg class="ico-s"><use href="#i-building"/></svg></span>Agencies</a><a href="../../solutions/design-studios/"><span class="mm-ico"><svg class="ico-s"><use href="#i-spark"/></svg></span>Design studios</a><a href="../../solutions/consultancies/"><span class="mm-ico"><svg class="ico-s"><use href="#i-users"/></svg></span>Consultancies</a></div></details><details class="mm-group"><summary>Company <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="../../about/"><span class="mm-ico"><svg class="ico-s"><use href="#i-spark"/></svg></span>About</a><a href="../../security/"><span class="mm-ico"><svg class="ico-s"><use href="#i-shield"/></svg></span>Security</a><a href="../../contact/"><span class="mm-ico"><svg class="ico-s"><use href="#i-mail"/></svg></span>Contact</a></div></details><a class="mm-link" href="../../pricing/">Pricing</a><a class="mm-link" href="../../demo/">Live demo</a><a class="mm-link" data-link="signin" href="/login">Sign in</a><a class="btn btn-brand btn-block" href="../../request-access/">Request access</a></div>
+</header>
+
+<main id="top">
+
+<section class="page-hero">
+  <span class="char ph-l" aria-hidden="true"><svg class="ch ch-walker" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+<ellipse class="c-shadow" cx="44" cy="89" rx="30" ry="3"/>
+<g class="c-bob">
+  <g class="c-leg-a"><path class="c-leg" d="M25 60v24"/></g>
+  <g class="c-leg-b"><path class="c-leg" d="M32 60v24"/></g>
+  <rect class="c-brand" x="18" y="34" width="20" height="28" rx="9"/>
+  <circle class="c-skin" cx="28" cy="22" r="10"/>
+  <path class="c-hair" d="M18 22a10 10 0 0 1 20 0c-5 0-9-2-11-5-1 3-5 5-9 5z"/>
+  <circle class="c-eye" cx="33" cy="23" r="1.4"/>
+  <circle class="c-suit" cx="62" cy="42" r="17"/>
+  <path class="c-tick" d="M62 28v3M62 53v3M48 42h3M73 42h3"/>
+  <g class="c-hand-m"><path class="c-ink-s" d="M62 42V31"/></g>
+  <g class="c-hand-h"><path class="c-ink-s" d="M62 42h7"/></g>
+  <circle class="c-brand" cx="62" cy="42" r="2.4"/>
+  <path class="c-arm" d="M34 42l12 2"/>
+</g></svg></span><span class="char ph-r" aria-hidden="true"><svg class="ch ch-pointer" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+<path class="c-base" d="M46 84h40"/>
+<rect class="c-bar b1" x="50" y="58" width="9" height="26" rx="2"/>
+<rect class="c-bar b2" x="62" y="46" width="9" height="38" rx="2"/>
+<rect class="c-bar b3" x="74" y="30" width="9" height="54" rx="2"/>
+<path class="c-star s1" d="M84 14l1.4 3.2 3.2 1.4-3.2 1.4L84 23.2l-1.4-3.2-3.2-1.4 3.2-1.4z"/>
+<path class="c-leg" d="M22 64v20M31 64v20"/>
+<rect class="c-shirt" x="16" y="36" width="20" height="30" rx="9"/>
+<circle class="c-skin" cx="26" cy="24" r="10"/>
+<path class="c-hair" d="M16 24c0-6 4.5-10 10-10s10 4 10 10c-3 0-6-2-8-5-3 3-7 5-12 5z"/>
+<circle class="c-eye" cx="30.5" cy="25" r="1.4"/>
+<g class="c-point"><path class="c-arm" d="M31 44l16-11"/></g></svg></span>
+  <div class="wrap ph-inner">
+    <span class="eyebrow rise">Timesheets</span>
+    <h1 class="rise" style="--d:.05s">One week,<br> <span class="soft">two views.</span></h1>
+    <p class="rise" style="--d:.1s">See the same week as a table or a calendar, with leave and company holidays in place. Managers see the whole team and export it.</p>
+    <div class="hero-ctas rise" style="--d:.15s"><a class="btn btn-brand" href="../../request-access/">Request access</a><a class="btn btn-outline" href="../../demo/"><svg class="ico"><use href="#i-play"/></svg>Try the live demo</a></div>
+  </div>
+</section>
+<section class="sec sec-tight">
+  <div class="wrap">
+<div class="hero-shot reveal" data-tilt><span class="float-chip fc0" aria-hidden="true"><span class="fc-ico"><svg class="ico-s"><use href="#i-leave"/></svg></span>Leave shown on Thursday</span><span class="float-chip fc1" aria-hidden="true"><span class="fc-ico"><svg class="ico-s"><use href="#i-receipt"/></svg></span>Exported to Excel</span><div class="panel show"><div class="pw"><div class="pw-head"><b>My week</b><span class="muted">13–17 Oct</span><span class="grow"></span><span class="chip">Table</span><span class="chip chip-brand">Calendar</span></div>
+<div class="cal">
+  <span class="h">Mon</span><span class="h">Tue</span><span class="h">Wed</span><span class="h">Thu</span><span class="h">Fri</span>
+  <div class="cal-d"><i class="cb" style="--t:0;--s:3;--c:#f97316">Website<small>3:00</small></i><i class="cb" style="--t:3.5;--s:2.5;--c:#6366f1">Brand<small>2:30</small></i><i class="cb" style="--t:6.5;--s:1.5;--c:#10b981">Internal<small>1:30</small></i></div>
+  <div class="cal-d"><i class="cb" style="--t:0;--s:4;--c:#f97316">Website<small>4:00</small></i><i class="cb" style="--t:4.5;--s:3;--c:#6366f1">Brand<small>3:00</small></i></div>
+  <div class="cal-d"><i class="cb" style="--t:0;--s:2;--c:#10b981">Internal<small>2:00</small></i><i class="cb" style="--t:2.5;--s:5;--c:#f97316">Website<small>5:00</small></i></div>
+  <div class="cal-d"><i class="cb lv" style="--t:0;--s:8">Leave<small>Full day</small></i></div>
+  <div class="cal-d"><i class="cb" style="--t:0;--s:3.5;--c:#6366f1">Brand<small>3:30</small></i><i class="cb ms" style="--t:4;--s:1">Milestone</i></div>
+</div>
+<div class="pw-foot"><div><b>31h logged this week</b><span class="xs muted">Leave and holidays shown in place</span></div><span class="btn btn-outline btn-xs">Layers</span></div></div></div></div><div class="mq" aria-hidden="true"><div class="mq-t"><span class="mq-i"><svg class="ico-s"><use href="#i-grid"/></svg>Table view</span><span class="mq-i"><svg class="ico-s"><use href="#i-cal"/></svg>Calendar view</span><span class="mq-i"><svg class="ico-s"><use href="#i-leave"/></svg>Leave in place</span><span class="mq-i"><svg class="ico-s"><use href="#i-users"/></svg>Team timesheets</span><span class="mq-i"><svg class="ico-s"><use href="#i-receipt"/></svg>Exports with totals</span><span class="mq-i"><svg class="ico-s"><use href="#i-lock"/></svg>Approval and locks</span><span class="mq-i"><svg class="ico-s"><use href="#i-grid"/></svg>Table view</span><span class="mq-i"><svg class="ico-s"><use href="#i-cal"/></svg>Calendar view</span><span class="mq-i"><svg class="ico-s"><use href="#i-leave"/></svg>Leave in place</span><span class="mq-i"><svg class="ico-s"><use href="#i-users"/></svg>Team timesheets</span><span class="mq-i"><svg class="ico-s"><use href="#i-receipt"/></svg>Exports with totals</span><span class="mq-i"><svg class="ico-s"><use href="#i-lock"/></svg>Approval and locks</span></div></div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="sec-head center reveal"><span class="eyebrow">Three steps</span><h2>How it works.</h2></div><div class="hs-wrap"><span class="char hs-walker" aria-hidden="true"><svg class="ch ch-walker" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+<ellipse class="c-shadow" cx="44" cy="89" rx="30" ry="3"/>
+<g class="c-bob">
+  <g class="c-leg-a"><path class="c-leg" d="M25 60v24"/></g>
+  <g class="c-leg-b"><path class="c-leg" d="M32 60v24"/></g>
+  <rect class="c-brand" x="18" y="34" width="20" height="28" rx="9"/>
+  <circle class="c-skin" cx="28" cy="22" r="10"/>
+  <path class="c-hair" d="M18 22a10 10 0 0 1 20 0c-5 0-9-2-11-5-1 3-5 5-9 5z"/>
+  <circle class="c-eye" cx="33" cy="23" r="1.4"/>
+  <circle class="c-suit" cx="62" cy="42" r="17"/>
+  <path class="c-tick" d="M62 28v3M62 53v3M48 42h3M73 42h3"/>
+  <g class="c-hand-m"><path class="c-ink-s" d="M62 42V31"/></g>
+  <g class="c-hand-h"><path class="c-ink-s" d="M62 42h7"/></g>
+  <circle class="c-brand" cx="62" cy="42" r="2.4"/>
+  <path class="c-arm" d="M34 42l12 2"/>
+</g></svg></span><ol class="hsteps reveal"><li><span class="n">1</span><b>Log through the week</b><p>Type into a cell or use the tracker. Both fill the same timesheet.</p></li><li><span class="n">2</span><b>Check the calendar</b><p>Leave, holidays, tasks and milestones show as layers you can turn on and off.</p></li><li><span class="n">3</span><b>Managers approve and export</b><p>Team timesheets group by project, person or client, and export with totals.</p></li></ol></div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="sec-head reveal"><span class="eyebrow">What you get</span><h2>Every hour of the week<br> <span class="soft">in one place.</span></h2></div><div class="tiles c3"><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-grid"/></svg></span><b>Table view</b><p>Projects down the side, days across the top, totals at the end.</p></div><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-cal"/></svg></span><b>Calendar view</b><p>Each entry as a block, so gaps and long days stand out.</p></div><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-leave"/></svg></span><b>Leave in place</b><p>Approved leave and company holidays fill their days.</p></div><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-users"/></svg></span><b>Team timesheets</b><p>Managers see everyone's week and group it the way they need.</p></div><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-receipt"/></svg></span><b>Exports with totals</b><p>Excel, PDF or CSV, ready for payroll or the client.</p></div><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-lock"/></svg></span><b>Approval and locks</b><p>Approve a day and lock it against later edits.</p></div></div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="frow flip reveal" id="timesheets-more">
+  <div class="frow-t"><span class="eyebrow">For managers</span><h2>The whole team's week, grouped your way.</h2><p>Group team time by project, person, client or task, see who hasn't logged, and export it with totals.</p><ul class="ticks"><li><svg><use href="#i-check"/></svg>Group by project, person or client</li><li><svg><use href="#i-check"/></svg>Totals per day, person and project</li><li><svg><use href="#i-check"/></svg>Excel, PDF and CSV exports</li><li><svg><use href="#i-check"/></svg>Reminders that skip people on leave</li></ul><a class="link" href="../../product/analytics/">See analytics <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
+  <div class="frow-v"><div class="panel show"><div class="pw"><div class="pw-head"><b>Team timesheets</b><span class="grow"></span><span class="chip">Group: Project</span><span class="chip chip-brand">Export</span></div>
+<div class="sheet">
+  <span></span><span class="h">Mon</span><span class="h">Tue</span><span class="h">Wed</span><span class="h">Thu</span><span class="h">Fri</span><span class="h r">Total</span>
+  <span class="p"><i style="background:#f97316"></i>Website</span><span>12:30</span><span>14:00</span><span>13:30</span><span>11:00</span><span>9:30</span><b class="r">60:30</b>
+  <span class="p"><i style="background:#6366f1"></i>Brand</span><span>8:00</span><span>6:30</span><span>9:00</span><span class="lv">Leave</span><span>7:00</span><b class="r">30:30</b>
+  <span class="p"><i style="background:#10b981"></i>Internal</span><span>3:00</span><span>4:30</span><span>2:00</span><span>3:30</span><span class="hol">Holiday</span><b class="r">13:00</b>
+</div>
+<div class="pw-foot"><div><b>104h logged by 6 people</b><span class="xs muted">Excel, PDF or CSV with totals</span></div><span class="tool-row sm"><span class="tool">XLS</span><span class="tool">PDF</span><span class="tool">CSV</span></span></div></div></div></div>
+</div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="faq"><div class="faq-l reveal"><h2>Timesheets questions.</h2><p class="muted">Anything else, ask us when you request access.</p><a class="link" href="../../contact/">Contact us <svg class="ico-s"><use href="#i-arrow"/></svg></a><span class="char faq-ch" aria-hidden="true"><svg class="ch ch-typist" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+<g class="c-bubble">
+  <rect class="c-suit" x="54" y="6" width="30" height="15" rx="7.5"/>
+  <circle class="c-dot d1" cx="62" cy="13.5" r="2"/><circle class="c-dot d2" cx="69" cy="13.5" r="2"/><circle class="c-dot d3" cx="76" cy="13.5" r="2"/>
+</g>
+<ellipse class="c-shadow" cx="50" cy="89" rx="34" ry="3"/>
+<rect class="c-seat" x="16" y="62" width="30" height="6" rx="3"/>
+<path class="c-leg" d="M30 62h26v22"/>
+<rect class="c-shoe" x="53" y="82" width="12" height="5" rx="2.5"/>
+<rect class="c-brand" x="20" y="34" width="21" height="30" rx="9"/>
+<circle class="c-skin" cx="31" cy="23" r="10"/>
+<path class="c-hair" d="M21 23a10 10 0 0 1 20-2c-4-.4-8-2.4-10-5.4-2 3-6 5.8-10 7.4z"/>
+<circle class="c-eye" cx="36.5" cy="24.5" r="1.4"/>
+<path class="c-screen" d="M76 60l7-26h4l-7 26z"/>
+<rect class="c-ink" x="44" y="58" width="38" height="4" rx="2"/>
+<g class="c-type"><path class="c-arm" d="M34 42q8 12 20 14"/></g></svg></span></div><div class="acc faq-acc" id="faqAcc"><div class="acc-item open"><button class="acc-btn" type="button" aria-expanded="true"><span>Can I switch between table and calendar?</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>Yes. Both views show the same entries, and you can switch at any time.</p></div></div></div><div class="acc-item"><button class="acc-btn" type="button" aria-expanded="false"><span>Do holidays show on the timesheet?</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>Yes. Company holidays and approved leave show on the days they cover.</p></div></div></div><div class="acc-item"><button class="acc-btn" type="button" aria-expanded="false"><span>Who can see team timesheets?</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>Managers and admins by default. An admin can change this per role or per person.</p></div></div></div><div class="acc-item"><button class="acc-btn" type="button" aria-expanded="false"><span>What formats can we export?</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>Excel, PDF and CSV, with totals.</p></div></div></div></div></div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="sec-head reveal"><span class="eyebrow">More of Orbit0</span><h2>Works together with.</h2><p>Every part of Orbit0 shares the same people, projects and permissions.</p></div><div class="rel-grid"><a class="rel-card reveal" href="../../product/time-tracking/"><span class="tile-ico"><svg class="ico"><use href="#i-clock"/></svg></span><b>Time tracking</b><span class="muted">Log a day in a minute</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../product/leave/"><span class="tile-ico"><svg class="ico"><use href="#i-leave"/></svg></span><b>Leave and expenses</b><span class="muted">Requests, holidays, approvals</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../product/projects/"><span class="tile-ico"><svg class="ico"><use href="#i-task"/></svg></span><b>Projects and roadmap</b><span class="muted">Plan work, drag to reschedule</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../product/analytics/"><span class="tile-ico"><svg class="ico"><use href="#i-chart"/></svg></span><b>Analytics and reports</b><span class="muted">Budgets, workload, exports</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../product/ai/"><span class="tile-ico"><svg class="ico"><use href="#i-spark"/></svg></span><b>Ask AI</b><span class="muted">Answers about your time</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../product/admin/"><span class="tile-ico"><svg class="ico"><use href="#i-users"/></svg></span><b>Admin and permissions</b><span class="muted">Roles, companies, automations</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a></div>
+  </div>
+</section>
+
+<section class="sec sec-last" id="access">
+  <div class="wrap">
+    <div class="final reveal">
+      <div class="final-l">
+        <span class="eyebrow on-dark">Get started</span>
+        <h2>Request access to Orbit0.</h2>
+        <p>Tell us your work email. We set up your company and email you an invite and a quote.</p>
+        <form class="access" action="../../request-access/" method="get">
+          <label class="sr" for="ctaEmail">Work email</label>
+          <input id="ctaEmail" type="email" name="email" placeholder="you@company.com" autocomplete="email" required>
+          <button class="btn btn-brand" type="submit">Request access</button>
+        </form>
+        <span class="xs fine">Pricing on request · Set up personally · No card needed</span>
+      </div>
+      <div class="final-r" aria-hidden="true">
+        <span class="char final-ch" aria-hidden="true"><svg class="ch ch-astro" viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+<path class="c-star s1" d="M12 16l1.6 3.6 3.6 1.6-3.6 1.6L12 26.4l-1.6-3.6L6.8 21.2l3.6-1.6z"/>
+<path class="c-star s2" d="M84 66l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z"/>
+<g class="c-float">
+  <ellipse class="c-ring" cx="48" cy="33" rx="30" ry="7" transform="rotate(-14 48 33)"/>
+  <rect class="c-suit" x="34" y="46" width="28" height="26" rx="10"/>
+  <rect class="c-suit" x="20" y="52" width="17" height="8" rx="4" transform="rotate(28 28 56)"/>
+  <g class="c-wave"><rect class="c-suit" x="59" y="31" width="8" height="19" rx="4"/></g>
+  <rect class="c-suit" x="37" y="67" width="9" height="14" rx="4.5"/>
+  <rect class="c-suit" x="50" y="67" width="9" height="14" rx="4.5"/>
+  <circle class="c-suit" cx="48" cy="31" r="17"/>
+  <path class="c-visor" d="M36 30a12 10 0 0 1 24 0v3a12 9 0 0 1-24 0z"/>
+  <ellipse class="c-shine" cx="42" cy="29" rx="3.2" ry="1.6"/>
+  <circle class="c-brand" cx="54" cy="57" r="3"/>
+  <rect class="c-brand" x="39" y="55" width="7" height="2.6" rx="1.3"/>
+</g></svg></span>
+        <div class="mini-list"><span>Website redesign</span><span>Brand sprint</span><span>Mobile app · v2</span></div>
+        <div class="mini-card">
+          <div class="mc-h"><b>Website redesign · report</b><span class="pill pill-brand">On budget</span></div>
+          <div class="mc-r"><span>Logged</span><span class="dots" data-n="20" data-on="18"></span><span class="r">184h</span></div>
+          <div class="mc-r hi"><span>Billable</span><span class="dots brand" data-n="20" data-on="17"></span><span class="r">171h</span></div>
+          <div class="mc-f"><strong>92%</strong><span class="xs muted">of budget used · 6 people · Excel ready</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a href="../.././" class="logo"><span class="logo-mark"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4" fill="#fff"/><circle cx="10" cy="10" r="6.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="2.2 2.4"/></svg></span><span class="logo-word">orbit0</span></a>
+      <p class="muted">Time tracking, projects, leave and reports for agencies, studios and service teams.</p>
+      <a class="btn btn-outline btn-sm" href="../../request-access/">Request access</a>
+    </div>
+    <div><b>Product</b><a href="../../product/time-tracking/">Time tracking</a><a href="../../product/timesheets/">Timesheets</a><a href="../../product/leave/">Leave and expenses</a><a href="../../product/projects/">Projects and roadmap</a><a href="../../product/analytics/">Analytics and reports</a><a href="../../product/ai/">Ask AI</a><a href="../../product/admin/">Admin and permissions</a></div>
+    <div><b>Solutions</b><a href="../../solutions/leaders/">Leaders</a><a href="../../solutions/project-managers/">Project managers</a><a href="../../solutions/employees/">Employees</a><a href="../../solutions/agencies/">Agencies</a><a href="../../solutions/design-studios/">Design studios</a><a href="../../solutions/consultancies/">Consultancies</a></div>
+    <div><b>Company</b><a href="../../about/">About</a><a href="../../pricing/">Pricing</a><a href="../../demo/">Live demo</a><a href="../../security/">Security</a><a href="../../contact/">Contact</a><a href="/login">Sign in</a></div>
+  </div>
+  <div class="wrap foot-bottom">
+    <span class="muted">© 2026 Orbit0. All rights reserved.</span>
+    <span class="muted">Made for teams that bill by the hour.</span>
+  </div>
+  <div class="wrap foot-word" aria-hidden="true">orbit0</div>
+</footer>
+
+<script src="../../main.js"></script>
+</body>
+</html>
