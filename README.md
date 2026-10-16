@@ -1,3 +1,87 @@
-# time-portal
+# Time Portal
 
-Employee time management portal.
+Work management and time intelligence portal: manual time logging with daily auto-submission, Linear/Asana-style tasks and projects, a date- and week-wise roadmap, workload, analytics with drill-down, Excel/CSV/PDF reports, approvals, leave, AI client emails, multi-company tenancy and role-based access that admins can tune.
+
+The UI follows Linear's look with Intercom-style navigation: a rail of areas (Home, Time, Work, Insights, Admin) beside a panel of grouped pages, a top bar that searches pages, projects and tasks and answers questions about your time (Ask AI, ⌘K), dense rows, a right-hand task panel and dark mode (⇧D). Text is Instrument Sans; numbers, durations and totals use Chivo Mono.
+
+## Run it locally
+
+Needs Node 20 or newer.
+
+```bash
+npm install          # root helper (concurrently)
+npm run setup        # installs server + client, creates the SQLite DB and loads demo data
+npm run dev          # API on :4000, web app on http://localhost:5173
+```
+
+Demo accounts (password `password123`):
+
+| Email | Role | Notes |
+|---|---|---|
+| admin@example.com | Admin | Member of both companies |
+| priya@example.com | Manager | Member of both companies |
+| rohan@example.com | Manager | |
+| neha@example.com | Employee | Also karan, sneha, vikram, ananya, arjun, meera |
+| tom@example.com | Manager | Northwind Studio only |
+| rahul@example.com | Invited employee | Temporary password `Kite-4821-Moss`, forced to choose a new one |
+
+Two companies are seeded: **Bridge UX** (INR, about 4 months of time, 5 projects, ~85 tasks with dependencies, milestones, comments, leave and pending approvals) and **Northwind Studio** (USD) to show tenant isolation.
+
+To run as a single server: `npm run build && npm start`, then open http://localhost:4000. Reset the demo data with `npm --prefix server run db:reset`.
+
+### Demo on Vercel
+
+Import the repository at vercel.com/new and keep the defaults; `vercel.json` builds the web app, loads the demo data and serves the API from `api/index.mjs`. Set `JWT_SECRET` in the project's environment variables, and connect a Postgres database (for example Neon from the Storage tab) so `DATABASE_URL` points at it: the build then creates the tables and loads the demo data there on every deploy. Without Postgres each serverless instance gets its own SQLite copy, so sign-ins and changes are not shared between instances.
+
+### Time logging rules
+
+- Time is logged by hand, in the Time tracker or straight into Timesheet cells: a duration plus a start gives the end (the start defaults to where the day's last entry ended). Overlaps, future dates and entries past midnight are rejected.
+- Entries save immediately and can be edited at any time. Each day is submitted automatically at the company's cutoff (Admin → Company settings → Time, default 23:59 in the company timezone); there's no timesheet approval step, so Approvals only handles leave. An entry logged without a start time starts after the day's last entry, or at the working day's start (default 09:30, set under Admin → Company settings → Time). The Timesheet has a Table view and a Calendar view of the same time; click a cell or a day to log time. Calendar layers (time, tasks, milestones, leave and holidays) sit under one Filter menu, and admins and managers add leave or a company holiday from the calendar's leave button or the Leave page. Team timesheets take the same date range control, keep the row grouping and every filter under one Filter button, and export to Excel, PDF or CSV with totals grouped by any combination of employee, project, sub-project, client, task, team, date or week. Admins can turn on "Lock approved days" to stop changes to days a manager approved. Every list page (Timesheet calendar, Team timesheets, Tasks, Projects, Roadmap, Employees, Workload, Analytics and Reports) has one bordered Filter button that opens a dropdown of sections; multi-select sections have Select all and choices apply together with Apply. The top bar's Log time button shows on Home and the Time pages only. New projects need just a name (description and colour optional; More options opens client, people, dates and billing); admins and project managers edit, archive or delete a project from its ⋯ menu, in the list or on the project. The roadmap is built from projects: each project's start and target dates make its bar, with its milestones and dated tasks underneath. Add project on the Roadmap creates one with dates, and bars can be dragged to reschedule.
+- Approvers can add leave or a holiday for any employee from the Leave page (approved straight away), and admins can add company holidays there by picking Everyone. Tags can be created, renamed, recoloured and deleted straight from the tag picker by admins; a tag already on entries is hidden rather than deleted.
+- Tags are managed under Admin → Time tags, can be limited to teams, and can be required.
+
+### Optional settings (`server/.env`)
+
+| Variable | Effect when set | Without it |
+|---|---|---|
+| `SMTP_URL`, `SMTP_FROM` | Invitations, resets, reports and client emails are delivered | Emails are only recorded in **Admin → Email log** (temporary passwords are masked there) |
+| `ANTHROPIC_API_KEY` (+ `ANTHROPIC_MODEL`) | Client update emails and task summaries are drafted by Claude | A template draft built from the same facts |
+| `APP_URL` | Links in emails point here | `http://localhost:5173` |
+
+Google and Microsoft sign-in are configured per company under **Admin → Integrations** and need real OAuth client credentials.
+
+## Structure
+
+```
+server/   Express 5 + Prisma (SQLite) API in TypeScript, run with tsx
+  prisma/schema.prisma   data model (companies, memberships, sessions, tasks, time, timesheets, leave, audit…)
+  prisma/seed.ts         demo data for two companies
+  src/permissions.ts     features, levels and role defaults (per company, with per-user overrides)
+  src/auth.ts, totp.ts   cookie sessions, lockout, MFA (TOTP), forced password change
+  src/health.ts          project health, budget and hour variance
+  src/days.ts            daily submission: cutoff, automatic submit, validation, day locks
+  src/jobs.ts            due-soon/overdue/milestone/at-risk alerts, daily auto-submit and reminders, scheduled reports
+  src/routes/            auth, time, timesheets, tasks, projects, people, clients, companies, analytics,
+                         reports, roadmap/calendar/leave, settings, notifications, ai, public
+client/   React 19 + Vite
+  src/components/arc/    official Arc components from uiarc.dev, vendored unchanged from its shadcn registry
+  src/components/ui/     the app's component API, built on the Arc components (pages import from here)
+  src/components/app/    app shell: rail and panel navigation, top bar search with Ask AI, shared date range control, status/priority icons
+  src/pages/             one folder per screen
+```
+
+## About the component library
+
+Every control comes from [Arc](https://uiarc.dev/components). `client/src/components/arc/` holds the published Arc source, installed from its shadcn registry (`https://uiarc.dev/r/<name>.json`) and left unchanged so it can be refreshed the same way. `client/src/styles/arc-theme.css` sets Arc's design tokens to a Linear look: indigo accent, neutral greys, compact 28 to 36px controls, small radii and Inter.
+
+Pages import from `client/src/components/ui/`, a thin layer that keeps the app's props and renders the Arc components: Button, Input, Textarea, Select, Combobox, MultiSelect, Checkbox, Switch, Badge, Avatar, Dialog, Drawer (the task peek panel), Popover, Tooltip, Tabs, SegmentedControl, Calendar, DatePicker, DateRangePicker, ToastStack, Skeleton, EmptyState, Alert and the ⌘K CommandPalette. A `Field` hands its label, hint and error to the Arc control inside it. Three pieces are composed rather than taken whole, because Arc's version draws its own trigger: menus use Arc's dropdown-menu styles on the same Radix primitive behind any icon button; Linear-style property chips and toolbar filters open a searchable list inside Arc's Popover; and chip date pickers open Arc's Calendar in that Popover. Kbd and the inline spinner are small app pieces, since Arc has none.
+
+## Switching to Postgres
+
+In `server/prisma/schema.prisma` change `provider = "sqlite"` to `"postgresql"`, set `DATABASE_URL` in `server/.env`, then run `npm --prefix server run db:reset`.
+
+## Before production
+
+- Set a strong `JWT_SECRET` and run with `NODE_ENV=production` (secure cookies).
+- Configure SMTP so invitations reach people; until then the admin sees each temporary password once when inviting.
+- Uploaded attachments are stored in `server/uploads/`; move them to object storage for multi-server deployments.
