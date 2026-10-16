@@ -1,0 +1,13 @@
+.action { font-weight: 500; }
+.changeCell { max-width: 420px; overflow: hidden; }
+.chip { display: inline-flex; gap: 4px; align-items: baseline; font-size: 12px; padding: 1px 6px; border-radius: var(--radius-sm); background: var(--bg-subtle); border: 1px solid var(--border); white-space: nowrap; }
+.detail td { background: var(--bg-subtle); height: auto; padding-top: 8px; padding-bottom: 12px; white-space: normal; }
+:global(.table) tbody tr.detail:hover td { background: var(--bg-subtle); }
+.diff { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); }
+.diff th { text-align: left; font-weight: 500; color: var(--text-2); padding: 6px 10px; border-bottom: 1px solid var(--border); position: static; height: auto; background: var(--bg); }
+.diff td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; height: auto; background: var(--bg) !important; width: 40%; }
+.diff td:first-child { width: 20%; }
+.diff tr:last-child td { border-bottom: 0; }
+.diff pre { margin: 0; font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto; }
+.old pre { color: var(--red); }
+.new pre { color: var(--green); }

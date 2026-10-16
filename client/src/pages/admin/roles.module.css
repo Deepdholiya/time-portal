@@ -1,0 +1,8 @@
+.wrap { padding: 20px 24px 40px; max-width: 920px; }
+.matrix { border: 1px solid var(--border); border-radius: var(--radius-lg); border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.matrix th { position: static; }
+.matrix tr:last-child td { border-bottom: 0; }
+.roleCol { width: 170px; }
+.group td { background: var(--bg-subtle); color: var(--text-2); font-size: 12px; font-weight: 500; height: 30px; }
+.matrix tbody tr.group:hover td { background: var(--bg-subtle); }
+.locked { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; color: var(--text-3); }

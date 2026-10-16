@@ -1,0 +1,13 @@
+.tabs { display: flex; align-items: center; gap: 2px; position: relative; }
+.tab {
+  position: relative; height: 26px; padding: 0 10px; border: 1px solid transparent; background: none; border-radius: var(--radius); color: var(--text-2); cursor: pointer;
+  font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.tab:hover { color: var(--text); background: var(--bg-hover); }
+.active { color: var(--text); }
+.pill { position: absolute; inset: -1px; border-radius: var(--radius); background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow-sm); z-index: 0; }
+.label { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; }
+.count { color: var(--text-3); font-size: 12px; font-weight: 400; }
+.underline .tab { height: 40px; border-radius: 0; padding: 0 2px; margin-right: 14px; }
+.underline .tab:hover { background: none; }
+.bar { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--text); border-radius: 2px; }

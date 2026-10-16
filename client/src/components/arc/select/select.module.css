@@ -1,0 +1,10 @@
+.wrap { position: relative; display: inline-flex; align-items: center; min-width: 0; }
+.select {
+  appearance: none; height: 30px; padding: 0 28px 0 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input);
+  color: var(--text); font-size: 13px; outline: none; cursor: pointer; width: 100%; min-width: 0; text-overflow: ellipsis;
+}
+.select:hover:not(:disabled) { border-color: var(--border-strong); }
+.select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); }
+.sm { height: 26px; font-size: 12px; padding-left: 8px; }
+.chevron { position: absolute; right: 8px; pointer-events: none; color: var(--text-3); }
+.full { display: flex; width: 100%; }

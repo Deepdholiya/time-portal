@@ -1,0 +1,26 @@
+.list { display: flex; flex-direction: column; min-width: 0; }
+.row {
+  display: grid; align-items: center; gap: 12px; height: var(--row-h); padding: 0 16px 0 20px; border-bottom: 1px solid var(--border);
+}
+.row > span { min-width: 0; }
+.head { height: 32px; background: var(--bg-subtle); color: var(--text-2); font-size: 12px; font-weight: 500; position: sticky; top: 0; z-index: 1; }
+.clickable { cursor: pointer; }
+.clickable:hover, .clickable:focus-visible { background: var(--bg-hover); outline: none; }
+.hours { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+
+/* Profile */
+.profile { display: grid; grid-template-columns: minmax(0, 1fr) 300px; min-height: 100%; }
+.main { padding: 24px 32px 40px; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+.aside { border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 4px; background: var(--bg); }
+.hero { display: flex; align-items: center; gap: 14px; }
+.hero h2 { font-size: 18px; font-weight: 600; }
+.taskRow {
+  display: flex; align-items: center; gap: 10px; height: var(--row-h); padding: 0 8px; border-bottom: 1px solid var(--border); cursor: pointer;
+}
+.taskRow:hover { background: var(--bg-hover); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.stats > div + div { border-left: 1px solid var(--border); }
+@media (max-width: 1000px) {
+  .profile { grid-template-columns: 1fr; }
+  .aside { border-left: 0; border-top: 1px solid var(--border); }
+}

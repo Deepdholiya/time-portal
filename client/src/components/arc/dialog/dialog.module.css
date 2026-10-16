@@ -1,0 +1,13 @@
+.overlay { position: fixed; inset: 0; z-index: 70; background: rgba(10, 10, 14, 0.38); display: flex; align-items: flex-start; justify-content: center; padding: 10vh 16px 16px; overflow: auto; }
+:global([data-theme="dark"]) .overlay { background: rgba(0, 0, 0, 0.6); }
+.dialog {
+  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg);
+  display: flex; flex-direction: column; max-height: 80vh; outline: none;
+}
+.sm { max-width: 420px; } .md { max-width: 560px; } .lg { max-width: 760px; } .xl { max-width: 980px; }
+.header { padding: 16px 20px 0; display: flex; align-items: flex-start; gap: 12px; }
+.title { font-size: 15px; font-weight: 600; }
+.description { color: var(--text-2); margin-top: 4px; font-size: 13px; }
+.body { padding: 16px 20px; overflow: auto; flex: 1; }
+.footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.close { margin-left: auto; margin-top: -4px; margin-right: -8px; }

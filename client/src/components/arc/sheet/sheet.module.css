@@ -1,0 +1,8 @@
+.overlay { position: fixed; inset: 0; z-index: 65; background: rgba(10, 10, 14, 0.2); }
+.sheet {
+  position: fixed; top: 8px; right: 8px; bottom: 8px; z-index: 66; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow-lg); display: flex; flex-direction: column; max-width: calc(100vw - 16px); outline: none; overflow: hidden;
+}
+.header { height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.title { font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.body { flex: 1; overflow: auto; }

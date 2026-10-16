@@ -1,0 +1,12 @@
+.badge { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; border-radius: 10px; font-size: 11.5px; font-weight: 500; white-space: nowrap; line-height: 1; border: 1px solid transparent; }
+.sm { height: 18px; padding: 0 6px; font-size: 11px; }
+.outline { background: transparent !important; border-color: var(--border); color: var(--text-2); }
+.gray { background: var(--gray-soft); color: var(--text-2); }
+.accent { background: var(--accent-soft); color: var(--accent-text); }
+.green { background: var(--green-soft); color: var(--green); }
+.yellow { background: var(--yellow-soft); color: var(--yellow); }
+.orange { background: var(--orange-soft); color: var(--orange); }
+.red { background: var(--red-soft); color: var(--red); }
+.blue { background: var(--blue-soft); color: var(--blue); }
+.purple { background: var(--purple-soft); color: var(--purple); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }

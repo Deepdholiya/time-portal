@@ -1,0 +1,12 @@
+.stack { position: fixed; bottom: 16px; right: 16px; z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; pointer-events: none; }
+.toast {
+  pointer-events: auto; min-width: 260px; max-width: 420px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-lg);
+  padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px;
+}
+.icon { margin-top: 1px; flex-shrink: 0; }
+.success { color: var(--green); } .error { color: var(--red); } .info { color: var(--accent); }
+.body { flex: 1; min-width: 0; }
+.title { font-weight: 500; }
+.desc { color: var(--text-2); margin-top: 2px; word-break: break-word; }
+.action { background: none; border: 0; color: var(--accent-text); cursor: pointer; font-weight: 500; padding: 0; }
+.close { background: none; border: 0; color: var(--text-3); cursor: pointer; padding: 0; display: flex; }

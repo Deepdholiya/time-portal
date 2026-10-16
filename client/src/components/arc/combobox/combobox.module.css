@@ -1,0 +1,26 @@
+.trigger {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-input); color: var(--text); cursor: pointer; min-width: 0; width: 100%; text-align: left; font-size: 13px;
+}
+.trigger:hover { border-color: var(--border-strong); }
+.trigger:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus); outline: none; }
+.sm { height: 26px; font-size: 12px; }
+.chip { border-color: transparent; background: transparent; width: auto; padding: 0 6px; color: var(--text-2); }
+.chip:hover { background: var(--bg-hover); border-color: transparent; color: var(--text); }
+.value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.placeholder { color: var(--text-3); }
+.chev { color: var(--text-3); flex-shrink: 0; }
+.panel { display: flex; flex-direction: column; max-height: inherit; min-width: 220px; }
+.search { border: 0; border-bottom: 1px solid var(--border); background: transparent; height: 36px; padding: 0 12px; outline: none; font-size: 13px; color: var(--text); flex-shrink: 0; }
+.search::placeholder { color: var(--text-3); }
+.list { overflow: auto; padding: 4px; max-height: 300px; }
+.group { padding: 6px 8px 2px; font-size: 11px; color: var(--text-3); font-weight: 500; }
+.option { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; }
+.option.hi { background: var(--bg-hover); }
+.option .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.option .hint { color: var(--text-3); font-size: 12px; }
+.check { color: var(--accent); flex-shrink: 0; }
+.box { width: 14px; height: 14px; border: 1px solid var(--border-strong); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.box.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.empty { padding: 12px; color: var(--text-3); text-align: center; font-size: 12px; }
+.footer { border-top: 1px solid var(--border); padding: 4px; display: flex; justify-content: space-between; }

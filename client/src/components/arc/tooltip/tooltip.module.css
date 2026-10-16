@@ -1,0 +1,6 @@
+.tip {
+  position: fixed; z-index: 90; pointer-events: none; background: var(--text); color: var(--bg); font-size: 12px; padding: 4px 8px; border-radius: var(--radius-sm);
+  max-width: 280px; box-shadow: var(--shadow-md); line-height: 1.35;
+}
+:global([data-theme="dark"]) .tip { background: #2a2c31; color: var(--text); border: 1px solid var(--border-strong); }
+.kbd { margin-left: 6px; opacity: 0.65; }

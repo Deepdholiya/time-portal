@@ -1,0 +1,7 @@
+.bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px 8px 20px; border-bottom: 1px solid var(--border); min-height: 44px; }
+.days { display: flex; align-items: flex-end; gap: 3px; height: 20px; }
+.dayCol { width: 6px; height: 20px; display: flex; align-items: flex-end; background: var(--bg-active); border-radius: 2px; }
+.dayBar { width: 100%; background: var(--accent); border-radius: 2px; display: block; }
+.detailRow > td { background: var(--bg-subtle) !important; }
+.detail { border-left: 2px solid var(--accent); margin: 0 0 0 20px; background: var(--bg); }
+.note { padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 12px; }

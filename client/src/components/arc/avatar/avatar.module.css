@@ -1,0 +1,6 @@
+.avatar { border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; flex-shrink: 0; letter-spacing: 0; user-select: none; overflow: hidden; }
+.empty { background: transparent !important; border: 1px dashed var(--border-strong); color: var(--text-3); }
+.group { display: inline-flex; }
+.group > * { box-shadow: 0 0 0 2px var(--bg); }
+.group > * + * { margin-left: -5px; }
+.more { background: var(--bg-active) !important; color: var(--text-2); }

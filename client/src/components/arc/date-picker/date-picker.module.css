@@ -1,0 +1,32 @@
+.trigger {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-input); color: var(--text); cursor: pointer; font-size: 13px; white-space: nowrap; min-width: 0;
+}
+.trigger:hover { border-color: var(--border-strong); }
+.sm { height: 26px; font-size: 12px; padding: 0 8px; }
+.chip { border-color: transparent; background: transparent; color: var(--text-2); padding: 0 6px; }
+.chip:hover { background: var(--bg-hover); color: var(--text); }
+.placeholder { color: var(--text-3); }
+.overdue { color: var(--red); }
+.full { width: 100%; }
+.cal { width: 252px; user-select: none; }
+.head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-weight: 500; }
+.nav { background: none; border: 0; color: var(--text-2); cursor: pointer; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+.nav:hover { background: var(--bg-hover); color: var(--text); }
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dow { text-align: center; font-size: 11px; color: var(--text-3); height: 22px; line-height: 22px; }
+.day { height: 32px; border: 0; background: none; border-radius: 6px; cursor: pointer; font-size: 12px; color: var(--text); font-variant-numeric: tabular-nums; }
+.day:hover { background: var(--bg-hover); }
+.out { color: var(--text-3); }
+.today { font-weight: 700; color: var(--accent-text); }
+.sel { background: var(--accent) !important; color: #fff !important; }
+.inRange { background: var(--accent-soft); border-radius: 0; }
+.weekend { color: var(--text-2); }
+.foot { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.foot button { background: none; border: 0; color: var(--accent-text); cursor: pointer; font-size: 12px; padding: 2px 4px; }
+.rangeWrap { display: flex; }
+.presets { display: flex; flex-direction: column; gap: 1px; padding-right: 10px; margin-right: 10px; border-right: 1px solid var(--border); min-width: 130px; }
+.preset { text-align: left; background: none; border: 0; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text); }
+.preset:hover { background: var(--bg-hover); }
+.preset.on { background: var(--accent-soft); color: var(--accent-text); }
+.hint { font-size: 12px; color: var(--text-3); margin-top: 6px; }
