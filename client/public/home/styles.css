@@ -1170,3 +1170,186 @@ main > section.sec:nth-of-type(even):not(.sec-last):not(.sec-tight) .demo-row { 
 .sec-head.center .eyebrow, .page-hero .eyebrow { justify-self: center; margin-inline: auto; }
 .pw-head b, .pw-head .muted { white-space: nowrap; }
 @media (max-width: 760px) { .hero-shot .pw-head .chip:not(.chip-brand) { display: none; } }
+
+/* ======================================================================
+   Round 3: no rings or glow, small characters, two-line headings,
+   orange nav icons, a proper phone menu
+   ====================================================================== */
+
+/* rings, planets and the orange glow are gone */
+.orbits, .planet { display: none !important; }
+.hero::after, .page-hero::after { content: none; }
+.frow-v::before { content: none; }
+
+/* ---------- characters ---------- */
+.char { position: absolute; z-index: 2; width: 96px; height: 96px; pointer-events: none; transform: translateY(var(--py, 0px)); }
+.char svg { width: 100%; height: 100%; overflow: visible; }
+.ch .c-suit { fill: var(--card); stroke: var(--ink); stroke-width: 2; }
+.ch .c-visor { fill: var(--ink); }
+.ch .c-shine { fill: var(--card); opacity: .85; }
+.ch .c-brand { fill: var(--brand); }
+.ch .c-ring { fill: none; stroke: var(--brand); stroke-width: 2; stroke-dasharray: 3 4; }
+.ch .c-star { fill: var(--brand); transform-box: fill-box; transform-origin: center; animation: twinkle 2.4s ease-in-out infinite; }
+.ch .c-star.s2 { animation-delay: -1.2s; }
+.ch .c-skin { fill: #f1c6a3; stroke: var(--ink); stroke-width: 2; }
+.ch .c-hair { fill: #2a2a2a; }
+.ch .c-eye { fill: #1a1a1a; transform-box: fill-box; transform-origin: center; animation: blink 4.2s infinite; }
+.ch .c-arm { fill: none; stroke: #f1c6a3; stroke-width: 6; stroke-linecap: round; }
+.ch .c-leg { fill: none; stroke: var(--ink); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+.ch .c-shirt { fill: var(--ink); }
+.ch .c-ink { fill: var(--ink); }
+.ch .c-ink-s, .ch .c-tick { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; }
+.ch .c-tick { stroke-width: 2; opacity: .5; }
+.ch .c-shoe { fill: var(--ink); }
+.ch .c-seat { fill: var(--line-2); }
+.ch .c-screen { fill: var(--ink-2); }
+.ch .c-shadow { fill: var(--ink); opacity: .08; }
+.ch .c-base { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+.ch .c-bar { fill: color-mix(in srgb, var(--brand) 22%, var(--card)); stroke: var(--ink); stroke-width: 1.6; transform-box: fill-box; transform-origin: bottom; animation: bar 3.2s var(--ease) infinite; }
+.ch .c-bar.b2 { animation-delay: .2s; } .ch .c-bar.b3 { fill: var(--brand); animation-delay: .4s; }
+.ch .c-dot { fill: var(--ink-3); animation: dot 1.2s ease-in-out infinite; }
+.ch .c-dot.d2 { animation-delay: .15s; } .ch .c-dot.d3 { animation-delay: .3s; }
+.ch-astro .c-float { animation: floaty 5s ease-in-out infinite; transform-origin: 48px 50px; }
+.ch-astro .c-wave { transform-origin: 63px 50px; animation: wave 2.4s ease-in-out infinite; }
+.ch-typist .c-type { animation: type .35s ease-in-out infinite alternate; }
+.ch-typist .c-bubble { animation: floaty 3s ease-in-out infinite; }
+.ch-pointer .c-point { transform-origin: 31px 44px; animation: point 2.6s ease-in-out infinite; }
+.ch-walker .c-bob { animation: bob-s .5s ease-in-out infinite alternate; }
+.ch-walker .c-leg-a { transform-origin: 25px 60px; animation: step .5s ease-in-out infinite alternate; }
+.ch-walker .c-leg-b { transform-origin: 32px 60px; animation: step .5s ease-in-out infinite alternate-reverse; }
+.ch-walker .c-hand-m { transform-origin: 62px 42px; animation: spin 3s linear infinite; }
+.ch-walker .c-hand-h { transform-origin: 62px 42px; animation: spin 36s linear infinite; }
+@keyframes twinkle { 0%, 100% { transform: scale(.6); opacity: .5; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
+@keyframes wave { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(22deg); } }
+@keyframes type { to { transform: translateY(2px); } }
+@keyframes point { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-12deg); } }
+@keyframes bar { 0%, 15% { transform: scaleY(.35); } 45%, 85% { transform: scaleY(1); } 100% { transform: scaleY(.35); } }
+@keyframes dot { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-2.5px); opacity: 1; } }
+@keyframes bob-s { to { transform: translateY(-2px); } }
+@keyframes step { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
+
+/* where they sit */
+.hero-ch { width: 92px; height: 92px; top: 200px; }
+.hero-ch.hc-l { left: max(16px, calc(50% - 600px)); }
+.hero-ch.hc-r { right: max(16px, calc(50% - 600px)); top: 420px; }
+.page-hero .char { width: 84px; height: 84px; top: 120px; }
+.page-hero .ph-l { left: max(16px, calc(50% - 560px)); }
+.page-hero .ph-r { right: max(16px, calc(50% - 560px)); top: 250px; }
+.peek { width: 76px; height: 76px; top: -66px; z-index: 3; }
+.peek.pk-r { right: 40px; }
+.peek.pk-l { left: 40px; }
+.ai, .duo { position: relative; }
+.hs-wrap { position: relative; }
+.hs-walker { width: 46px; height: 46px; top: -28px; left: 16%; animation: walk-line 9s linear infinite; }
+@keyframes walk-line { 0% { left: 14%; opacity: 0; } 6% { opacity: 1; } 90% { opacity: 1; } 100% { left: calc(84% - 46px); opacity: 0; } }
+.faq-l { position: relative; }
+.faq-ch { position: relative; display: block; width: 88px; height: 88px; margin-top: 28px; }
+.final-r { position: relative; }
+.final-ch { width: 88px; height: 88px; left: 10px; bottom: 6px; }
+.final .ch .c-suit { fill: #1c1c1c; stroke: #f2f2f2; }
+.final .ch .c-visor { fill: #f2f2f2; } .final .ch .c-shine { fill: #1c1c1c; }
+
+@media (max-width: 1100px) {
+  .hero-ch, .page-hero .char { width: 64px; height: 64px; }
+  .hero-ch.hc-l, .page-hero .ph-l { top: 24px; left: 12px; }
+  .hero-ch.hc-r, .page-hero .ph-r { top: 24px; right: 12px; }
+}
+@media (max-width: 760px) {
+  .hero-ch, .page-hero .char { width: 52px; height: 52px; top: 12px; }
+  .hero-ch.hc-r, .page-hero .ph-r { display: none; }
+  .hero-ch.hc-l, .page-hero .ph-l { left: auto; right: 8px; }
+  .peek { width: 56px; height: 56px; top: -48px; }
+  .hs-walker { display: none; }
+  .faq-ch { display: none; }
+}
+
+/* ---------- headings: balanced, at most two lines where it fits ---------- */
+h1, h2 { text-wrap: balance; }
+.sec-head { max-width: none; }
+.sec-head h2 { max-width: 760px; }
+.faq h2, .story h2 { font-size: clamp(28px, 3vw, 36px); }
+.page-hero h1 { max-width: 920px; margin-inline: auto; }
+@media (max-width: 760px) {
+  h1 br, h2 br { display: none; }
+  h1 .soft, h2 .soft { display: inline; }
+  .page-hero h1, .hero-title { font-size: 34px; letter-spacing: -.035em; }
+  .sec-head h2, .facts h2, .faq h2, .final h2, .story h2 { font-size: 28px; }
+  .frow-t h2, .c-form h2 { font-size: 24px; }
+  .page-hero p, .hero-sub { font-size: 16px; }
+}
+@media (max-width: 380px) {
+  .page-hero h1, .hero-title { font-size: 30px; }
+  .sec-head h2, .facts h2, .faq h2, .final h2, .story h2 { font-size: 25px; }
+}
+
+/* words rise in one by one (set up by main.js) */
+.words .w { display: inline-block; }
+
+/* ---------- nav: orange icons ---------- */
+.dd-ico { color: var(--brand); background: var(--brand-soft); border-color: var(--brand-line); }
+.dd-col > a:hover .dd-ico, .dd-box > a:hover .dd-ico { background: var(--brand); color: #fff; border-color: var(--brand); }
+.dd-card .ico-s { color: var(--brand); }
+.nav-links .dd-btn .ico-s { color: var(--brand); }
+
+/* ---------- phone and tablet: logo + hamburger, menu as a full panel ---------- */
+@media (max-width: 1080px) {
+  .nav-links { display: none; }
+  .nav-actions .nav-login, .nav-actions .hide-sm { display: none; }
+  .menu-btn { display: inline-flex; }
+  .mobile-menu { display: grid; position: fixed; left: 0; right: 0; top: 64px; bottom: 0; align-content: start; background: var(--bg); border-top: 1px solid var(--line); padding: 8px 20px 32px; overflow-y: auto; gap: 0; transform: translateY(-10px); opacity: 0; pointer-events: none; transition: opacity .25s, transform .3s var(--ease); }
+  .mobile-menu.open { opacity: 1; transform: none; pointer-events: auto; }
+  body.menu-open { overflow: hidden; }
+  .mobile-menu summary { padding: 16px 4px; font-size: 17px; }
+  .mobile-menu .mm-link { padding: 16px 4px; font-size: 17px; border-bottom: 1px solid var(--line); }
+  .mobile-menu .mm-group a { display: flex; align-items: center; gap: 12px; padding: 10px 4px; }
+  .mm-ico { width: 30px; height: 30px; display: grid; place-items: center; border-radius: var(--radius); background: var(--brand-soft); color: var(--brand); flex: none; }
+  .mobile-menu .btn-block { margin-top: 20px; height: 48px; }
+  .mobile-menu.open > * { animation: rise .45s var(--ease) both; }
+  .mobile-menu.open > *:nth-child(2) { animation-delay: .04s; } .mobile-menu.open > *:nth-child(3) { animation-delay: .08s; }
+  .mobile-menu.open > *:nth-child(4) { animation-delay: .12s; } .mobile-menu.open > *:nth-child(5) { animation-delay: .16s; }
+  .mobile-menu.open > *:nth-child(6) { animation-delay: .2s; } .mobile-menu.open > *:nth-child(7) { animation-delay: .24s; }
+}
+@media (max-width: 760px) {
+  .nav-actions .btn-brand { display: none; }
+}
+
+/* ---------- phone fixes for the home widgets ---------- */
+@media (max-width: 760px) {
+  .w-editor { margin: 20px 0 -24px 0; border-right: 1px solid var(--line); border-radius: var(--radius) var(--radius) 0 0; }
+  .we-grid { grid-template-columns: 64px repeat(4, 1fr); padding: 8px 8px 12px 10px; font-size: 13px; }
+  .we-grid .p { font-size: 12.5px; }
+  .wr-cols, .wr-row { grid-template-columns: 62px 1fr 42px 32px; gap: 8px; padding: 0 12px; font-size: 13px; }
+  .tag-h { left: auto; right: -2px; }
+}
+
+/* ---------- feature ticker on product and solution pages ---------- */
+.sec-strip { padding: 22px 0 !important; border-top: 0; }
+.mq { margin-top: 56px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.sec-strip .mq { margin-top: 0; }
+.mq-t { display: flex; gap: 10px; width: max-content; animation: mq 38s linear infinite; }
+.mq:hover .mq-t { animation-play-state: paused; }
+.mq-i { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; white-space: nowrap; box-shadow: var(--shadow-xs); }
+.mq-i .ico-s { color: var(--brand); }
+@keyframes mq { to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ch *, .char, .mq-t, .hs-walker { animation: none !important; }
+}
+.pf-head .sec-head { flex: 1 1 520px; grid-template-columns: 1fr; }
+@media (max-width: 900px) { .price-grid .corner { display: none; } }
+@media (max-width: 420px) {
+  .hl-row { grid-template-columns: 44px 64px 1fr 40px 40px; gap: 6px; font-size: 13px; }
+  .hl-top { font-size: 12.5px; flex-wrap: wrap; }
+}
+@media (max-width: 760px) { .card-wide { grid-template-columns: minmax(0, 1fr); } .card-wide > *, .frame > * { min-width: 0; } }
+.hero-ch { width: 104px; height: 104px; }
+.page-hero .char { width: 96px; height: 96px; }
+@media (max-width: 1100px) { .hero-ch, .page-hero .char { width: 64px; height: 64px; } }
+@media (max-width: 760px) {
+  .hero-ch, .page-hero .char { width: 50px; height: 50px; top: 4px; }
+  .hero-ch.hc-l, .page-hero .ph-l { left: 6px; right: auto; }
+}
+/* the nav's blur makes it the menu's containing block, so size the panel explicitly */
+@media (max-width: 1080px) { .mobile-menu { bottom: auto; height: calc(100vh - 64px); height: calc(100dvh - 64px); } }

@@ -50,7 +50,7 @@
 
   /* ---------- mobile menu ---------- */
   var menuBtn = $("#menuBtn"), menu = $("#mobileMenu");
-  function setMenu(open) { menu.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", String(open)); }
+  function setMenu(open) { menu.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", String(open)); document.body.classList.toggle("menu-open", open); }
   menuBtn.addEventListener("click", function () { setMenu(!menu.classList.contains("open")); });
   $$("a", menu).forEach(function (a) { a.addEventListener("click", function () { setMenu(false); }); });
   // open the group that holds the current page
@@ -381,4 +381,70 @@
       pio.observe(box);
     }
   });
+  /* ---------- headings: words rise in one by one as each heading scrolls into view ---------- */
+  if (!reduce && "IntersectionObserver" in window && Element.prototype.animate) {
+    var heads = $$(".sec-head h2, .frow-t h2, .faq-l h2, .story h2, .final h2, .page-hero h1, .c-form h2");
+    var splitWords = function (el) {
+      var words = [];
+      (function walk(node) {
+        Array.prototype.slice.call(node.childNodes).forEach(function (n) {
+          if (n.nodeType === 3) {
+            var parts = n.textContent.split(/(\s+)/), frag = document.createDocumentFragment();
+            parts.forEach(function (t) {
+              if (!t) return;
+              if (/^\s+$/.test(t)) { frag.appendChild(document.createTextNode(t)); return; }
+              var w = document.createElement("span"); w.className = "w"; w.textContent = t; w.style.opacity = "0";
+              frag.appendChild(w); words.push(w);
+            });
+            n.parentNode.replaceChild(frag, n);
+          } else if (n.nodeType === 1 && n.tagName !== "BR") walk(n);
+        });
+      })(el);
+      el.classList.add("words");
+      return words;
+    };
+    var hio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        hio.unobserve(e.target);
+        e.target._words.forEach(function (w, i) {
+          var a = w.animate([
+            { opacity: 0, transform: "translateY(.5em) rotate(2deg)", filter: "blur(6px)" },
+            { opacity: 1, transform: "none", filter: "blur(0)" }
+          ], { duration: 650, delay: 120 + i * 55, easing: "cubic-bezier(.22,1,.36,1)", fill: "both" });
+          a.onfinish = function () { w.style.opacity = ""; a.cancel(); };
+        });
+      });
+    }, { threshold: 0.4 });
+    heads.forEach(function (h) { h._words = splitWords(h); hio.observe(h); });
+  }
+
+  /* ---------- characters: pop in when seen, then drift a little with the scroll ---------- */
+  var chars = $$(".char");
+  if (chars.length && !reduce) {
+    if ("IntersectionObserver" in window && Element.prototype.animate) {
+      var chio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          chio.unobserve(e.target);
+          e.target.querySelector("svg").animate([
+            { opacity: 0, transform: "translateY(16px) scale(.6) rotate(-8deg)" },
+            { opacity: 1, transform: "translateY(-4px) scale(1.06) rotate(2deg)", offset: .7 },
+            { opacity: 1, transform: "none" }
+          ], { duration: 800, easing: "cubic-bezier(.22,1,.36,1)", fill: "both" });
+        });
+      }, { threshold: 0.3 });
+      chars.forEach(function (c) { chio.observe(c); });
+    }
+    var drift = function () {
+      chars.forEach(function (c) {
+        if (c.classList.contains("hs-walker") || c.classList.contains("faq-ch")) return;
+        var r = c.getBoundingClientRect(); if (r.bottom < -200 || r.top > innerHeight + 200) return;
+        c.style.setProperty("--py", ((r.top + r.height / 2 - innerHeight / 2) * -0.08).toFixed(1) + "px");
+      });
+    };
+    var dtick = false;
+    addEventListener("scroll", function () { if (!dtick) { dtick = true; requestAnimationFrame(function () { drift(); dtick = false; }); } }, { passive: true });
+    drift();
+  }
 })();

@@ -1,3 +1,4 @@
+import re
 # Shared pieces for the Orbit0 site pages. Templates use {p} for the path back to the site root.
 import re
 
@@ -18,6 +19,8 @@ EXTRA_ICONS = '''  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8l5 2
   <symbol id="i-leave" viewBox="0 0 16 16"><path d="M2 13.5h12M4 13.5c0-4 1.8-7 4-9 2.2 2 4 5 4 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 4.5v9" stroke="currentColor" stroke-width="1.4"/></symbol>
   <symbol id="i-receipt" viewBox="0 0 16 16"><path d="M3.5 2h9v12l-1.8-1.2L9 14l-1-1.2L7 14l-1.7-1.2L3.5 14z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 5.5h4M6 8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
 '''
+
+from chars import char
 
 def icon(name, cls="ico"):
     return f'<svg class="{cls}"><use href="#i-{name}"/></svg>'
@@ -75,10 +78,11 @@ def nav():
     company = ('<div class="dd-box dd-one"><div class="dd-col">' + "".join(dd_item("{p}" + s + "/", i, t, d) for s, i, t, d in COMPANY) + '</div></div>')
 
     def group(label, links):
-        return f'<details class="mm-group"><summary>{label} {CHEV}</summary><div>' + "".join(f'<a href="{h}">{t}</a>' for h, t in links) + '</div></details>'
-    mobile = (group("Product", [("{p}product/", "Overview")] + [("{p}product/" + s + "/", t) for s, i, t, d in PRODUCTS]) +
-              group("Solutions", [("{p}solutions/", "All solutions")] + [("{p}solutions/" + s + "/", t) for s, i, t, d in ROLES + TEAMS]) +
-              group("Company", [("{p}" + s + "/", t) for s, i, t, d in COMPANY]) +
+        return (f'<details class="mm-group"><summary>{label} {CHEV}</summary><div>'
+                + "".join(f'<a href="{h}"><span class="mm-ico">{icon(i, "ico-s")}</span>{t}</a>' for h, i, t in links) + '</div></details>')
+    mobile = (group("Product", [("{p}product/", "grid", "Overview")] + [("{p}product/" + s + "/", i, t) for s, i, t, d in PRODUCTS]) +
+              group("Solutions", [("{p}solutions/", "grid", "All solutions")] + [("{p}solutions/" + s + "/", i, t) for s, i, t, d in ROLES + TEAMS]) +
+              group("Company", [("{p}" + s + "/", i, t) for s, i, t, d in COMPANY]) +
               '<a class="mm-link" href="{p}pricing/">Pricing</a><a class="mm-link" href="{p}demo/">Live demo</a><a class="mm-link" data-link="signin" href="/login">Sign in</a>'
               '<a class="btn btn-brand btn-block" href="{p}request-access/">Request access</a>')
     return f'''<header class="nav" id="nav">
@@ -140,7 +144,7 @@ def final_cta(title="Request access to Orbit0.", text="Tell us your work email. 
         <span class="xs fine">Pricing on request · Set up personally · No card needed</span>
       </div>
       <div class="final-r" aria-hidden="true">
-        <div class="orbits sm"><i></i><i></i><i></i></div>
+        {char("astro", "final-ch")}
         <div class="mini-list"><span>Website redesign</span><span>Brand sprint</span><span>Mobile app · v2</span></div>
         <div class="mini-card">
           <div class="mc-h"><b>Website redesign · report</b><span class="pill pill-brand">On budget</span></div>
@@ -174,9 +178,9 @@ def head(title, desc, p, sprite):
 {sprite}
 '''
 
-def page_hero(eyebrow, h1, sub, ctas):
+def page_hero(eyebrow, h1, sub, ctas, chars=("astro", "pointer")):
     return f'''<section class="page-hero">
-  <div class="orbits" aria-hidden="true"><i></i><i></i><i></i></div>
+  {char(chars[0], "ph-l")}{char(chars[1], "ph-r")}
   <div class="wrap ph-inner">
     <span class="eyebrow rise">{eyebrow}</span>
     <h1 class="rise" style="--d:.05s">{h1}</h1>
@@ -193,7 +197,7 @@ def ctas_default(second="demo"):
 
 def build(p, title, desc, body, sprite, final=True, final_args=None):
     html = head(title, desc, p, sprite) + nav() + "\n\n<main id=\"top\">\n\n" + body + "\n\n" + (final_cta(**(final_args or {})) if final else "") + "\n\n</main>\n\n" + footer() + f'\n\n<script src="{p}main.js"></script>\n</body>\n</html>\n'
-    return html.replace("{p}", p)
+    return decorate(html).replace("{p}", p)
 
 def ticks(items, grey=False):
     return '<ul class="ticks' + (" grey" if grey else "") + '">' + "".join(f'<li><svg><use href="#i-check"/></svg>{t}</li>' for t in items) + "</ul>"
@@ -225,3 +229,10 @@ def faq(items, id_="faqAcc"):
         o = i == 0
         out += f'<div class="acc-item{" open" if o else ""}"><button class="acc-btn" type="button" aria-expanded="{"true" if o else "false"}"><span>{q}</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>{a}</p></div></div></div>'
     return out + "</div>"
+
+def decorate(html):
+    # a space after each heading line break, so the words don't run together where phones hide the break
+    html = html.replace('<br><span class="soft">', '<br> <span class="soft">')
+    html = re.sub(r'(<ol class="hsteps reveal">.*?</ol>)', lambda m: '<div class="hs-wrap">' + char("walker", "hs-walker") + m.group(1) + "</div>", html, flags=re.S)
+    html = re.sub(r'(<div class="faq-l reveal">.*?</a>)(</div>)', lambda m: m.group(1) + char("typist", "faq-ch") + m.group(2), html, flags=re.S)
+    return html

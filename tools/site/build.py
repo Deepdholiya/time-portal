@@ -27,13 +27,12 @@ def sub1(old, new):
     assert old in idx, old[:60]
     idx = idx.replace(old, new, 1)
 
-sub1('<section class="hero">\n  <div class="wrap hero-inner">\n',
-     '<section class="hero">\n  <div class="orbits" aria-hidden="true"><i></i><i></i><i></i><span class="planet p1"></span><span class="planet p2"></span></div>\n  <div class="wrap hero-inner">\n    <a class="announce rise" href="product/ai/"><span class="pill pill-brand">New</span>Ask AI about your team\'s time <svg class="ico-s"><use href="#i-arrow"/></svg></a>\n')
+# (the hero's announcement pill is already in index.html)
 heads = {
   '<h2>Find where the hours go, then fix it.</h2>': "Projects",
-  '<h2>See what kept a project on budget.': "Budgets",
+  '<h2>What kept a project': "Budgets",
   '<h2>Works with how your team logs time.</h2>': "Logging",
-  '<h2>Ask it like you\'d ask your PM.': "Ask AI",
+  '<h2>Ask it like<br>': "Ask AI",
   '<h2>How a week of time becomes a report.</h2>': "Reports",
   '<h2>Try it as anyone on the team.</h2>': "Live demo",
   '<h2>Pricing on request.</h2>': "Pricing",
@@ -51,9 +50,18 @@ sub1('<p>Every team is set up personally. Tell us about yours and we\'ll send a 
 sub1('<a class="faq-ask" href="mailto:hello@orbit0.app">', '<a class="faq-ask" href="contact/">')
 sub1('<a class="btn btn-outline btn-block" href="#access">Talk to us</a>', '<a class="btn btn-outline btn-block" href="contact/">Talk to us</a>')
 # one voice: sentence case headings, brand orange for every Request access button
+from chars import char
+idx = idx.replace('<div class="orbits" aria-hidden="true"><i></i><i></i><i></i><span class="planet p1"></span><span class="planet p2"></span></div>',
+                  char("astro", "hero-ch hc-l") + char("pointer", "hero-ch hc-r"))
+idx = decorate(idx) if 'class="faq-ch' not in idx else idx.replace('<br><span class="soft">', '<br> <span class="soft">')
+for old, new in [('<div class="ai reveal">', '<div class="ai reveal">' + char("typist", "peek pk-r")),
+                 ('<div class="duo reveal">', '<div class="duo reveal">' + char("walker", "peek pk-l"))]:
+    if new not in idx: idx = idx.replace(old, new, 1)
 for old, new in [('data-a="Time Tracking and" data-b="Know where every">Time Tracking and<', 'data-a="Time tracking and" data-b="Know where every">Time tracking and<'),
                  ('data-a="Project Reports." data-b="hour goes.">Project Reports.<', 'data-a="project reports." data-b="hour goes.">project reports.<'),
                  ('<h2>Frequently Asked Questions.</h2>', '<h2>Frequently asked questions.</h2>'),
+                 ('<h2>See what kept a project on budget.<br><span class="soft">The redesign finished under its hours.</span></h2>', '<h2>What kept a project<br><span class="soft">on budget.</span></h2>'),
+                 ("<h2>Ask it like you'd ask your PM.<br><span class=\"soft\">Get answers in hours.</span></h2>", "<h2>Ask it like<br><span class=\"soft\">you'd ask your PM.</span></h2>"),
                  ('<a class="btn btn-dark btn-sm" href="request-access/"><svg', '<a class="btn btn-brand btn-sm" href="request-access/"><svg')]:
     idx = idx.replace(old, new)
 for old, new in [('href="product/#ai"', 'href="product/ai/"'), ('href="product/#reports"', 'href="product/analytics/"'),
