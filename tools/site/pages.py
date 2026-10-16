@@ -139,7 +139,8 @@ PAGES["about"] = ("About · Orbit0", "Why we built Orbit0, a time tracking and p
 
 # ---------------- CONTACT ----------------
 contact = page_hero("Contact", "Talk to us.", "Request access, ask a question, or ask for a walkthrough. A person reads every message.",
-  '<a class="btn btn-brand" href="{p}request-access/">Request access</a><a class="btn btn-outline" href="mailto:hello@orbit0.app">' + icon("mail") + 'hello@orbit0.app</a>') + "\n" + sec(
+  '<a class="btn btn-brand" href="{p}request-access/">Request access</a><a class="btn btn-outline" href="mailto:hello@orbit0.app">' + icon("mail") + 'hello@orbit0.app</a>'
+  '<button class="btn btn-outline copy-btn" type="button" data-copy="hello@orbit0.app" aria-label="Copy email address">' + icon("copy") + icon("check", "ico ok-ico") + '<span class="copy-l">Copy</span></button>') + "\n" + sec(
   '''<div class="contact-grid">
   <div class="c-card c-form reveal">
     <span class="eyebrow">Request access</span>

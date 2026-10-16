@@ -2,8 +2,6 @@
 from shared import *
 from visuals import *
 
-PAIRS = [("maya", "dev"), ("sam", "astro"), ("astro", "maya"), ("dev", "sam")]
-
 def marquee(items):
     row = "".join(f'<span class="mq-i">{icon(i, "ico-s")}{t}</span>' for i, t in items)
     return f'<div class="mq" aria-hidden="true"><div class="mq-t">{row}{row}</div></div>'
@@ -23,7 +21,7 @@ def faq_block(title, items):
 def product_page(slug, d):
     name = next(t for s, i, t, _ in PRODUCTS if s == slug)
     n = [s for s, *_ in PRODUCTS].index(slug)
-    body = page_hero(name, d["h1"], d["sub"], ctas_default(), PAIRS[n % len(PAIRS)]) + "\n"
+    body = page_hero(name, d["h1"], d["sub"], ctas_default()) + "\n"
     chips = "".join(f'<span class="float-chip fc{n}" aria-hidden="true"><span class="fc-ico">{icon(ic, "ico-s")}</span>{t}</span>' for n, (ic, t) in enumerate(d.get("chips", [])))
     body += sec('<div class="hero-shot reveal" data-tilt>' + chips + d["visual"] + "</div>" + marquee([(i, b) for i, b, _ in d["tiles"]]), "sec-tight") + "\n"
     body += sec(sec_head("How it works.", eyebrow="Three steps", center=True) + hsteps(d["steps"])) + "\n"
@@ -37,7 +35,7 @@ def product_page(slug, d):
 def solution_page(slug, d):
     name = next(t for s, i, t, _ in ROLES + TEAMS if s == slug)
     n = [s for s, *_ in ROLES + TEAMS].index(slug)
-    body = page_hero(d["eyebrow"], d["h1"], d["sub"], ctas_default(), PAIRS[(n + 2) % len(PAIRS)]) + "\n"
+    body = page_hero(d["eyebrow"], d["h1"], d["sub"], ctas_default()) + "\n"
     body += sec(marquee([("check", t) for r in d["rows"] for t in r[3]]), "sec-strip") + "\n"
     sw = ('<div class="pf-switch reveal" role="group" aria-label="Compare"><button type="button" aria-pressed="true" data-pf="0">Without Orbit0</button>'
           '<button type="button" aria-pressed="false" data-pf="1">With Orbit0</button><i aria-hidden="true"></i></div>')

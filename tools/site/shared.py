@@ -18,9 +18,8 @@ EXTRA_ICONS = '''  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8l5 2
   <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13 9.6A5.5 5.5 0 0 1 6.4 3a5.5 5.5 0 1 0 6.6 6.6z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
   <symbol id="i-leave" viewBox="0 0 16 16"><path d="M2 13.5h12M4 13.5c0-4 1.8-7 4-9 2.2 2 4 5 4 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 4.5v9" stroke="currentColor" stroke-width="1.4"/></symbol>
   <symbol id="i-receipt" viewBox="0 0 16 16"><path d="M3.5 2h9v12l-1.8-1.2L9 14l-1-1.2L7 14l-1.7-1.2L3.5 14z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 5.5h4M6 8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 3.6V3.3a1.3 1.3 0 0 0-1.3-1.3H3.8a1.3 1.3 0 0 0-1.3 1.3v5.4a1.3 1.3 0 0 0 1.3 1.3h.3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
 '''
-
-from chars import char
 
 def icon(name, cls="ico"):
     return f'<svg class="{cls}"><use href="#i-{name}"/></svg>'
@@ -144,7 +143,6 @@ def final_cta(title="Request access to Orbit0.", text="Tell us your work email. 
         <span class="xs fine">Pricing on request · Set up personally · No card needed</span>
       </div>
       <div class="final-r" aria-hidden="true">
-        {char("astro", "final-ch")}
         <div class="mini-list" data-w="minilist"><span>Website redesign</span><span>Brand sprint</span><span>Mobile app · v2</span></div>
         <div class="mini-card" data-w="mini">
           <div class="mc-h"><b>Website redesign · report</b><span class="pill pill-brand">On budget</span></div>
@@ -178,9 +176,8 @@ def head(title, desc, p, sprite):
 {sprite}
 '''
 
-def page_hero(eyebrow, h1, sub, ctas, chars=("maya", "dev")):
+def page_hero(eyebrow, h1, sub, ctas):
     return f'''<section class="page-hero">
-  {char(chars[0], "ph-l")}{char(chars[1], "ph-r")}
   <div class="wrap ph-inner">
     <span class="eyebrow rise">{eyebrow}</span>
     <h1 class="rise" style="--d:.05s">{h1}</h1>
@@ -233,7 +230,6 @@ def faq(items, id_="faqAcc"):
 def decorate(html):
     # a space after each heading line break, so the words don't run together where phones hide the break
     html = html.replace('<br><span class="soft">', '<br> <span class="soft">')
-    html = re.sub(r'(<ol class="hsteps reveal">.*?</ol>)', lambda m: '<div class="hs-wrap">' + char("ravi", "hs-walker") + m.group(1) + "</div>", html, flags=re.S)
     return html
 
 def scrolly(steps, tag="h2"):
