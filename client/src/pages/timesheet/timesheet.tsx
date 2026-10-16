@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { AlertCircle, Plus, Sheet as SheetIcon } from "lucide-react";
 import { Avatar, Button, Combobox, ErrorState, Input, SkeletonRows, Tabs } from "@/components/ui";
 import { Page } from "@/components/app/page";
+import { AiButton } from "@/components/app/ai-button";
 import { useShell } from "@/components/app/shell-context";
 import { TimeRangeControl, useCompanyDay, useRangeParam } from "@/components/app/time-range";
 import { useSearchParams } from "react-router-dom";
@@ -11,6 +12,7 @@ import { hm, range as daysOf } from "@/lib/format";
 import type { TimeEntry } from "@/lib/types";
 import { afterTimeChange, expectedMinutes, useDayLock, useDays, useHolidays, useOptions } from "../time/time-utils";
 import { TimesheetGrid, type GridCtx } from "./grid";
+import { AiFillDialog } from "./ai-fill";
 import { buildRows, draftRow, type Row } from "./rows";
 import { CalendarView } from "../calendar/calendar";
 import s from "./timesheet.module.css";
@@ -51,6 +53,7 @@ function TableView({ tabs }: { tabs: ReactNode }) {
   const [drafts, setDrafts] = useState<Record<string, Row[]>>({});
   const [reason, setReason] = useState("");
   const isLocked = useDayLock();
+  const [filling, setFilling] = useState(false);
 
   const draftKey = `${userId}:${range.from}:${range.to}`;
   const rangeDrafts = drafts[draftKey] ?? [];
@@ -94,7 +97,12 @@ function TableView({ tabs }: { tabs: ReactNode }) {
       title="Timesheet"
       icon={<SheetIcon size={15} className="faint" />}
       tabs={tabs}
-      actions={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button>}
+      actions={
+        <div className="row gap-4">
+          {!forOther && range.from <= today && <AiButton label="Fill the gaps in this range with AI" onClick={() => setFilling(true)} />}
+          <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button>
+        </div>
+      }
       toolbar={
         <>
           <TimeRangeControl value={range} onChange={setRange} rangeOnly />
@@ -124,6 +132,7 @@ function TableView({ tabs }: { tabs: ReactNode }) {
       <div className={s.wrap}>
         {q.error ? <ErrorState error={q.error} onRetry={q.reload} /> : !q.data ? <SkeletonRows rows={6} /> : <TimesheetGrid rows={rows} ctx={ctx} />}
       </div>
+      <AiFillDialog open={filling} range={range} onClose={() => setFilling(false)} onAdded={reload} />
       <div className={s.foot}>
         <span className="small faint">Click a cell to add or edit time: duration, start and end, and description. Time is submitted automatically each day at {me.company.settings.autoSubmitTime ?? "23:59"} ({me.company.timezone}) and you can still edit it afterwards.</span>
       </div>

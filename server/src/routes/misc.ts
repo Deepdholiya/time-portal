@@ -60,6 +60,24 @@ export async function claude(system: string, prompt: string): Promise<string | n
   }
 }
 
+/** Multi-turn call for the Ask AI chat: `messages` alternate user and assistant, newest last. */
+export async function claudeChat(system: string, messages: { role: "user" | "assistant"; content: string }[]): Promise<string | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1200, system, messages }),
+    });
+    if (!r.ok) { console.error("Claude API error", r.status, await r.text()); return null; }
+    const j = (await r.json()) as { content?: { type: string; text?: string }[] };
+    return j.content?.filter((c) => c.type === "text").map((c) => c.text).join("\n").trim() || null;
+  } catch (e) {
+    console.error("Claude API request failed", e);
+    return null;
+  }
+}
+
 export function aiAllowed(req: Request) {
   if (!companySettings(req.company!).aiEnabled) throw new HttpError(403, "AI is turned off for this company");
 }
@@ -156,9 +174,9 @@ aiRouter.post("/task-summary", async (req, res) => {
 // ---------- Ask AI from the search bar ----------
 // Answers questions about the person's own time and tasks. Claude writes the answer when a key is set; otherwise a built-in
 // reader handles the common questions (hours in a period, hours on a project, what's due) from the same facts.
-const PERIODS: [RegExp, string][] = [[/\btoday\b/, "today"], [/\byesterday\b/, "yesterday"], [/\blast week\b/, "last week"], [/\bthis month\b/, "this month"], [/\blast month\b/, "last month"], [/\bthis week\b|\bweek\b/, "this week"]];
+export const PERIODS: [RegExp, string][] = [[/\btoday\b/, "today"], [/\byesterday\b/, "yesterday"], [/\blast week\b/, "last week"], [/\bthis month\b/, "this month"], [/\blast month\b/, "last month"], [/\bthis week\b|\bweek\b/, "this week"]];
 
-function periodRange(name: string, t: string, startsOn: number) {
+export function periodRange(name: string, t: string, startsOn: number) {
   const ws = weekStartOf(t, startsOn);
   const ms = t.slice(0, 8) + "01";
   switch (name) {
