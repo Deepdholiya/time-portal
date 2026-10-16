@@ -12,364 +12,259 @@
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
-  var wait = function (ms) { return new Promise(function (res) { setTimeout(res, reduce ? 0 : ms); }); };
-  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
 
   /* ---------- links ---------- */
   $$('[data-link="signin"]').forEach(function (a) { a.href = CONFIG.signInUrl; });
   $$('[data-link="demo"]').forEach(function (a) { a.href = CONFIG.demoUrl + a.dataset.role; });
 
-  /* ---------- nav ---------- */
-  var nav = $("#nav");
-  function onScroll() {
-    nav.classList.toggle("scrolled", window.scrollY > 8);
-    var f = $("#frame");
-    if (f && !reduce && window.innerWidth > 760) {
-      var p = Math.min(1, window.scrollY / 420);
-      f.style.setProperty("--tilt", (10 - 10 * p).toFixed(2) + "deg");
-      f.style.setProperty("--scale", (0.96 + 0.04 * p).toFixed(3));
+  /* ---------- mobile menu ---------- */
+  var menuBtn = $("#menuBtn"), menu = $("#mobileMenu");
+  function setMenu(open) { menu.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", String(open)); }
+  menuBtn.addEventListener("click", function () { setMenu(!menu.classList.contains("open")); });
+  $$("a", menu).forEach(function (a) { a.addEventListener("click", function () { setMenu(false); }); });
+
+  /* ---------- dot bars ---------- */
+  function buildDots(el, animate) {
+    var n = +el.dataset.n, on = +el.dataset.on, html = "";
+    for (var i = 0; i < n; i++) html += '<i class="' + (i < on ? "on" : "") + '" style="--i:' + i + '"></i>';
+    el.innerHTML = html;
+    if (animate) { el.classList.remove("anim"); void el.offsetWidth; el.classList.add("anim"); }
+  }
+  $$(".dots").forEach(function (d) { buildDots(d, false); });
+
+  /* ---------- scroll reveal ---------- */
+  var revealEls = $$(".reveal");
+  if (!("IntersectionObserver" in window) || reduce) {
+    revealEls.forEach(function (el) { el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("in");
+        $$(".dots", e.target).forEach(function (d) { buildDots(d, true); });
+        io.unobserve(e.target);
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
+    revealEls.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ---------- hero: swap the headline, show a filled week ---------- */
+  var hero = $(".hero"), heroBtn = $("#heroPlay"), lines = $$(".ht-line");
+  function splitWords(line, text, cls) {
+    line.innerHTML = text.split(" ").map(function (w, i, a) {
+      return '<span class="w ' + cls + '" style="--i:' + i + '">' + w + (i < a.length - 1 ? " " : "") + "</span>";
+    }).join("");
+  }
+  function setHero(played) {
+    hero.classList.toggle("played", played);
+    heroBtn.setAttribute("aria-pressed", String(played));
+    lines.forEach(function (line, li) {
+      var next = played ? line.dataset.b : line.dataset.a;
+      if (reduce) { line.textContent = next; return; }
+      splitWords(line, line.textContent, "out");
+      setTimeout(function () { splitWords(line, next, "in"); }, 260 + li * 60);
+    });
+    if (played) $$(".hero-live .dots").forEach(function (d) { buildDots(d, true); });
+  }
+  heroBtn.addEventListener("click", function () { setHero(!hero.classList.contains("played")); });
+
+  /* ---------- typed timesheet cell ---------- */
+  var typed = $(".typed"), cellEdit = $(".cell-edit");
+  if (typed) {
+    var full = typed.dataset.text;
+    if (reduce) { typed.textContent = full; }
+    else {
+      var typeLoop = function () {
+        typed.textContent = "";
+        setTimeout(function () {
+          cellEdit.classList.add("typing");
+          var i = 0;
+          var t = setInterval(function () {
+            typed.textContent = full.slice(0, ++i);
+            if (i >= full.length) { clearInterval(t); setTimeout(function () { cellEdit.classList.remove("typing"); }, 1600); }
+          }, 160);
+        }, 2600);
+      };
+      typeLoop(); setInterval(typeLoop, 6000);
     }
   }
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
-  var menuBtn = $("#menuBtn"), menu = $("#mobileMenu");
-  menuBtn.addEventListener("click", function () {
-    var open = menu.classList.toggle("open");
-    menuBtn.setAttribute("aria-expanded", String(open));
-  });
-  $$("a", menu).forEach(function (a) { a.addEventListener("click", function () { menu.classList.remove("open"); menuBtn.setAttribute("aria-expanded", "false"); }); });
 
-  /* ---------- reveal on scroll (content stays visible if JS never runs) ---------- */
-  var onView = function (el, fn, threshold) {
-    if (!("IntersectionObserver" in window)) { fn(); return; }
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { io.disconnect(); fn(); } });
-    }, { threshold: threshold || 0.15 });
-    io.observe(el);
-  };
-  $$(".reveal").forEach(function (el) {
-    if (el.getBoundingClientRect().top < window.innerHeight) return; // already on screen: leave it be
-    onView(el, function () { el.classList.add("in"); }, 0.05);
-  });
-
-  /* ---------- hero parallax ---------- */
-  var stage = $("#stage");
-  if (stage && !reduce && window.matchMedia("(pointer: fine)").matches) {
-    var floats = $$(".float", stage);
-    stage.addEventListener("pointermove", function (e) {
-      var r = stage.getBoundingClientRect();
-      var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
-      floats.forEach(function (f, i) {
-        var d = (i + 1) * 8;
-        f.style.transform = "translate(" + (x * d).toFixed(1) + "px," + (y * d).toFixed(1) + "px)";
+  /* ---------- accordions ---------- */
+  function accordion(root, onOpen) {
+    var items = $$(".acc-item", root);
+    function open(idx) {
+      items.forEach(function (it, i) {
+        var on = i === idx;
+        it.classList.toggle("open", on);
+        $(".acc-btn", it).setAttribute("aria-expanded", String(on));
+      });
+      if (onOpen) onOpen(idx);
+    }
+    items.forEach(function (it, i) {
+      $(".acc-btn", it).addEventListener("click", function () {
+        if (it.classList.contains("open") && !onOpen) { it.classList.remove("open"); $(".acc-btn", it).setAttribute("aria-expanded", "false"); return; }
+        open(i); if (root.__stop) root.__stop();
       });
     });
-    stage.addEventListener("pointerleave", function () { floats.forEach(function (f) { f.style.transform = ""; }); });
+    return open;
   }
-
-  /* ---------- helpers ---------- */
-  function fmt(min) { return Math.floor(min / 60) + ":" + String(min % 60).padStart(2, "0"); }
-  function countUp(el, to, ms, render) {
-    if (reduce) { el.textContent = render(to); return; }
-    var t0 = performance.now();
-    (function step(t) {
-      var p = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - p, 3);
-      el.textContent = render(Math.round(to * e));
-      if (p < 1) requestAnimationFrame(step);
-    })(t0);
-  }
-  async function typeInto(el, text, speed) {
-    el.textContent = "";
-    var caret = document.createElement("span"); caret.className = "caret";
-    for (var i = 0; i < text.length; i++) {
-      el.textContent = text.slice(0, i + 1);
-      el.appendChild(caret);
-      await wait(speed || 45);
-    }
-    caret.remove();
-  }
-
-  /* ---------- hero timesheet (sample week) ---------- */
-  var rows = [
-    { c: "var(--brand)", p: "Website redesign", s: "Northwind Studio", d: [150, 180, 210, null, 330] },
-    { c: "var(--violet)", p: "Brand sprint", s: "Northwind Studio › Identity", d: [120, 90, 150, null, 180] },
-    { c: "var(--info)", p: "Internal tools", s: "Bridge UX", d: [90, 120, 60, null, 60] },
-    { c: "var(--muted)", p: "Leave", s: "Annual leave", d: [null, null, null, "leave", null] }
-  ];
-  var tb = $("#ts tbody");
-  rows.forEach(function (r, ri) {
-    var tr = document.createElement("tr");
-    var h = '<td><div class="proj"><i class="sw" style="background:' + r.c + '"></i><div>' + r.p + "<small>" + r.s + "</small></div></div></td>";
-    r.d.forEach(function (v, di) {
-      if (v === "leave") h += '<td><span class="leave">Leave</span></td>';
-      else h += '<td><span class="cell empty" data-r="' + ri + '" data-d="' + di + '">–</span></td>';
-    });
-    h += '<td class="num" data-rt="' + ri + '">0:00</td>';
-    tr.innerHTML = h;
-    tb.appendChild(tr);
+  var featAcc = $("#featAcc"), panels = $$(".stage .panel");
+  var openFeat = accordion(featAcc, function (i) {
+    panels.forEach(function (p) { p.classList.toggle("show", +p.dataset.for === i); });
   });
-  var cur = rows.map(function () { return [0, 0, 0, 0, 0]; });
-  function totals() {
-    var grand = 0;
-    for (var d = 0; d < 5; d++) {
-      var s = 0; cur.forEach(function (r) { s += r[d]; });
-      $('#ts tfoot [data-day="' + d + '"]').textContent = fmt(s);
-      grand += s;
-    }
-    cur.forEach(function (r, i) { $('#ts [data-rt="' + i + '"]').textContent = fmt(r.reduce(function (a, b) { return a + b; }, 0)); });
-    $("#grand").textContent = fmt(grand);
-  }
-  (async function fillSheet() {
-    await wait(900);
-    var order = [];
-    for (var d = 0; d < 4; d++) rows.forEach(function (r, ri) { if (typeof r.d[d] === "number") order.push([ri, d]); });
-    for (var k = 0; k < order.length; k++) {
-      var ri = order[k][0], di = order[k][1], cell = $('#ts .cell[data-r="' + ri + '"][data-d="' + di + '"]');
-      cur[ri][di] = rows[ri].d[di];
-      cell.textContent = fmt(rows[ri].d[di]);
-      cell.classList.remove("empty"); cell.classList.add("fill");
-      totals();
-      await wait(110);
-    }
-    // Friday: someone types into the cells
-    for (var r2 = 0; r2 < 3; r2++) {
-      var c = $('#ts .cell[data-r="' + r2 + '"][data-d="4"]'), txt = fmt(rows[r2].d[4]);
-      c.classList.remove("empty"); c.classList.add("typing"); c.textContent = "";
-      for (var j = 1; j <= txt.length; j++) { c.textContent = txt.slice(0, j); await wait(140); }
-      await wait(250);
-      c.classList.remove("typing");
-      cur[r2][4] = rows[r2].d[4];
-      totals();
-      await wait(350);
-    }
-  })();
-
-  /* ---------- running timer ---------- */
-  var clock = $("#clock"), secs = 1 * 3600 + 24 * 60 + 37;
-  setInterval(function () {
-    secs++;
-    var h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
-    clock.textContent = [h, m, s].map(function (n) { return String(n).padStart(2, "0"); }).join(":");
-  }, 1000);
-
-  /* ---------- marquee: duplicate for a seamless loop ---------- */
-  var mq = $("#marquee"); mq.innerHTML += mq.innerHTML;
-
-  /* ---------- log time widget ---------- */
-  var logW = $("#logWidget");
-  var lf = {}; $$("[data-lf]", logW).forEach(function (el) { lf[el.dataset.lf] = el; });
-  var samples = [
-    { dur: "1h 30m", proj: "Northwind › Website redesign", desc: "Homepage hero QA and fixes", start: "14:30 – 16:00" },
-    { dur: "45m", proj: "Northwind › Brand sprint", desc: "Logo review with client", start: "16:00 – 16:45" },
-    { dur: "2h", proj: "Halcyon › Mobile app", desc: "Onboarding screens, round 2", start: "09:00 – 11:00" }
-  ];
-  async function logLoop() {
-    var i = 0;
-    for (;;) {
-      var s = samples[i++ % samples.length];
-      lf.dur.textContent = ""; lf.proj.innerHTML = ""; lf.desc.textContent = "";
-      lf.btn.textContent = "Log time"; lf.btn.classList.remove("done");
-      lf.start.textContent = "Start fills from your last entry";
-      lf.dur.classList.add("focus"); await typeInto(lf.dur, s.dur, 90); lf.dur.classList.remove("focus");
-      lf.start.innerHTML = 'Fills <b class="num">' + s.start + "</b>";
-      lf.proj.classList.add("focus"); await wait(400);
-      lf.proj.innerHTML = '<span class="crumb">' + s.proj + "</span>";
-      await wait(400); lf.proj.classList.remove("focus");
-      lf.desc.classList.add("focus"); await typeInto(lf.desc, s.desc, 40); lf.desc.classList.remove("focus");
-      await wait(400);
-      lf.btn.textContent = "✓ Logged"; lf.btn.classList.add("done");
-      await wait(2200);
-      if (reduce) return;
-    }
-  }
-  onView(logW, logLoop);
-
-  /* ---------- week calendar ---------- */
-  var cal = $("#cal");
-  var days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-  var evs = [
-    [["a", 4, 30, "Website"], ["b", 40, 22, "Internal"], ["c", 66, 26, "Brand"]],
-    [["c", 6, 20, "Brand"], ["a", 30, 40, "Website"], ["b", 76, 16, "Sync"]],
-    [["a", 4, 52, "Website"], ["c", 62, 30, "Brand"]],
-    [["hol", 0, 100, "Holiday"]],
-    [["b", 6, 18, "Internal"], ["a", 28, 36, "Website"], ["c", 70, 24, "Brand"]]
-  ];
-  days.forEach(function (d, i) {
-    var day = document.createElement("div"); day.className = "day";
-    var h = '<div class="dh">' + d + '</div><div class="col">';
-    evs[i].forEach(function (e, k) {
-      var style = e[0] === "hol" ? "" : 'top:' + e[1] + '%;height:' + e[2] + '%;';
-      h += '<div class="ev ' + e[0] + '" style="' + style + 'animation-delay:' + (i * 120 + k * 90) + 'ms">' + e[3] + "</div>";
-    });
-    day.innerHTML = h + "</div>";
-    cal.appendChild(day);
-  });
-
-  /* ---------- roadmap drag ---------- */
-  var bar = $("#dragBar");
+  // Auto-advance the feature accordion until someone clicks it.
   if (!reduce) {
-    var fwd = true;
-    setInterval(function () {
-      bar.classList.add("drag");
-      bar.style.left = fwd ? "42%" : "30%";
-      fwd = !fwd;
-      setTimeout(function () { bar.classList.remove("drag"); }, 1300);
-    }, 3200);
+    var featIdx = 0, featTimer = null;
+    var startFeat = function () { featTimer = setInterval(function () { featIdx = (featIdx + 1) % 3; openFeat(featIdx); }, 7000); };
+    featAcc.__stop = function () { clearInterval(featTimer); };
+    var fio = new IntersectionObserver(function (e) {
+      if (e[0].isIntersecting && !featTimer) startFeat();
+      else if (!e[0].isIntersecting && featTimer) { clearInterval(featTimer); featTimer = null; }
+    }, { threshold: 0.3 });
+    fio.observe(featAcc);
+  }
+  accordion($("#faqAcc"));
+
+  /* ---------- flow: wires from each node to the hub, packets on the hot ones ---------- */
+  var flow = $(".flow"), wires = $(".wires"), hub = $(".hub");
+  var NS = "http://www.w3.org/2000/svg", hotIn = null, hotOut = null;
+  function drawWires() {
+    if (!flow || getComputedStyle(wires).display === "none") return;
+    var fb = flow.getBoundingClientRect(), hb = hub.getBoundingClientRect();
+    wires.setAttribute("viewBox", "0 0 " + fb.width + " " + fb.height);
+    wires.innerHTML = "";
+    var hy = hb.top - fb.top + hb.height / 2, hl = hb.left - fb.left, hr = hb.right - fb.left;
+    $$(".flow-col", flow).forEach(function (col, ci) {
+      $$(".node", col).forEach(function (n) {
+        var nb = n.getBoundingClientRect(), y = nb.top - fb.top + nb.height / 2, d;
+        if (ci === 0) { var x = nb.right - fb.left, mx = (x + hl) / 2; d = "M" + x + " " + y + " C" + mx + " " + y + " " + mx + " " + hy + " " + hl + " " + hy; }
+        else { var x2 = nb.left - fb.left, mx2 = (hr + x2) / 2; d = "M" + hr + " " + hy + " C" + mx2 + " " + hy + " " + mx2 + " " + y + " " + x2 + " " + y; }
+        var p = document.createElementNS(NS, "path");
+        p.setAttribute("d", d); p.setAttribute("class", "w" + (n.classList.contains("hot") ? " hot" : ""));
+        wires.appendChild(p);
+        if (n.classList.contains("hot")) { if (ci === 0) hotIn = p; else hotOut = p; }
+      });
+    });
+  }
+  function runPacket(pkt, getPath, dur, delay) {
+    var t0 = null;
+    function frame(ts) {
+      if (t0 === null) t0 = ts + delay;
+      var path = getPath(), p = (ts - t0) / dur;
+      if (path && p >= 0 && p <= 1) {
+        var pt = path.getPointAtLength(path.getTotalLength() * p);
+        pkt.style.transform = "translate(" + pt.x + "px," + pt.y + "px)";
+        pkt.style.opacity = p < 0.1 ? p * 10 : p > 0.9 ? (1 - p) * 10 : 1;
+      } else pkt.style.opacity = 0;
+      if (p > 1.7) t0 = ts;
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  if (flow) {
+    drawWires();
+    window.addEventListener("resize", drawWires);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawWires);
+    if (!reduce) {
+      runPacket($(".p-in"), function () { return hotIn; }, 1300, 0);
+      runPacket($(".p-out"), function () { return hotOut; }, 1300, 1000);
+    }
   }
 
-  /* ---------- donut ---------- */
-  var donut = $("#donut");
-  onView(donut, function () {
-    var C = 2 * Math.PI * 46;
-    $$(".seg-anim", donut).forEach(function (c) {
-      var v = +c.dataset.v, o = +c.dataset.o;
-      c.style.strokeDashoffset = String(-o * C);
-      requestAnimationFrame(function () { c.setAttribute("stroke-dasharray", (v * C - 2).toFixed(1) + " " + C.toFixed(1)); });
-    });
-    countUp($("#donutTotal"), 307, 1400, function (n) { return n + "h"; });
-    var rowsEl = $$("#drill > div:not(.exports)"), k = 0;
-    if (!reduce) setInterval(function () { rowsEl.forEach(function (r, i) { r.classList.toggle("active", i === k % rowsEl.length); }); k++; }, 1600);
-  });
-
-  /* ---------- approvals stack ---------- */
-  var stack = $("#stack");
-  var reqs = [
-    ["AR", "var(--violet)", "Ana R.", "Leave · Thu 16 Oct"],
-    ["DK", "var(--info)", "Dev K.", "Taxi to client · ₹640"],
-    ["ML", "var(--brand)", "Mia L.", "Leave · 20–21 Oct"],
-    ["SJ", "var(--ok)", "Sam J.", "Software licence · $24"]
+  /* ---------- Ask AI ---------- */
+  var AI = [
+    { q: "Which project used the most hours last month?", ctx: "Checked timesheets for Northwind Studio, September",
+      a: "Website redesign used the most: 184h of a 200h budget. Spring campaign went 18% over its budget.",
+      h: ["Project", "Hours", "Budget", "Used"],
+      rows: [["Website redesign", "184h", "200h", "92%"], ["Spring campaign", "142h", "120h", "118%"], ["Brand sprint", "132h", "170h", "78%"], ["Mobile app · v2", "96h", "240h", "40%"]], hi: 1,
+      s: "Spring campaign is over budget. Want me to draft a client update about it?", b: "Draft update" },
+    { q: "Who has room for more work next week?", ctx: "Checked workload and approved leave for week 43",
+      a: "Meera has the most room: 18 free hours. Ana is fully booked and has a day of leave on Thursday.",
+      h: ["Person", "Planned", "Leave", "Free"],
+      rows: [["Ana R.", "32h", "8h", "0h"], ["Karan S.", "38h", "—", "2h"], ["Vikram T.", "30h", "—", "10h"], ["Meera P.", "22h", "—", "18h"]], hi: 3,
+      s: "Want me to suggest which open tasks Meera could take?", b: "Suggest tasks" },
+    { q: "How much of last week was billable?", ctx: "Checked time entries for week 41",
+      a: "86% of last week was billable: 172h of 200h. Internal tools took most of the rest.",
+      h: ["Project", "Hours", "Billable", "Share"],
+      rows: [["Website redesign", "64h", "64h", "100%"], ["Brand sprint", "58h", "58h", "100%"], ["Mobile app · v2", "50h", "50h", "100%"], ["Internal tools", "28h", "0h", "0%"]], hi: 3,
+      s: "Want this as an Excel report grouped by client?", b: "Export Excel" },
+    { q: "Summarise the Brand sprint for the client.", ctx: "Read the Brand sprint project, its tasks and milestones",
+      a: "Brand sprint is 78% through its hours and on track for its 31 Oct milestone. Logo and type are done; the guidelines are in review.",
+      h: ["Milestone", "Due", "Hours", "Status"],
+      rows: [["Logo", "3 Oct", "38h", "Done"], ["Type system", "14 Oct", "41h", "Done"], ["Guidelines", "24 Oct", "36h", "Review"], ["Handover", "31 Oct", "17h", "Next"]], hi: 2,
+      s: "I drafted a client update from these facts. Review it before it's sent?", b: "Review draft" }
   ];
-  var cards = reqs.map(function (r) {
-    var el = document.createElement("div"); el.className = "ap-card";
-    el.innerHTML = '<span class="av" style="background:' + r[1] + '">' + r[0] + "</span><div><b>" + r[2] + "</b><span>" + r[3] + '</span></div><div class="ap-act"><i>✕</i><i class="yes">✓</i></div>';
-    stack.appendChild(el); return el;
-  });
-  var badge = document.createElement("span"); badge.className = "ap-badge"; stack.appendChild(badge);
-  var approved = 0;
-  function layout(start) {
-    cards.forEach(function (c, i) {
-      var pos = (i - start + cards.length) % cards.length;
-      c.classList.remove("approved");
-      c.style.zIndex = String(10 - pos);
-      c.style.opacity = pos > 2 ? "0" : String(1 - pos * 0.25);
-      c.style.transform = "translateY(" + pos * 14 + "px) scale(" + (1 - pos * 0.05) + ")";
+  var qBtns = $$(".q"), aiBody = $("#aiBody");
+  function showAI(i) {
+    var d = AI[i];
+    qBtns.forEach(function (b, j) {
+      b.classList.toggle("on", j === i);
+      b.innerHTML = AI[j].q + (j === i ? ' <svg class="ico-s"><use href="#i-arrow"/></svg>' : "");
     });
-    badge.textContent = approved + " approved today";
-  }
-  var top = 0; layout(0);
-  if (!reduce) setInterval(function () {
-    var c = cards[top];
-    c.style.transform = ""; c.classList.add("approved");
-    approved++;
-    setTimeout(function () { top = (top + 1) % cards.length; layout(top); }, 600);
-  }, 2600);
-
-  /* ---------- roles toggles + brand colour ---------- */
-  var flips = $$("[data-flip]");
-  if (!reduce) setInterval(function () { flips.forEach(function (t) { t.classList.toggle("on"); }); }, 2400);
-  $$(".swatches button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      $$(".swatches button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
-      var root = document.documentElement.style;
-      if (b.dataset.c === "#ff4c00") { root.removeProperty("--brand"); root.removeProperty("--brand-soft"); return; }
-      root.setProperty("--brand", b.dataset.c);
-      root.setProperty("--brand-soft", "color-mix(in srgb, " + b.dataset.c + " 14%, var(--surface))");
+    $("#aiQ").textContent = d.q; $("#aiCtx").textContent = d.ctx; $("#aiA").textContent = d.a; $("#aiS").textContent = d.s;
+    $(".ai-sugg .btn-brand").textContent = d.b;
+    var t = '<div class="at-h">' + d.h.map(function (c, k) { return "<span" + (k ? ' class="r"' : "") + ">" + c + "</span>"; }).join("") + "</div>";
+    d.rows.forEach(function (r, k) {
+      t += '<div class="at-r' + (k === d.hi ? " hi" : "") + '">' + r.map(function (c, m) { return "<span" + (m ? ' class="r"' : "") + ">" + c + "</span>"; }).join("") + "</div>";
     });
-  });
-
-  /* ---------- tour ---------- */
-  var TOUR_MS = 6000;
-  var panels = [
-    '<div class="app-head"><h4>Log time</h4><span class="week">Today · Tue 14 Oct</span></div>' +
-    '<div class="list">' +
-      '<div><span>Website redesign · Homepage hero QA</span><span class="num">09:00–10:30</span><b class="num">1:30</b></div>' +
-      '<div><span>Brand sprint · Moodboard round 2</span><span class="num">10:30–12:00</span><b class="num">1:30</b></div>' +
-      '<div><span>Internal tools · Sprint planning</span><span class="num">12:45–13:30</span><b class="num">0:45</b></div>' +
-      '<div><span>Website redesign · Client call notes</span><span class="num">13:30–14:30</span><b class="num">1:00</b></div>' +
-      '<div style="background:var(--brand-soft)"><span><b>Day total</b> · submits at 23:59</span><span></span><b class="num" style="color:var(--brand)">4:45</b></div>' +
-    "</div>",
-    '<div class="app-head"><h4>Website redesign · Tasks</h4><div class="seg"><span>List</span><span class="on">Board</span></div></div>' +
-    '<div class="tp-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">' +
-      col("To do", [["Footer links", "0:00"], ["Pricing page copy", "0:00"]]) +
-      col("In progress", [["Homepage hero", "6:30"], ["Nav mobile menu", "2:15"]]) +
-      col("Done", [["Wireframes", "12:00"], ["Design tokens", "4:45"]]) +
-    "</div>",
-    '<div class="tp-grid">' +
-      '<div class="kpi"><span>Logged this month</span><b class="num">307h</b><em>On plan</em></div>' +
-      '<div class="kpi"><span>Brand sprint budget</span><b class="num">92%</b><em class="warn">At risk · 8 days left</em></div>' +
-    "</div>" +
-    '<svg class="area" viewBox="0 0 400 160" preserveAspectRatio="none" aria-hidden="true">' +
-      '<line class="gr" x1="0" y1="40" x2="400" y2="40"/><line class="gr" x1="0" y1="80" x2="400" y2="80"/><line class="gr" x1="0" y1="120" x2="400" y2="120"/>' +
-      '<path class="fl" d="M0 130 L57 112 L114 118 L171 90 L228 84 L285 60 L342 66 L400 38 L400 160 L0 160Z"/>' +
-      '<path class="ln" d="M0 130 L57 112 L114 118 L171 90 L228 84 L285 60 L342 66 L400 38"/>' +
-    "</svg>",
-    '<div class="app-head"><h4>Approvals</h4><span class="week">4 waiting</span></div>' +
-    '<div class="list">' +
-      '<div><span>Ana R. · Annual leave · 16 Oct</span><span class="status ok">Approved</span><b class="num">1 day</b></div>' +
-      '<div><span>Dev K. · Taxi to client site</span><span class="status wait">Waiting</span><b class="num">₹640</b></div>' +
-      '<div><span>Mia L. · Annual leave · 20–21 Oct</span><span class="status wait">Waiting</span><b class="num">2 days</b></div>' +
-      '<div><span>Sam J. · Software licence</span><span class="status info">Receipt added</span><b class="num">$24</b></div>' +
-      '<div><span style="color:var(--muted)">Every change is kept in the audit log</span><span></span><span></span></div>' +
-    "</div>"
-  ];
-  function col(name, items) {
-    return '<div style="display:grid;gap:8px;align-content:start;min-width:0"><span style="font-size:12px;color:var(--muted);font-weight:600">' + name + "</span>" +
-      items.map(function (it, i) { return '<div class="kpi" style="animation:rowIn .4s ' + i * 90 + 'ms both"><span style="color:var(--ink);font-weight:500;font-size:13px">' + it[0] + '</span><span class="num">' + it[1] + " logged</span></div>"; }).join("") + "</div>";
+    $("#aiT").innerHTML = t;
+    aiBody.classList.remove("swap"); void aiBody.offsetWidth; if (!reduce) aiBody.classList.add("swap");
   }
-  var tabs = $$(".tour-tab"), view = $("#tourView"), ti = 0, timer = null;
-  document.documentElement.style.setProperty("--tour-ms", TOUR_MS + "ms");
-  function show(i, user) {
-    ti = i;
-    tabs.forEach(function (t, k) { t.setAttribute("aria-selected", String(k === i)); });
-    view.innerHTML = '<div class="tour-panel">' + panels[i] + "</div>";
-    clearTimeout(timer);
-    if (!reduce && !user) timer = setTimeout(function () { show((ti + 1) % tabs.length); }, TOUR_MS);
+  qBtns.forEach(function (b, i) { b.addEventListener("click", function () { showAI(i); }); });
+
+  /* ---------- week to report ---------- */
+  var weekEl = $("#benchWeek"), range = $("#benchRange");
+  // 4 weeks x 5 days; each day logs a mix of three projects. Day 9 is leave.
+  var DAYS = [];
+  for (var w = 0; w < 4; w++) for (var dd = 0; dd < 5; dd++) {
+    var idx = w * 5 + dd;
+    DAYS.push(idx === 8 ? null : [[3.5, 2.5, 1.5], [3, 3, 2], [4, 2, 1.5], [2.5, 3.5, 1.5], [4, 2.5, 1]][dd]);
   }
-  tabs.forEach(function (t, k) { t.addEventListener("click", function () { show(k, true); }); });
-  show(0);
-
-  /* ---------- AI chat ---------- */
-  var chat = $("#chat");
-  onView(chat, async function () {
-    await typeInto($("#chatQ"), "How many hours did Northwind take this month?", 35);
-    await wait(500);
-    await typeInto($("#chatA"), "108.5 hours across three projects. Website redesign took most of it; Brand sprint is at 92% of budget.", 18);
-    $("#chatBars").classList.add("show");
-  });
-
-  /* ---------- request access forms ---------- */
-  var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  $$(".js-access").forEach(function (form) {
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      var input = $("input[type=email]", form), email = input.value.trim();
-      var err = $(".form-error", form);
-      if (!EMAIL.test(email)) {
-        if (!err) { err = document.createElement("div"); err.className = "form-error"; form.appendChild(err); }
-        err.textContent = "Enter a work email like you@company.com.";
-        input.focus();
-        return;
-      }
-      if (CONFIG.accessEndpoint) {
-        try {
-          await fetch(CONFIG.accessEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email }) });
-        } catch (x) { /* show the thank-you anyway; the team follows up by email */ }
-      }
-      var box = document.createElement("div");
-      box.className = "thanks"; box.setAttribute("role", "status");
-      box.innerHTML = '<svg width="18" height="18"><use href="#i-check"/></svg><div></div>';
-      box.lastChild.textContent = "Thanks. We'll email you at " + email + " when your Orbit0 workspace is ready.";
-      form.replaceWith(box);
+  var hdr = ["M", "T", "W", "T", "F"].map(function (x) { return '<span class="day-h">' + x + "</span>"; }).join("");
+  function renderWeek() {
+    var n = +range.value, html = hdr, tot = [0, 0, 0];
+    DAYS.forEach(function (d, i) {
+      if (i < n && d) { tot[0] += d[0]; tot[1] += d[1]; tot[2] += d[2]; }
+      var inner = i < n && d ? '<i class="b1" style="width:' + d[0] * 12 + '%"></i><i class="b2" style="width:' + d[1] * 12 + '%"></i><i class="b3" style="width:' + d[2] * 12 + '%"></i>' : "";
+      html += '<span class="' + (i < n ? (d ? "on" : "leave") : "") + '" title="' + (d ? "" : "Leave") + '">' + inner + "</span>";
     });
-  });
-
-  /* ---------- theme ---------- */
-  var themeBtns = $$("#themeToggle button");
-  function applyTheme(t) {
-    if (t === "system") document.documentElement.removeAttribute("data-theme");
-    else document.documentElement.setAttribute("data-theme", t);
-    themeBtns.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.t === t)); });
+    weekEl.innerHTML = html;
+    var max = 70;
+    tot.forEach(function (v, k) { $("#rb" + k).style.width = Math.min(100, v / max * 100) + "%"; $("#rv" + k).textContent = v.toFixed(0) + "h"; });
+    $("#rvT").textContent = (tot[0] + tot[1] + tot[2]).toFixed(0) + "h";
+    var logged = DAYS.slice(0, n).filter(Boolean).length;
+    $("#benchStat").textContent = n + " of 20 days · " + logged + " logged" + (n > 8 ? " · 1 leave" : "");
+    var st = n < 8 ? 0 : n < 16 ? 1 : 2;
+    $$("#steps li").forEach(function (li, i) { li.classList.toggle("on", i === st); });
   }
-  applyTheme(store("orbit0-theme") || "system");
-  themeBtns.forEach(function (b) { b.addEventListener("click", function () { applyTheme(b.dataset.t); store("orbit0-theme", b.dataset.t); }); });
+  if (weekEl && range) { range.addEventListener("input", renderWeek); renderWeek(); }
+
+  /* ---------- count-up ---------- */
+  var counters = $$("[data-count]");
+  if ("IntersectionObserver" in window) {
+    var cio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target, to = +el.dataset.count, t0 = performance.now();
+        if (reduce) { el.textContent = to; return; }
+        (function tick(ts) { var p = Math.min(1, (ts - t0) / 900); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(tick); })(t0);
+        cio.unobserve(el);
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(function (c) { cio.observe(c); });
+  } else counters.forEach(function (c) { c.textContent = c.dataset.count; });
+
+  /* ---------- request access ---------- */
+  var form = $("#accessForm"), msg = $("#accessMsg");
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var email = form.email.value.trim();
+    msg.className = "form-msg";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = "Enter a work email, like you@company.com."; msg.classList.add("err"); form.email.focus(); return; }
+    var done = function () { msg.textContent = "Thanks. We'll email you at " + email + " when your Orbit0 workspace is ready."; msg.classList.add("ok"); form.reset(); };
+    if (!CONFIG.accessEndpoint) return done();
+    fetch(CONFIG.accessEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email }) })
+      .then(function (r) { if (!r.ok) throw new Error(); done(); })
+      .catch(function () { msg.textContent = "That didn't go through. Please try again in a moment."; msg.classList.add("err"); });
+  });
 })();
