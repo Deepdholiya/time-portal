@@ -17,6 +17,13 @@
   $$('[data-link="signin"]').forEach(function (a) { a.href = CONFIG.signInUrl; });
   $$('[data-link="demo"]').forEach(function (a) { a.href = CONFIG.demoUrl + a.dataset.role; });
 
+  /* ---------- current page in the nav ---------- */
+  var here = location.pathname.replace(/index\.html$/, "");
+  $$(".nav-links a, .dd-menu a, .mobile-menu a").forEach(function (a) {
+    var u = a.getAttribute("href") || "";
+    if (u.indexOf("#") === -1 && u === here) a.setAttribute("aria-current", "page");
+  });
+
   /* ---------- mobile menu ---------- */
   var menuBtn = $("#menuBtn"), menu = $("#mobileMenu");
   function setMenu(open) { menu.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", String(open)); }
@@ -66,7 +73,7 @@
     });
     if (played) $$(".hero-live .dots").forEach(function (d) { buildDots(d, true); });
   }
-  heroBtn.addEventListener("click", function () { setHero(!hero.classList.contains("played")); });
+  if (hero && heroBtn) heroBtn.addEventListener("click", function () { setHero(!hero.classList.contains("played")); });
 
   /* ---------- typed timesheet cell ---------- */
   var typed = $(".typed"), cellEdit = $(".cell-edit");
@@ -109,11 +116,11 @@
     return open;
   }
   var featAcc = $("#featAcc"), panels = $$(".stage .panel");
-  var openFeat = accordion(featAcc, function (i) {
+  var openFeat = featAcc && accordion(featAcc, function (i) {
     panels.forEach(function (p) { p.classList.toggle("show", +p.dataset.for === i); });
   });
   // Auto-advance the feature accordion until someone clicks it.
-  if (!reduce) {
+  if (featAcc && !reduce && "IntersectionObserver" in window) {
     var featIdx = 0, featTimer = null;
     var startFeat = function () { featTimer = setInterval(function () { featIdx = (featIdx + 1) % 3; openFeat(featIdx); }, 7000); };
     featAcc.__stop = function () { clearInterval(featTimer); };
@@ -123,7 +130,7 @@
     }, { threshold: 0.3 });
     fio.observe(featAcc);
   }
-  accordion($("#faqAcc"));
+  $$(".faq-acc").forEach(function (f) { accordion(f); });
 
   /* ---------- flow: wires from each node to the hub, packets on the hot ones ---------- */
   var flow = $(".flow"), wires = $(".wires"), hub = $(".hub");
@@ -210,7 +217,7 @@
     $("#aiT").innerHTML = t;
     aiBody.classList.remove("swap"); void aiBody.offsetWidth; if (!reduce) aiBody.classList.add("swap");
   }
-  qBtns.forEach(function (b, i) { b.addEventListener("click", function () { showAI(i); }); });
+  if (aiBody) qBtns.forEach(function (b, i) { b.addEventListener("click", function () { showAI(i); }); });
 
   /* ---------- week to report ---------- */
   var weekEl = $("#benchWeek"), range = $("#benchRange");
@@ -256,7 +263,7 @@
 
   /* ---------- request access ---------- */
   var form = $("#accessForm"), msg = $("#accessMsg");
-  form.addEventListener("submit", function (ev) {
+  if (form) form.addEventListener("submit", function (ev) {
     ev.preventDefault();
     var email = form.email.value.trim();
     msg.className = "form-msg";
