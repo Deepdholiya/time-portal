@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbit0 for consultancies</title>
+<meta name="description" content="Orbit0 for consultancies: billable and non-billable time, utilisation per person and team, and clean exports.">
+<meta property="og:title" content="Orbit0 for consultancies">
+<meta property="og:description" content="Orbit0 for consultancies: billable and non-billable time, utilisation per person and team, and clean exports.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='5' fill='%23ff4c00'/%3E%3Ccircle cx='10' cy='10' r='3.4' fill='white'/%3E%3Ccircle cx='10' cy='10' r='6.6' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='2.2 2.4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3.5v9M3.5 8h9" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="M4.5 6.5L8 10l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.5 3.2v9.6L12.8 8z" fill="currentColor"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 16 16"><path d="M3.5 5.5v-3M3.5 5.5h3M3.8 5.3A5 5 0 1 1 3 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 16 16"><path d="M8 1.5l1.5 4.6L14 8l-4.5 1.9L8 14.5 6.5 9.9 2 8l4.5-1.9z" fill="currentColor"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3.2l2 1.3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 6.5h11M6.5 6.5v7" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 16 16"><rect x="2.5" y="3.5" width="11" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 7h11M5.5 2v3M10.5 2v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-task" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.6 8.2l1.7 1.6 3.2-3.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M3 13V8M8 13V3M13 13V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-file" viewBox="0 0 16 16"><path d="M4 2.5h5l3 3v8H4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 2.5v3h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-link" viewBox="0 0 16 16"><path d="M6.8 9.2l2.4-2.4M7 4.8l1-1a2.6 2.6 0 0 1 3.7 3.7l-1 1M9 11.2l-1 1a2.6 2.6 0 0 1-3.7-3.7l1-1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-funnel" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="3" rx="1.5" fill="currentColor" opacity=".25"/><rect x="6" y="10.5" width="12" height="3" rx="1.5" fill="currentColor"/><rect x="9" y="16" width="6" height="3" rx="1.5" fill="var(--brand)"/></symbol>
+  <symbol id="i-split" viewBox="0 0 24 24"><rect x="4" y="5" width="6" height="14" rx="3" fill="currentColor" opacity=".35"/><rect x="14" y="5" width="6" height="14" rx="3" fill="currentColor"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><path d="M3 7c5 0 6 10 12 10M3 17c5 0 6-10 12-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="18.5" cy="12" r="2.6" fill="currentColor"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8l5 2v4c0 3.1-2.1 5.4-5 6.4-2.9-1-5-3.3-5-6.4v-4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.8 8.1l1.5 1.5 2.9-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M1.8 13.5c.5-2.4 2.2-3.6 4.2-3.6s3.7 1.2 4.2 3.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M10.6 3.4a2.3 2.3 0 0 1 0 4.4M12 9.9c1.1.4 1.9 1.6 2.2 3.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-key" viewBox="0 0 16 16"><circle cx="5.5" cy="10.5" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7.7 8.3L13.5 2.5M11.5 4.5l1.6 1.6M10 6l1.2 1.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-log" viewBox="0 0 16 16"><path d="M3 3.5h10M3 6.5h10M3 9.5h6M3 12.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 4.5L8 8.6l5.5-4.1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-building" viewBox="0 0 16 16"><path d="M3 14V3.5L9 2v12M9 6h4v8M1.5 14h13M5 5.5h2M5 8h2M5 10.5h2M11 8.5v.01M11 11v.01" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 16 16"><path d="M2.5 9.5l1.6-5.2a1.5 1.5 0 0 1 1.4-1.1h5a1.5 1.5 0 0 1 1.4 1.1l1.6 5.2v3a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2.5 9.5h3l1 1.5h3l1-1.5h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.2 10.2l3.3 3.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13 9.6A5.5 5.5 0 0 1 6.4 3a5.5 5.5 0 1 0 6.6 6.6z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-leave" viewBox="0 0 16 16"><path d="M2 13.5h12M4 13.5c0-4 1.8-7 4-9 2.2 2 4 5 4 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 4.5v9" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 16 16"><path d="M3.5 2h9v12l-1.8-1.2L9 14l-1-1.2L7 14l-1.7-1.2L3.5 14z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 5.5h4M6 8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a href="../.././" class="logo" aria-label="Orbit0 home">
+      <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4" fill="#fff"/><circle cx="10" cy="10" r="6.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="2.2 2.4"/></svg></span>
+      <span class="logo-word">orbit0</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-product">Product <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-product"><div class="dd-box dd-mega"><div class="dd-col"><span class="dd-h">Track time</span><a href="../../product/time-tracking/"><span class="dd-ico"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>Time tracking</b><small>Log a day in a minute</small></span></a><a href="../../product/timesheets/"><span class="dd-ico"><svg class="ico"><use href="#i-grid"/></svg></span><span><b>Timesheets</b><small>Table and calendar views</small></span></a><a href="../../product/leave/"><span class="dd-ico"><svg class="ico"><use href="#i-leave"/></svg></span><span><b>Leave and expenses</b><small>Requests, holidays, approvals</small></span></a></div><div class="dd-col"><span class="dd-h">Plan and report</span><a href="../../product/projects/"><span class="dd-ico"><svg class="ico"><use href="#i-task"/></svg></span><span><b>Projects and roadmap</b><small>Plan work, drag to reschedule</small></span></a><a href="../../product/analytics/"><span class="dd-ico"><svg class="ico"><use href="#i-chart"/></svg></span><span><b>Analytics and reports</b><small>Budgets, workload, exports</small></span></a><a href="../../product/ai/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Ask AI</b><small>Answers about your time</small></span></a><a href="../../product/admin/"><span class="dd-ico"><svg class="ico"><use href="#i-users"/></svg></span><span><b>Admin and permissions</b><small>Roles, companies, automations</small></span></a></div><div class="dd-side"><span class="dd-h">Get to know Orbit0</span><a class="dd-card" href="../../product/"><b>Product overview</b><small>Every feature on one page</small><svg class="ico-s"><use href="#i-arrow"/></svg></a><a class="dd-card" href="../../demo/"><b>Live demo</b><small>Sample data, one-click sign in</small><svg class="ico-s"><use href="#i-arrow"/></svg></a><a class="dd-card" href="../../security/"><b>Security</b><small>Sign-in, access and audit log</small><svg class="ico-s"><use href="#i-arrow"/></svg></a></div></div></div></div>
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-solutions">Solutions <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-solutions"><div class="dd-box dd-two"><div class="dd-col"><span class="dd-h">By role</span><a href="../../solutions/leaders/"><span class="dd-ico"><svg class="ico"><use href="#i-chart"/></svg></span><span><b>Leaders</b><small>Utilisation, budgets, health</small></span></a><a href="../../solutions/project-managers/"><span class="dd-ico"><svg class="ico"><use href="#i-task"/></svg></span><span><b>Project managers</b><small>Plan and stay on track</small></span></a><a href="../../solutions/employees/"><span class="dd-ico"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>Employees</b><small>Log time, get back to work</small></span></a></div><div class="dd-col"><span class="dd-h">By team</span><a href="../../solutions/agencies/"><span class="dd-ico"><svg class="ico"><use href="#i-building"/></svg></span><span><b>Agencies</b><small>Clients, retainers, reports</small></span></a><a href="../../solutions/design-studios/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Design studios</b><small>Phases and creative work</small></span></a><a href="../../solutions/consultancies/"><span class="dd-ico"><svg class="ico"><use href="#i-users"/></svg></span><span><b>Consultancies</b><small>Billable time and utilisation</small></span></a></div><div class="dd-foot"><a class="link" href="../../solutions/">All solutions <svg class="ico-s"><use href="#i-arrow"/></svg></a></div></div></div></div>
+      <a href="../../pricing/">Pricing</a>
+      <a href="../../demo/">Live demo</a>
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-company">Company <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-company"><div class="dd-box dd-one"><div class="dd-col"><a href="../../about/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>About</b><small>Why we built Orbit0</small></span></a><a href="../../security/"><span class="dd-ico"><svg class="ico"><use href="#i-shield"/></svg></span><span><b>Security</b><small>How we protect your data</small></span></a><a href="../../contact/"><span class="dd-ico"><svg class="ico"><use href="#i-mail"/></svg></span><span><b>Contact</b><small>Talk to the team</small></span></a></div></div></div></div>
+    </nav>
+    <div class="nav-actions">
+      <a class="nav-login" data-link="signin" href="/login">Sign in</a>
+      <a class="btn btn-outline btn-sm hide-sm" data-link="demo" data-role="admin" href="/login">Try the demo</a>
+      <a class="btn btn-dark btn-sm" href="../../request-access/">Request access</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu"><details class="mm-group"><summary>Product <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="../../product/">Overview</a><a href="../../product/time-tracking/">Time tracking</a><a href="../../product/timesheets/">Timesheets</a><a href="../../product/leave/">Leave and expenses</a><a href="../../product/projects/">Projects and roadmap</a><a href="../../product/analytics/">Analytics and reports</a><a href="../../product/ai/">Ask AI</a><a href="../../product/admin/">Admin and permissions</a></div></details><details class="mm-group"><summary>Solutions <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="../../solutions/">All solutions</a><a href="../../solutions/leaders/">Leaders</a><a href="../../solutions/project-managers/">Project managers</a><a href="../../solutions/employees/">Employees</a><a href="../../solutions/agencies/">Agencies</a><a href="../../solutions/design-studios/">Design studios</a><a href="../../solutions/consultancies/">Consultancies</a></div></details><details class="mm-group"><summary>Company <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="../../about/">About</a><a href="../../security/">Security</a><a href="../../contact/">Contact</a></div></details><a class="mm-link" href="../../pricing/">Pricing</a><a class="mm-link" href="../../demo/">Live demo</a><a class="mm-link" data-link="signin" href="/login">Sign in</a><a class="btn btn-brand btn-block" href="../../request-access/">Request access</a></div>
+</header>
+
+<main id="top">
+
+<section class="page-hero">
+  <div class="orbits" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="wrap ph-inner">
+    <span class="eyebrow rise">For consultancies</span>
+    <h1 class="rise" style="--d:.05s">Billable time<br><span class="soft">and utilisation, clearly.</span></h1>
+    <p class="rise" style="--d:.1s">Log billable and non-billable time, see utilisation per person and team, and export it for invoicing.</p>
+    <div class="hero-ctas rise" style="--d:.15s"><a class="btn btn-brand" href="../../request-access/">Request access</a><a class="btn btn-outline" href="../../demo/"><svg class="ico"><use href="#i-play"/></svg>Try the live demo</a></div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="sec-head reveal"><span class="eyebrow">What gets in the way</span><h2>Utilisation is the business,<br><span class="soft">but it's hard to see.</span></h2></div><div class="tiles c3"><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-receipt"/></svg></span><b>Billable time slips</b><p>Hours that should be billed get logged as internal.</p></div><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-users"/></svg></span><b>Utilisation by spreadsheet</b><p>Every month someone rebuilds the same sheet.</p></div><div class="tile reveal"><span class="tile-ico"><svg class="ico"><use href="#i-shield"/></svg></span><b>Rates are sensitive</b><p>Not everyone should see rates and financials.</p></div></div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="sec-head reveal"><span class="eyebrow">For consultancies</span><h2>How Orbit0 helps.</h2></div><div class="frow reveal" id="consultancies-0">
+  <div class="frow-t"><span class="eyebrow">Utilisation</span><h2>Per person and per team.</h2><p>Planned and logged hours against capacity, with billable share.</p><ul class="ticks"><li><svg><use href="#i-check"/></svg>Billable and non-billable</li><li><svg><use href="#i-check"/></svg>Leave counted</li><li><svg><use href="#i-check"/></svg>Per team</li></ul><a class="link" href="../../product/analytics/">See analytics <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
+  <div class="frow-v"><div class="panel show"><div class="pw"><div class="pw-head"><b>Workload · Design team</b><span class="grow"></span><span class="chip">Week 42</span></div>
+<div class="wr-table" style="border-top:0;margin-top:0">
+  <div class="wr-cols"><span>Person</span><span></span><span class="r">Load</span><span class="r">Free</span></div>
+  <div class="wr-row"><span>Ana R.</span><span class="dots" data-n="20" data-on="20"></span><span class="r">100%</span><span class="r">0h</span></div>
+  <div class="wr-row"><span>Karan S.</span><span class="dots" data-n="20" data-on="19"></span><span class="r">96%</span><span class="r">2h</span></div>
+  <div class="wr-row"><span>Vikram T.</span><span class="dots" data-n="20" data-on="15"></span><span class="r">75%</span><span class="r">10h</span></div>
+  <div class="wr-row hi"><span>Meera P.</span><span class="dots brand" data-n="20" data-on="11"></span><span class="r brand-t">54%</span><span class="r">18h</span></div>
+</div>
+<div class="pw-foot"><div><b>Utilisation 81%</b><span class="xs muted">176h planned of 216h capacity</span></div><span class="btn btn-dark btn-xs">Open workload</span></div></div></div></div>
+</div><div class="frow flip reveal" id="consultancies-1">
+  <div class="frow-t"><span class="eyebrow">Permissions</span><h2>Rates only for the right people.</h2><p>Choose who sees rates, budgets and financials, per role or per person.</p><ul class="ticks"><li><svg><use href="#i-check"/></svg>Custom roles</li><li><svg><use href="#i-check"/></svg>Per-person overrides</li><li><svg><use href="#i-check"/></svg>Audit log</li></ul><a class="link" href="../../product/admin/">See admin <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
+  <div class="frow-v"><div class="panel show"><div class="pw"><div class="pw-head"><b>Roles and permissions</b><span class="grow"></span><span class="chip">+ Custom role</span></div>
+<div class="perm">
+  <span></span><span class="h">Admin</span><span class="h">Manager</span><span class="h">Employee</span>
+  <span>Log own time</span><i class="tg on"></i><i class="tg on"></i><i class="tg on"></i>
+  <span>See team timesheets</span><i class="tg on"></i><i class="tg on"></i><i class="tg"></i>
+  <span>Rates and budgets</span><i class="tg on"></i><i class="tg flip"></i><i class="tg"></i>
+  <span>Approve leave</span><i class="tg on"></i><i class="tg on"></i><i class="tg"></i>
+  <span>Export reports</span><i class="tg on"></i><i class="tg on"></i><i class="tg"></i>
+</div>
+<div class="pw-foot"><div><b>Override for one person</b><span class="xs muted">Give Meera budget access without changing her role</span></div></div></div></div></div>
+</div><div class="frow reveal" id="consultancies-2">
+  <div class="frow-t"><span class="eyebrow">Exports</span><h2>Ready for invoicing.</h2><p>Timesheets grouped by client and project, exported with totals.</p><ul class="ticks"><li><svg><use href="#i-check"/></svg>Excel, PDF and CSV</li><li><svg><use href="#i-check"/></svg>Group by client</li><li><svg><use href="#i-check"/></svg>Approved days locked</li></ul><a class="link" href="../../product/timesheets/">See timesheets <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
+  <div class="frow-v"><div class="panel show"><div class="pw"><div class="pw-head"><b>Team timesheets</b><span class="grow"></span><span class="chip">Group: Project</span><span class="chip chip-brand">Export</span></div>
+<div class="sheet">
+  <span></span><span class="h">Mon</span><span class="h">Tue</span><span class="h">Wed</span><span class="h">Thu</span><span class="h">Fri</span><span class="h r">Total</span>
+  <span class="p"><i style="background:#f97316"></i>Website</span><span>12:30</span><span>14:00</span><span>13:30</span><span>11:00</span><span>9:30</span><b class="r">60:30</b>
+  <span class="p"><i style="background:#6366f1"></i>Brand</span><span>8:00</span><span>6:30</span><span>9:00</span><span class="lv">Leave</span><span>7:00</span><b class="r">30:30</b>
+  <span class="p"><i style="background:#10b981"></i>Internal</span><span>3:00</span><span>4:30</span><span>2:00</span><span>3:30</span><span class="hol">Holiday</span><b class="r">13:00</b>
+</div>
+<div class="pw-foot"><div><b>104h logged by 6 people</b><span class="xs muted">Excel, PDF or CSV with totals</span></div><span class="tool-row sm"><span class="tool">XLS</span><span class="tool">PDF</span><span class="tool">CSV</span></span></div></div></div></div>
+</div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="sec-head center reveal"><span class="eyebrow">A typical week</span><h2>How consultancies use Orbit0.</h2></div><ol class="hsteps reveal"><li><span class="n">1</span><b>Every day</b><p>Consultants log billable and internal time.</p></li><li><span class="n">2</span><b>Weekly</b><p>Managers check utilisation and approve days.</p></li><li><span class="n">3</span><b>Month end</b><p>Export billable hours per client.</p></li></ol>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="faq"><div class="faq-l reveal"><h2>Questions from consultancies.</h2><p class="muted">Anything else, ask us when you request access.</p><a class="link" href="../../contact/">Contact us <svg class="ico-s"><use href="#i-arrow"/></svg></a></div><div class="acc faq-acc" id="faqAcc"><div class="acc-item open"><button class="acc-btn" type="button" aria-expanded="true"><span>Can we separate billable time?</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>Yes. Projects are marked billable with a rate.</p></div></div></div><div class="acc-item"><button class="acc-btn" type="button" aria-expanded="false"><span>Can we hide rates from some people?</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>Yes. Rates and financials are permissions per role or per person.</p></div></div></div><div class="acc-item"><button class="acc-btn" type="button" aria-expanded="false"><span>Can approved time be changed later?</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>Approved days can be locked against edits.</p></div></div></div></div></div>
+  </div>
+</section>
+<section class="sec ">
+  <div class="wrap">
+<div class="sec-head reveal"><span class="eyebrow">More solutions</span><h2>Orbit0 for other teams.</h2></div><div class="rel-grid"><a class="rel-card reveal" href="../../solutions/leaders/"><span class="tile-ico"><svg class="ico"><use href="#i-chart"/></svg></span><b>Leaders</b><span class="muted">Utilisation, budgets, health</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../solutions/project-managers/"><span class="tile-ico"><svg class="ico"><use href="#i-task"/></svg></span><b>Project managers</b><span class="muted">Plan and stay on track</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../solutions/employees/"><span class="tile-ico"><svg class="ico"><use href="#i-clock"/></svg></span><b>Employees</b><span class="muted">Log time, get back to work</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../solutions/agencies/"><span class="tile-ico"><svg class="ico"><use href="#i-building"/></svg></span><b>Agencies</b><span class="muted">Clients, retainers, reports</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a><a class="rel-card reveal" href="../../solutions/design-studios/"><span class="tile-ico"><svg class="ico"><use href="#i-spark"/></svg></span><b>Design studios</b><span class="muted">Phases and creative work</span><span class="go">Learn more <svg class="ico-s"><use href="#i-arrow"/></svg></span></a></div>
+  </div>
+</section>
+
+<section class="sec sec-last" id="access">
+  <div class="wrap">
+    <div class="final reveal">
+      <div class="final-l">
+        <span class="eyebrow on-dark">Get started</span>
+        <h2>Request access to Orbit0.</h2>
+        <p>Tell us your work email. We set up your company and email you an invite and a quote.</p>
+        <form class="access" action="../../request-access/" method="get">
+          <label class="sr" for="ctaEmail">Work email</label>
+          <input id="ctaEmail" type="email" name="email" placeholder="you@company.com" autocomplete="email" required>
+          <button class="btn btn-brand" type="submit">Request access</button>
+        </form>
+        <span class="xs fine">Pricing on request · Set up personally · No card needed</span>
+      </div>
+      <div class="final-r" aria-hidden="true">
+        <div class="orbits sm"><i></i><i></i><i></i></div>
+        <div class="mini-list"><span>Website redesign</span><span>Brand sprint</span><span>Mobile app · v2</span></div>
+        <div class="mini-card">
+          <div class="mc-h"><b>Website redesign · report</b><span class="pill pill-brand">On budget</span></div>
+          <div class="mc-r"><span>Logged</span><span class="dots" data-n="20" data-on="18"></span><span class="r">184h</span></div>
+          <div class="mc-r hi"><span>Billable</span><span class="dots brand" data-n="20" data-on="17"></span><span class="r">171h</span></div>
+          <div class="mc-f"><strong>92%</strong><span class="xs muted">of budget used · 6 people · Excel ready</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a href="../.././" class="logo"><span class="logo-mark"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4" fill="#fff"/><circle cx="10" cy="10" r="6.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="2.2 2.4"/></svg></span><span class="logo-word">orbit0</span></a>
+      <p class="muted">Time tracking, projects, leave and reports for agencies, studios and service teams.</p>
+      <a class="btn btn-outline btn-sm" href="../../request-access/">Request access</a>
+    </div>
+    <div><b>Product</b><a href="../../product/time-tracking/">Time tracking</a><a href="../../product/timesheets/">Timesheets</a><a href="../../product/leave/">Leave and expenses</a><a href="../../product/projects/">Projects and roadmap</a><a href="../../product/analytics/">Analytics and reports</a><a href="../../product/ai/">Ask AI</a><a href="../../product/admin/">Admin and permissions</a></div>
+    <div><b>Solutions</b><a href="../../solutions/leaders/">Leaders</a><a href="../../solutions/project-managers/">Project managers</a><a href="../../solutions/employees/">Employees</a><a href="../../solutions/agencies/">Agencies</a><a href="../../solutions/design-studios/">Design studios</a><a href="../../solutions/consultancies/">Consultancies</a></div>
+    <div><b>Company</b><a href="../../about/">About</a><a href="../../pricing/">Pricing</a><a href="../../demo/">Live demo</a><a href="../../security/">Security</a><a href="../../contact/">Contact</a><a href="/login">Sign in</a></div>
+  </div>
+  <div class="wrap foot-bottom">
+    <span class="muted">© 2026 Orbit0. All rights reserved.</span>
+    <span class="muted">Made for teams that bill by the hour.</span>
+  </div>
+  <div class="wrap foot-word" aria-hidden="true">orbit0</div>
+</footer>
+
+<script src="../../main.js"></script>
+</body>
+</html>

@@ -7,10 +7,10 @@
 <meta name="description" content="Orbit0 brings time logging, projects, leave and reports into one workspace. Your team logs time in seconds and you see where every hour goes.">
 <meta property="og:title" content="Orbit0 · Know where every hour goes">
 <meta property="og:description" content="Time tracking, projects, leave and reports in one workspace for agencies, studios and service teams.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='5' fill='%23e84a00'/%3E%3Ccircle cx='10' cy='10' r='3.4' fill='white'/%3E%3Ccircle cx='10' cy='10' r='6.6' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='2.2 2.4'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='5' fill='%23ff4c00'/%3E%3Ccircle cx='10' cy='10' r='3.4' fill='white'/%3E%3Ccircle cx='10' cy='10' r='6.6' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='2.2 2.4'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Caveat:wght@600&display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -55,22 +55,20 @@
       <span class="logo-word">orbit0</span>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <div class="dd"><a href="product/">Product <svg class="ico-s"><use href="#i-chev"/></svg></a><div class="dd-menu"><div class="dd-box dd-2"><a href="product/#time"><span class="dd-ico"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>Time tracking</b><small>Log a day in a minute</small></span></a><a href="product/#timesheets"><span class="dd-ico"><svg class="ico"><use href="#i-grid"/></svg></span><span><b>Timesheets</b><small>Table and calendar views</small></span></a><a href="product/#projects"><span class="dd-ico"><svg class="ico"><use href="#i-task"/></svg></span><span><b>Projects and roadmap</b><small>Plan work, drag to reschedule</small></span></a><a href="product/#reports"><span class="dd-ico"><svg class="ico"><use href="#i-chart"/></svg></span><span><b>Analytics and reports</b><small>Excel, PDF and CSV</small></span></a><a href="product/#leave"><span class="dd-ico"><svg class="ico"><use href="#i-leave"/></svg></span><span><b>Leave and approvals</b><small>Leave, holidays, expenses</small></span></a><a href="product/#ai"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Ask AI</b><small>Answers about your time</small></span></a><div class="dd-foot"><a class="link" href="product/">See every feature <svg class="ico-s"><use href="#i-arrow"/></svg></a></div></div></div></div>
-      <div class="dd"><a href="solutions/">Solutions <svg class="ico-s"><use href="#i-chev"/></svg></a><div class="dd-menu"><div class="dd-box"><a href="solutions/#leaders"><span class="dd-ico"><svg class="ico"><use href="#i-chart"/></svg></span><span><b>For leaders</b><small>Utilisation and budgets</small></span></a><a href="solutions/#managers"><span class="dd-ico"><svg class="ico"><use href="#i-task"/></svg></span><span><b>For project managers</b><small>Plan and stay on track</small></span></a><a href="solutions/#employees"><span class="dd-ico"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>For employees</b><small>Log time and get back to work</small></span></a><a href="solutions/#teams"><span class="dd-ico"><svg class="ico"><use href="#i-building"/></svg></span><span><b>Agencies and studios</b><small>Teams that bill by project</small></span></a></div></div></div>
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-product">Product <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-product"><div class="dd-box dd-mega"><div class="dd-col"><span class="dd-h">Track time</span><a href="product/time-tracking/"><span class="dd-ico"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>Time tracking</b><small>Log a day in a minute</small></span></a><a href="product/timesheets/"><span class="dd-ico"><svg class="ico"><use href="#i-grid"/></svg></span><span><b>Timesheets</b><small>Table and calendar views</small></span></a><a href="product/leave/"><span class="dd-ico"><svg class="ico"><use href="#i-leave"/></svg></span><span><b>Leave and expenses</b><small>Requests, holidays, approvals</small></span></a></div><div class="dd-col"><span class="dd-h">Plan and report</span><a href="product/projects/"><span class="dd-ico"><svg class="ico"><use href="#i-task"/></svg></span><span><b>Projects and roadmap</b><small>Plan work, drag to reschedule</small></span></a><a href="product/analytics/"><span class="dd-ico"><svg class="ico"><use href="#i-chart"/></svg></span><span><b>Analytics and reports</b><small>Budgets, workload, exports</small></span></a><a href="product/ai/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Ask AI</b><small>Answers about your time</small></span></a><a href="product/admin/"><span class="dd-ico"><svg class="ico"><use href="#i-users"/></svg></span><span><b>Admin and permissions</b><small>Roles, companies, automations</small></span></a></div><div class="dd-side"><span class="dd-h">Get to know Orbit0</span><a class="dd-card" href="product/"><b>Product overview</b><small>Every feature on one page</small><svg class="ico-s"><use href="#i-arrow"/></svg></a><a class="dd-card" href="demo/"><b>Live demo</b><small>Sample data, one-click sign in</small><svg class="ico-s"><use href="#i-arrow"/></svg></a><a class="dd-card" href="security/"><b>Security</b><small>Sign-in, access and audit log</small><svg class="ico-s"><use href="#i-arrow"/></svg></a></div></div></div></div>
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-solutions">Solutions <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-solutions"><div class="dd-box dd-two"><div class="dd-col"><span class="dd-h">By role</span><a href="solutions/leaders/"><span class="dd-ico"><svg class="ico"><use href="#i-chart"/></svg></span><span><b>Leaders</b><small>Utilisation, budgets, health</small></span></a><a href="solutions/project-managers/"><span class="dd-ico"><svg class="ico"><use href="#i-task"/></svg></span><span><b>Project managers</b><small>Plan and stay on track</small></span></a><a href="solutions/employees/"><span class="dd-ico"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>Employees</b><small>Log time, get back to work</small></span></a></div><div class="dd-col"><span class="dd-h">By team</span><a href="solutions/agencies/"><span class="dd-ico"><svg class="ico"><use href="#i-building"/></svg></span><span><b>Agencies</b><small>Clients, retainers, reports</small></span></a><a href="solutions/design-studios/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Design studios</b><small>Phases and creative work</small></span></a><a href="solutions/consultancies/"><span class="dd-ico"><svg class="ico"><use href="#i-users"/></svg></span><span><b>Consultancies</b><small>Billable time and utilisation</small></span></a></div><div class="dd-foot"><a class="link" href="solutions/">All solutions <svg class="ico-s"><use href="#i-arrow"/></svg></a></div></div></div></div>
       <a href="pricing/">Pricing</a>
       <a href="demo/">Live demo</a>
-      <div class="dd"><a href="about/">Company <svg class="ico-s"><use href="#i-chev"/></svg></a><div class="dd-menu"><div class="dd-box"><a href="about/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>About</b><small>Why we built Orbit0</small></span></a><a href="security/"><span class="dd-ico"><svg class="ico"><use href="#i-shield"/></svg></span><span><b>Security</b><small>How we protect your data</small></span></a><a href="contact/"><span class="dd-ico"><svg class="ico"><use href="#i-mail"/></svg></span><span><b>Contact</b><small>Talk to us</small></span></a></div></div></div>
+      <div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-company">Company <svg class="ico-s"><use href="#i-chev"/></svg></button><div class="dd-menu" id="dd-company"><div class="dd-box dd-one"><div class="dd-col"><a href="about/"><span class="dd-ico"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>About</b><small>Why we built Orbit0</small></span></a><a href="security/"><span class="dd-ico"><svg class="ico"><use href="#i-shield"/></svg></span><span><b>Security</b><small>How we protect your data</small></span></a><a href="contact/"><span class="dd-ico"><svg class="ico"><use href="#i-mail"/></svg></span><span><b>Contact</b><small>Talk to the team</small></span></a></div></div></div></div>
     </nav>
     <div class="nav-actions">
       <a class="nav-login" data-link="signin" href="/login">Sign in</a>
       <a class="btn btn-outline btn-sm hide-sm" data-link="demo" data-role="admin" href="/login">Try the demo</a>
-      <a class="btn btn-dark btn-sm" href="#access">Request access</a>
+      <a class="btn btn-dark btn-sm" href="request-access/">Request access</a>
       <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span></button>
     </div>
   </div>
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="product/">Product</a><a href="solutions/">Solutions</a><a href="pricing/">Pricing</a><a href="demo/">Live demo</a><a href="about/">About</a><a href="security/">Security</a><a href="contact/">Contact</a><a data-link="signin" href="/login">Sign in</a>
-  </div>
+  <div class="mobile-menu" id="mobileMenu"><details class="mm-group"><summary>Product <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="product/">Overview</a><a href="product/time-tracking/">Time tracking</a><a href="product/timesheets/">Timesheets</a><a href="product/leave/">Leave and expenses</a><a href="product/projects/">Projects and roadmap</a><a href="product/analytics/">Analytics and reports</a><a href="product/ai/">Ask AI</a><a href="product/admin/">Admin and permissions</a></div></details><details class="mm-group"><summary>Solutions <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="solutions/">All solutions</a><a href="solutions/leaders/">Leaders</a><a href="solutions/project-managers/">Project managers</a><a href="solutions/employees/">Employees</a><a href="solutions/agencies/">Agencies</a><a href="solutions/design-studios/">Design studios</a><a href="solutions/consultancies/">Consultancies</a></div></details><details class="mm-group"><summary>Company <svg class="ico-s"><use href="#i-chev"/></svg></summary><div><a href="about/">About</a><a href="security/">Security</a><a href="contact/">Contact</a></div></details><a class="mm-link" href="pricing/">Pricing</a><a class="mm-link" href="demo/">Live demo</a><a class="mm-link" data-link="signin" href="/login">Sign in</a><a class="btn btn-brand btn-block" href="request-access/">Request access</a></div>
 </header>
 
 <main id="top">
@@ -79,14 +77,14 @@
 <section class="hero">
   <div class="orbits" aria-hidden="true"><i></i><i></i><i></i><span class="planet p1"></span><span class="planet p2"></span></div>
   <div class="wrap hero-inner">
-    <a class="announce rise" href="product/#ai"><span class="pill pill-brand">New</span>Ask AI about your team's time <svg class="ico-s"><use href="#i-arrow"/></svg></a>
+    <a class="announce rise" href="product/ai/"><span class="pill pill-brand">New</span>Ask AI about your team's time <svg class="ico-s"><use href="#i-arrow"/></svg></a>
     <h1 class="hero-title" id="heroTitle" aria-live="polite">
       <span class="ht-line" data-a="Time Tracking and" data-b="Know where every">Time Tracking and</span>
       <span class="ht-line" data-a="Project Reports." data-b="hour goes.">Project Reports.</span>
     </h1>
     <p class="hero-sub rise" style="--d:.08s">See how many hours every project, sub-project and person takes. Log time in seconds, approve leave and expenses, and export the report clients pay for. For agencies, studios and service teams.</p>
     <div class="hero-ctas rise" style="--d:.16s">
-      <a class="btn btn-brand" href="#access">Request access</a>
+      <a class="btn btn-brand" href="request-access/">Request access</a>
       <button class="btn btn-outline" id="heroPlay" type="button" aria-pressed="false">
         <svg class="ico play-ico"><use href="#i-play"/></svg><svg class="ico undo-ico"><use href="#i-undo"/></svg>
         <span class="lbl-a">See a week in action</span><span class="lbl-b">Show the empty week</span>
@@ -298,7 +296,7 @@
       </article>
     </div>
     <div class="banner reveal"><span class="sq">!</span><p>An alert at <b>80% of budget</b> gave the redesign team three weeks to adjust. The spreadsheet project found its overrun on invoice day.</p><span class="big">3 weeks</span><span class="big-l">earlier warning</span></div>
-    <div class="aside-row reveal"><p class="muted">Example projects with sample numbers. Alerts for due dates, milestones and at-risk projects are built into Orbit0.</p><a class="link" href="product/#reports">See project health <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
+    <div class="aside-row reveal"><p class="muted">Example projects with sample numbers. Alerts for due dates, milestones and at-risk projects are built into Orbit0.</p><a class="link" href="product/analytics/">See project health <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
   </div>
 </section>
 
@@ -338,9 +336,9 @@
       </article>
       <article class="card who reveal" id="roles">
         <h3>Who it is for</h3>
-        <a class="who-item" href="solutions/#leaders"><span class="who-art a1"><i></i><i></i><i></i></span><b>Leaders <svg class="ico-s"><use href="#i-arrow"/></svg></b><span class="xs muted">See utilisation, budgets and project health.</span></a>
-        <a class="who-item" href="solutions/#managers"><span class="who-art a2"><i></i><i></i><i></i></span><b>Project managers <svg class="ico-s"><use href="#i-arrow"/></svg></b><span class="xs muted">Plan the work and know it's on track.</span></a>
-        <a class="who-item" href="solutions/#employees"><span class="who-art a3"><i></i><i></i><i></i></span><b>Employees <svg class="ico-s"><use href="#i-arrow"/></svg></b><span class="xs muted">Log the day in a minute and get back to work.</span></a>
+        <a class="who-item" href="solutions/leaders/"><span class="who-art a1"><i></i><i></i><i></i></span><b>Leaders <svg class="ico-s"><use href="#i-arrow"/></svg></b><span class="xs muted">See utilisation, budgets and project health.</span></a>
+        <a class="who-item" href="solutions/project-managers/"><span class="who-art a2"><i></i><i></i><i></i></span><b>Project managers <svg class="ico-s"><use href="#i-arrow"/></svg></b><span class="xs muted">Plan the work and know it's on track.</span></a>
+        <a class="who-item" href="solutions/employees/"><span class="who-art a3"><i></i><i></i><i></i></span><b>Employees <svg class="ico-s"><use href="#i-arrow"/></svg></b><span class="xs muted">Log the day in a minute and get back to work.</span></a>
       </article>
     </div>
   </div>
@@ -354,7 +352,7 @@
       <h2>Ask it like you'd ask your PM.<br><span class="soft">Get answers in hours.</span></h2>
       <div>
         <p>Ask AI from the search bar about your team's time. It also tidies descriptions, drafts tasks, summarises a project and drafts the client update you send.</p>
-        <div class="row-ctas"><a class="btn btn-dark btn-sm" href="#access"><svg class="ico-s"><use href="#i-spark"/></svg>Request access</a><a class="link" href="product/#ai">How AI is used <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
+        <div class="row-ctas"><a class="btn btn-dark btn-sm" href="request-access/"><svg class="ico-s"><use href="#i-spark"/></svg>Request access</a><a class="link" href="product/ai/">How AI is used <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
       </div>
     </div>
     <div class="ai reveal">
@@ -396,7 +394,7 @@
     <div class="sec-head reveal">
       <span class="eyebrow">Reports</span>
       <h2>How a week of time becomes a report.</h2>
-      <div><p>Your team logs the week, managers check it, and the report builds itself. Move the slider to change how much was logged.</p><a class="link" href="product/#reports">See reports <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
+      <div><p>Your team logs the week, managers check it, and the report builds itself. Move the slider to change how much was logged.</p><a class="link" href="product/analytics/">See reports <svg class="ico-s"><use href="#i-arrow"/></svg></a></div>
     </div>
     <div class="bench-wrap">
       <figure class="bench reveal">
@@ -473,7 +471,7 @@
         <span class="xs muted">Quoted for your team size</span>
         <p>For agencies, studios and service teams that bill by the project.</p>
         <ul class="ticks grey"><li><svg><use href="#i-check"/></svg>Time tracker, timesheets and calendar</li><li><svg><use href="#i-check"/></svg>Projects, sub-projects, tasks and roadmap</li><li><svg><use href="#i-check"/></svg>Analytics, workload and Excel, PDF, CSV exports</li><li><svg><use href="#i-check"/></svg>Leave, holidays, reimbursements and approvals</li><li><svg><use href="#i-check"/></svg>Roles, permissions, two-factor sign-in and audit log</li><li><svg><use href="#i-check"/></svg>AI helpers</li></ul>
-        <a class="btn btn-brand btn-block" href="#access">Request access</a>
+        <a class="btn btn-brand btn-block" href="request-access/">Request access</a>
         <span class="xs muted center-t">We reply by email with your quote</span>
       </div>
       <div class="plan">
@@ -482,7 +480,7 @@
         <span class="xs muted">One login across companies</span>
         <p>For groups that run more than one company and need each one kept separate.</p>
         <ul class="ticks grey"><li><svg><use href="#i-check"/></svg>Separate data for each company</li><li><svg><use href="#i-check"/></svg>Brand colour per company</li><li><svg><use href="#i-check"/></svg>Google or Microsoft sign-in per company</li><li><svg><use href="#i-check"/></svg>Help moving your existing data</li></ul>
-        <a class="btn btn-outline btn-block" href="#access">Talk to us</a>
+        <a class="btn btn-outline btn-block" href="contact/">Talk to us</a>
         <span class="xs muted center-t">Set up with you</span>
       </div>
     </div>
@@ -495,7 +493,7 @@
     <div class="faq-l reveal">
       <h2>Frequently Asked Questions.</h2>
       <p class="muted">Answers to common questions. You can also ask us anything when you request access.</p>
-      <a class="link" href="#access">Request access <svg class="ico-s"><use href="#i-arrow"/></svg></a>
+      <a class="link" href="request-access/">Request access <svg class="ico-s"><use href="#i-arrow"/></svg></a>
     </div>
     <div class="acc faq-acc" id="faqAcc">
       <div class="acc-item open"><button class="acc-btn" type="button" aria-expanded="true"><span>How do I get access?</span><svg class="ico-s pm"><use href="#i-plus"/></svg></button><div class="acc-body"><div><p>Enter your work email under Request access. We set up your company, then email you an invitation and your quote.</p></div></div></div>
@@ -517,12 +515,11 @@
         <span class="eyebrow on-dark">Get started</span>
         <h2>Request access to Orbit0.</h2>
         <p>Tell us your work email. We set up your company and email you an invite and a quote.</p>
-        <form class="access" id="accessForm" novalidate>
-          <label class="sr" for="accessEmail">Work email</label>
-          <input id="accessEmail" type="email" name="email" placeholder="you@company.com" autocomplete="email" required>
+        <form class="access" action="request-access/" method="get">
+          <label class="sr" for="ctaEmail">Work email</label>
+          <input id="ctaEmail" type="email" name="email" placeholder="you@company.com" autocomplete="email" required>
           <button class="btn btn-brand" type="submit">Request access</button>
         </form>
-        <p class="form-msg" id="accessMsg" role="status"></p>
         <span class="xs fine">Pricing on request · Set up personally · No card needed</span>
       </div>
       <div class="final-r" aria-hidden="true">
@@ -546,11 +543,11 @@
     <div class="foot-brand">
       <a href="./" class="logo"><span class="logo-mark"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4" fill="#fff"/><circle cx="10" cy="10" r="6.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="2.2 2.4"/></svg></span><span class="logo-word">orbit0</span></a>
       <p class="muted">Time tracking, projects, leave and reports for agencies, studios and service teams.</p>
-      <a class="btn btn-outline btn-sm" href="contact/"><svg class="ico-s"><use href="#i-mail"/></svg>Talk to us</a>
+      <a class="btn btn-outline btn-sm" href="request-access/">Request access</a>
     </div>
-    <div><b>Product</b><a href="product/#time">Time tracking</a><a href="product/#timesheets">Timesheets</a><a href="product/#projects">Projects and roadmap</a><a href="product/#reports">Analytics and reports</a><a href="product/#leave">Leave and approvals</a><a href="product/#ai">Ask AI</a></div>
-    <div><b>Solutions</b><a href="solutions/#leaders">For leaders</a><a href="solutions/#managers">For project managers</a><a href="solutions/#employees">For employees</a><a href="solutions/#teams">Agencies and studios</a></div>
-    <div><b>Company</b><a href="about/">About</a><a href="pricing/">Pricing</a><a href="demo/">Live demo</a><a href="security/">Security</a><a href="contact/">Contact</a><a data-link="signin" href="/login">Sign in</a></div>
+    <div><b>Product</b><a href="product/time-tracking/">Time tracking</a><a href="product/timesheets/">Timesheets</a><a href="product/leave/">Leave and expenses</a><a href="product/projects/">Projects and roadmap</a><a href="product/analytics/">Analytics and reports</a><a href="product/ai/">Ask AI</a><a href="product/admin/">Admin and permissions</a></div>
+    <div><b>Solutions</b><a href="solutions/leaders/">Leaders</a><a href="solutions/project-managers/">Project managers</a><a href="solutions/employees/">Employees</a><a href="solutions/agencies/">Agencies</a><a href="solutions/design-studios/">Design studios</a><a href="solutions/consultancies/">Consultancies</a></div>
+    <div><b>Company</b><a href="about/">About</a><a href="pricing/">Pricing</a><a href="demo/">Live demo</a><a href="security/">Security</a><a href="contact/">Contact</a><a href="/login">Sign in</a></div>
   </div>
   <div class="wrap foot-bottom">
     <span class="muted">© 2026 Orbit0. All rights reserved.</span>

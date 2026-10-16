@@ -5,3 +5,4 @@ dist/
 .env
 server/uploads/
 server/prisma/schema.vercel.prisma
+__pycache__/

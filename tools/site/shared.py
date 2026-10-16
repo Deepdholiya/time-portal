@@ -2,7 +2,7 @@
 import re
 
 LOGO_SVG = '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4" fill="#fff"/><circle cx="10" cy="10" r="6.6" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="2.2 2.4"/></svg>'
-FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='5' fill='%23e84a00'/%3E%3Ccircle cx='10' cy='10' r='3.4' fill='white'/%3E%3Ccircle cx='10' cy='10' r='6.6' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='2.2 2.4'/%3E%3C/svg%3E"
+FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='5' fill='%23ff4c00'/%3E%3Ccircle cx='10' cy='10' r='3.4' fill='white'/%3E%3Ccircle cx='10' cy='10' r='6.6' fill='none' stroke='white' stroke-width='1.5' stroke-dasharray='2.2 2.4'/%3E%3C/svg%3E"
 
 EXTRA_ICONS = '''  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8l5 2v4c0 3.1-2.1 5.4-5 6.4-2.9-1-5-3.3-5-6.4v-4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M5.8 8.1l1.5 1.5 2.9-3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
@@ -28,26 +28,59 @@ CHEV = '<svg class="ico-s"><use href="#i-chev"/></svg>'
 def dd_item(href, ic, title, sub):
     return f'<a href="{href}"><span class="dd-ico">{icon(ic)}</span><span><b>{title}</b><small>{sub}</small></span></a>'
 
+# Every product and solution page, in nav order: (slug, icon, title, one-line summary).
+PRODUCTS = [
+    ("time-tracking", "clock", "Time tracking", "Log a day in a minute"),
+    ("timesheets", "grid", "Timesheets", "Table and calendar views"),
+    ("leave", "leave", "Leave and expenses", "Requests, holidays, approvals"),
+    ("projects", "task", "Projects and roadmap", "Plan work, drag to reschedule"),
+    ("analytics", "chart", "Analytics and reports", "Budgets, workload, exports"),
+    ("ai", "spark", "Ask AI", "Answers about your time"),
+    ("admin", "users", "Admin and permissions", "Roles, companies, automations"),
+]
+ROLES = [
+    ("leaders", "chart", "Leaders", "Utilisation, budgets, health"),
+    ("project-managers", "task", "Project managers", "Plan and stay on track"),
+    ("employees", "clock", "Employees", "Log time, get back to work"),
+]
+TEAMS = [
+    ("agencies", "building", "Agencies", "Clients, retainers, reports"),
+    ("design-studios", "spark", "Design studios", "Phases and creative work"),
+    ("consultancies", "users", "Consultancies", "Billable time and utilisation"),
+]
+COMPANY = [
+    ("about", "spark", "About", "Why we built Orbit0"),
+    ("security", "shield", "Security", "How we protect your data"),
+    ("contact", "mail", "Contact", "Talk to the team"),
+]
+
+def dd(key, label, inner):
+    return (f'<div class="dd" data-dd><button class="dd-btn" type="button" aria-expanded="false" aria-controls="dd-{key}">{label} {CHEV}</button>'
+            f'<div class="dd-menu" id="dd-{key}">{inner}</div></div>')
+
 def nav():
-    product = "".join([
-        dd_item("{p}product/#time", "clock", "Time tracking", "Log a day in a minute"),
-        dd_item("{p}product/#timesheets", "grid", "Timesheets", "Table and calendar views"),
-        dd_item("{p}product/#projects", "task", "Projects and roadmap", "Plan work, drag to reschedule"),
-        dd_item("{p}product/#reports", "chart", "Analytics and reports", "Excel, PDF and CSV"),
-        dd_item("{p}product/#leave", "leave", "Leave and approvals", "Leave, holidays, expenses"),
-        dd_item("{p}product/#ai", "spark", "Ask AI", "Answers about your time"),
-    ])
-    solutions = "".join([
-        dd_item("{p}solutions/#leaders", "chart", "For leaders", "Utilisation and budgets"),
-        dd_item("{p}solutions/#managers", "task", "For project managers", "Plan and stay on track"),
-        dd_item("{p}solutions/#employees", "clock", "For employees", "Log time and get back to work"),
-        dd_item("{p}solutions/#teams", "building", "Agencies and studios", "Teams that bill by project"),
-    ])
-    company = "".join([
-        dd_item("{p}about/", "spark", "About", "Why we built Orbit0"),
-        dd_item("{p}security/", "shield", "Security", "How we protect your data"),
-        dd_item("{p}contact/", "mail", "Contact", "Talk to us"),
-    ])
+    prod1 = "".join(dd_item("{p}product/" + s + "/", i, t, d) for s, i, t, d in PRODUCTS[:3])
+    prod2 = "".join(dd_item("{p}product/" + s + "/", i, t, d) for s, i, t, d in PRODUCTS[3:])
+    product = (f'<div class="dd-box dd-mega"><div class="dd-col"><span class="dd-h">Track time</span>{prod1}</div>'
+               f'<div class="dd-col"><span class="dd-h">Plan and report</span>{prod2}</div>'
+               f'<div class="dd-side"><span class="dd-h">Get to know Orbit0</span>'
+               f'<a class="dd-card" href="{{p}}product/"><b>Product overview</b><small>Every feature on one page</small>{ARROW}</a>'
+               f'<a class="dd-card" href="{{p}}demo/"><b>Live demo</b><small>Sample data, one-click sign in</small>{ARROW}</a>'
+               f'<a class="dd-card" href="{{p}}security/"><b>Security</b><small>Sign-in, access and audit log</small>{ARROW}</a></div></div>')
+    roles = "".join(dd_item("{p}solutions/" + s + "/", i, t, d) for s, i, t, d in ROLES)
+    teams = "".join(dd_item("{p}solutions/" + s + "/", i, t, d) for s, i, t, d in TEAMS)
+    solutions = (f'<div class="dd-box dd-two"><div class="dd-col"><span class="dd-h">By role</span>{roles}</div>'
+                 f'<div class="dd-col"><span class="dd-h">By team</span>{teams}</div>'
+                 f'<div class="dd-foot"><a class="link" href="{{p}}solutions/">All solutions {ARROW}</a></div></div>')
+    company = ('<div class="dd-box dd-one"><div class="dd-col">' + "".join(dd_item("{p}" + s + "/", i, t, d) for s, i, t, d in COMPANY) + '</div></div>')
+
+    def group(label, links):
+        return f'<details class="mm-group"><summary>{label} {CHEV}</summary><div>' + "".join(f'<a href="{h}">{t}</a>' for h, t in links) + '</div></details>'
+    mobile = (group("Product", [("{p}product/", "Overview")] + [("{p}product/" + s + "/", t) for s, i, t, d in PRODUCTS]) +
+              group("Solutions", [("{p}solutions/", "All solutions")] + [("{p}solutions/" + s + "/", t) for s, i, t, d in ROLES + TEAMS]) +
+              group("Company", [("{p}" + s + "/", t) for s, i, t, d in COMPANY]) +
+              '<a class="mm-link" href="{p}pricing/">Pricing</a><a class="mm-link" href="{p}demo/">Live demo</a><a class="mm-link" data-link="signin" href="/login">Sign in</a>'
+              '<a class="btn btn-brand btn-block" href="{p}request-access/">Request access</a>')
     return f'''<header class="nav" id="nav">
   <div class="wrap nav-inner">
     <a href="{{p}}./" class="logo" aria-label="Orbit0 home">
@@ -55,35 +88,34 @@ def nav():
       <span class="logo-word">orbit0</span>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <div class="dd"><a href="{{p}}product/">Product {CHEV}</a><div class="dd-menu"><div class="dd-box dd-2">{product}<div class="dd-foot"><a class="link" href="{{p}}product/">See every feature {ARROW}</a></div></div></div></div>
-      <div class="dd"><a href="{{p}}solutions/">Solutions {CHEV}</a><div class="dd-menu"><div class="dd-box">{solutions}</div></div></div>
+      {dd("product", "Product", product)}
+      {dd("solutions", "Solutions", solutions)}
       <a href="{{p}}pricing/">Pricing</a>
       <a href="{{p}}demo/">Live demo</a>
-      <div class="dd"><a href="{{p}}about/">Company {CHEV}</a><div class="dd-menu"><div class="dd-box">{company}</div></div></div>
+      {dd("company", "Company", company)}
     </nav>
     <div class="nav-actions">
       <a class="nav-login" data-link="signin" href="/login">Sign in</a>
       <a class="btn btn-outline btn-sm hide-sm" data-link="demo" data-role="admin" href="/login">Try the demo</a>
-      <a class="btn btn-dark btn-sm" href="#access">Request access</a>
+      <a class="btn btn-dark btn-sm" href="{{p}}request-access/">Request access</a>
       <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span></button>
     </div>
   </div>
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="{{p}}product/">Product</a><a href="{{p}}solutions/">Solutions</a><a href="{{p}}pricing/">Pricing</a><a href="{{p}}demo/">Live demo</a><a href="{{p}}about/">About</a><a href="{{p}}security/">Security</a><a href="{{p}}contact/">Contact</a><a data-link="signin" href="/login">Sign in</a>
-  </div>
+  <div class="mobile-menu" id="mobileMenu">{mobile}</div>
 </header>'''
 
 def footer():
+    col = lambda title, links: f'<div><b>{title}</b>' + "".join(f'<a href="{h}">{t}</a>' for h, t in links) + "</div>"
     return f'''<footer class="foot">
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <a href="{{p}}./" class="logo"><span class="logo-mark">{LOGO_SVG}</span><span class="logo-word">orbit0</span></a>
       <p class="muted">Time tracking, projects, leave and reports for agencies, studios and service teams.</p>
-      <a class="btn btn-outline btn-sm" href="{{p}}contact/">{icon("mail","ico-s")}Talk to us</a>
+      <a class="btn btn-outline btn-sm" href="{{p}}request-access/">Request access</a>
     </div>
-    <div><b>Product</b><a href="{{p}}product/#time">Time tracking</a><a href="{{p}}product/#timesheets">Timesheets</a><a href="{{p}}product/#projects">Projects and roadmap</a><a href="{{p}}product/#reports">Analytics and reports</a><a href="{{p}}product/#leave">Leave and approvals</a><a href="{{p}}product/#ai">Ask AI</a></div>
-    <div><b>Solutions</b><a href="{{p}}solutions/#leaders">For leaders</a><a href="{{p}}solutions/#managers">For project managers</a><a href="{{p}}solutions/#employees">For employees</a><a href="{{p}}solutions/#teams">Agencies and studios</a></div>
-    <div><b>Company</b><a href="{{p}}about/">About</a><a href="{{p}}pricing/">Pricing</a><a href="{{p}}demo/">Live demo</a><a href="{{p}}security/">Security</a><a href="{{p}}contact/">Contact</a><a data-link="signin" href="/login">Sign in</a></div>
+    {col("Product", [("{p}product/" + s + "/", t) for s, i, t, d in PRODUCTS])}
+    {col("Solutions", [("{p}solutions/" + s + "/", t) for s, i, t, d in ROLES + TEAMS])}
+    {col("Company", [("{p}about/", "About"), ("{p}pricing/", "Pricing"), ("{p}demo/", "Live demo"), ("{p}security/", "Security"), ("{p}contact/", "Contact"), ("/login", "Sign in")])}
   </div>
   <div class="wrap foot-bottom">
     <span class="muted">© 2026 Orbit0. All rights reserved.</span>
@@ -100,12 +132,11 @@ def final_cta(title="Request access to Orbit0.", text="Tell us your work email. 
         <span class="eyebrow on-dark">Get started</span>
         <h2>{title}</h2>
         <p>{text}</p>
-        <form class="access" id="accessForm" novalidate>
-          <label class="sr" for="accessEmail">Work email</label>
-          <input id="accessEmail" type="email" name="email" placeholder="you@company.com" autocomplete="email" required>
+        <form class="access" action="{{p}}request-access/" method="get">
+          <label class="sr" for="ctaEmail">Work email</label>
+          <input id="ctaEmail" type="email" name="email" placeholder="you@company.com" autocomplete="email" required>
           <button class="btn btn-brand" type="submit">Request access</button>
         </form>
-        <p class="form-msg" id="accessMsg" role="status"></p>
         <span class="xs fine">Pricing on request · Set up personally · No card needed</span>
       </div>
       <div class="final-r" aria-hidden="true">
@@ -135,7 +166,7 @@ def head(title, desc, p, sprite):
 <link rel="icon" href="{FAVICON}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Caveat:wght@600&display=swap">
 <link rel="stylesheet" href="{p}styles.css">
 </head>
 <body>
@@ -155,7 +186,7 @@ def page_hero(eyebrow, h1, sub, ctas):
 </section>'''
 
 def ctas_default(second="demo"):
-    s = '<a class="btn btn-brand" href="#access">Request access</a>'
+    s = '<a class="btn btn-brand" href="{p}request-access/">Request access</a>'
     if second == "demo":
         s += '<a class="btn btn-outline" href="{p}demo/">' + icon("play") + 'Try the live demo</a>'
     return s

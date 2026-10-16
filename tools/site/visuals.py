@@ -94,3 +94,55 @@ V_SECURE = panel('''<div class="pw-head"><b>Sign in</b><span class="grow"></span
   <span class="xs muted">Enter the 6-digit code from your authenticator app</span>
 </div>
 <div class="pw-foot"><div><b>Audit log</b><span class="xs muted">5 wrong passwords · locked for 15 minutes</span></div><span class="btn btn-outline btn-xs">View log</span></div>''')
+
+V_CAL = panel('''<div class="pw-head"><b>My week</b><span class="muted">13–17 Oct</span><span class="grow"></span><span class="chip">Table</span><span class="chip chip-brand">Calendar</span></div>
+<div class="cal">
+  <span class="h">Mon</span><span class="h">Tue</span><span class="h">Wed</span><span class="h">Thu</span><span class="h">Fri</span>
+  <div class="cal-d"><i class="cb" style="--t:0;--s:3;--c:#f97316">Website<small>3:00</small></i><i class="cb" style="--t:3.5;--s:2.5;--c:#6366f1">Brand<small>2:30</small></i><i class="cb" style="--t:6.5;--s:1.5;--c:#10b981">Internal<small>1:30</small></i></div>
+  <div class="cal-d"><i class="cb" style="--t:0;--s:4;--c:#f97316">Website<small>4:00</small></i><i class="cb" style="--t:4.5;--s:3;--c:#6366f1">Brand<small>3:00</small></i></div>
+  <div class="cal-d"><i class="cb" style="--t:0;--s:2;--c:#10b981">Internal<small>2:00</small></i><i class="cb" style="--t:2.5;--s:5;--c:#f97316">Website<small>5:00</small></i></div>
+  <div class="cal-d"><i class="cb lv" style="--t:0;--s:8">Leave<small>Full day</small></i></div>
+  <div class="cal-d"><i class="cb" style="--t:0;--s:3.5;--c:#6366f1">Brand<small>3:30</small></i><i class="cb ms" style="--t:4;--s:1">Milestone</i></div>
+</div>
+<div class="pw-foot"><div><b>31h logged this week</b><span class="xs muted">Leave and holidays shown in place</span></div><span class="btn btn-outline btn-xs">Layers</span></div>''')
+
+V_BOARD = panel('''<div class="pw-head"><b>Mobile app · v2</b><span class="grow"></span><span class="chip">List</span><span class="chip chip-brand">Board</span></div>
+<div class="board">
+  <div class="bcol"><span class="bh">To do <em>3</em></span><div class="bcard"><b>Onboarding screens</b><span class="xs muted">High · 6h estimate</span></div><div class="bcard"><b>Push settings</b><span class="xs muted">Medium · 3 subtasks</span></div></div>
+  <div class="bcol"><span class="bh">In progress <em>2</em></span><div class="bcard hi"><b>Login with SSO</b><span class="xs muted">Blocks 2 tasks · 4:30 logged</span></div><div class="bcard"><b>Profile page</b><span class="xs muted">Due Fri</span></div></div>
+  <div class="bcol"><span class="bh">Done <em>5</em></span><div class="bcard done"><b>App icon</b><span class="xs muted">2:00 logged</span></div></div>
+</div>
+<div class="pw-foot"><div><b>Drag a card to change its status</b><span class="xs muted">Time logged shows on each card</span></div></div>''')
+
+V_LEAVE = panel('''<div class="pw-head"><b>Request leave</b><span class="grow"></span><span class="chip">Half days allowed</span></div>
+<div class="lf">
+  <div class="lf-r"><span class="xs muted">Type</span><span class="seg"><b>Vacation</b><span>Sick</span><span>Personal</span><span>Other</span></span></div>
+  <div class="lf-r"><span class="xs muted">Dates</span><span>Mon 3 Nov – Wed 5 Nov</span></div>
+  <div class="lf-r"><span class="xs muted">Half day</span><span class="lf-t">''' + '<i class="tg"></i>' + '''<span class="muted">Full days</span></span></div>
+  <div class="lf-r"><span class="xs muted">Note</span><span class="muted">Family trip, back Thursday</span></div>
+</div>
+<div class="pw-foot"><div><b>Goes to your manager</b><span class="xs muted">Shows on the calendar once approved</span></div><span class="btn btn-brand btn-xs">Send request</span></div>''')
+
+V_DRAFT = panel('''<div class="pw-head"><span class="spark-b"><svg class="ico-s"><use href="#i-spark"/></svg></span><b>Client update · draft</b><span class="grow"></span><span class="pill">Not sent</span></div>
+<div class="draft">
+  <div class="lf-r"><span class="xs muted">To</span><span>client@acme.co</span></div>
+  <div class="lf-r"><span class="xs muted">Subject</span><span>Website redesign · week 42</span></div>
+  <p>Hi Sam, this week we finished the homepage design and started QA. We have used 184 of 200 budgeted hours. QA is taking longer than planned, so we suggest moving launch by three days.</p>
+</div>
+<div class="pw-foot"><div><b>Edit it, then send</b><span class="xs muted">Nothing goes out until you press send</span></div><span class="btn btn-brand btn-xs">Send</span></div>''')
+
+V_AUTO = panel('''<div class="pw-head"><b>Automations</b><span class="grow"></span><span class="chip">+ New</span></div>
+<div class="lst">
+  <div class="lr"><span class="tile-ico sm"><svg class="ico-s"><use href="#i-clock"/></svg></span><span><b>Timesheet reminder</b><small>Skips people on approved leave</small></span>''' + tog(1) + '''</div>
+  <div class="lr"><span class="tile-ico sm"><svg class="ico-s"><use href="#i-task"/></svg></span><span><b>Task overdue</b><small>Tell the assignee and the project lead</small></span>''' + tog(1) + '''</div>
+  <div class="lr"><span class="tile-ico sm"><svg class="ico-s"><use href="#i-cal"/></svg></span><span><b>Due soon</b><small>Before a task is due</small></span>''' + tog(0) + '''</div>
+  <div class="lr"><span class="tile-ico sm"><svg class="ico-s"><use href="#i-bolt"/></svg></span><span><b>Task status changes</b><small>When a task moves to a new status</small></span>''' + tog(1) + '''</div>
+</div>
+<div class="pw-foot"><div><b>3 of 4 on</b><span class="xs muted">Per company, set by an admin</span></div></div>''')
+
+V_COMPANY = panel('''<div class="pw-head"><b>Your companies</b><span class="grow"></span><span class="chip">One login</span></div>
+<div class="lst">
+  <div class="lr"><span class="logo-mark co-b">B</span><span><b>Bridge UX</b><small>Rupees · Asia/Kolkata · 5 projects</small></span><span class="pill pill-brand">Current</span></div>
+  <div class="lr"><span class="logo-mark co-n">N</span><span><b>Northwind Studio</b><small>US dollars · its own people and time</small></span><span class="muted xs">Switch</span></div>
+</div>
+<div class="pw-foot"><div><b>Each company kept separate</b><span class="xs muted">Own currency, timezone, colour and sign-in</span></div></div>''')

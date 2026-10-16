@@ -6,7 +6,7 @@
   var CONFIG = {
     signInUrl: "/login",
     demoUrl: "/login?demo=",          // role is appended: admin | manager | employee
-    accessEndpoint: ""                // POST { email } here; empty = show the thank-you only
+    accessEndpoint: ""                // POST { email, name, company, teamSize, role, companies, message } here; empty = show the thank-you only
   };
 
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -20,8 +20,32 @@
   /* ---------- current page in the nav ---------- */
   var here = location.pathname.replace(/index\.html$/, "");
   $$(".nav-links a, .dd-menu a, .mobile-menu a").forEach(function (a) {
-    var u = a.getAttribute("href") || "";
-    if (u.indexOf("#") === -1 && u === here) a.setAttribute("aria-current", "page");
+    if ((a.getAttribute("href") || "").indexOf("#") === -1 && a.pathname.replace(/index\.html$/, "") === here) a.setAttribute("aria-current", "page");
+  });
+
+  /* ---------- nav dropdowns: click toggles, hover opens where hover exists (in CSS), Esc and outside click close ---------- */
+  var dds = $$("[data-dd]");
+  function closeDds(except) {
+    dds.forEach(function (d) { if (d !== except) { d.classList.remove("open"); $(".dd-btn", d).setAttribute("aria-expanded", "false"); } });
+  }
+  dds.forEach(function (d) {
+    var btn = $(".dd-btn", d);
+    btn.addEventListener("click", function () {
+      var open = !d.classList.contains("open");
+      closeDds(d);
+      d.classList.toggle("open", open);
+      btn.setAttribute("aria-expanded", String(open));
+    });
+    d.addEventListener("mouseleave", function () { if (window.matchMedia("(hover: hover)").matches) closeDds(); });
+    d.addEventListener("focusout", function (e) { if (!d.contains(e.relatedTarget)) closeDds(); });
+  });
+  document.addEventListener("click", function (e) { if (!e.target.closest("[data-dd]")) closeDds(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var open = dds.filter(function (d) { return d.classList.contains("open"); })[0];
+    closeDds();
+    if (open) $(".dd-btn", open).focus();
+    if (menu.classList.contains("open")) { setMenu(false); menuBtn.focus(); }
   });
 
   /* ---------- mobile menu ---------- */
@@ -29,6 +53,8 @@
   function setMenu(open) { menu.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", String(open)); }
   menuBtn.addEventListener("click", function () { setMenu(!menu.classList.contains("open")); });
   $$("a", menu).forEach(function (a) { a.addEventListener("click", function () { setMenu(false); }); });
+  // open the group that holds the current page
+  $$("details", menu).forEach(function (g) { if ($('[aria-current="page"]', g)) g.open = true; });
 
   /* ---------- dot bars ---------- */
   function buildDots(el, animate) {
@@ -263,15 +289,28 @@
 
   /* ---------- request access ---------- */
   var form = $("#accessForm"), msg = $("#accessMsg");
-  if (form) form.addEventListener("submit", function (ev) {
-    ev.preventDefault();
-    var email = form.email.value.trim();
-    msg.className = "form-msg";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = "Enter a work email, like you@company.com."; msg.classList.add("err"); form.email.focus(); return; }
-    var done = function () { msg.textContent = "Thanks. We'll email you at " + email + " when your Orbit0 workspace is ready."; msg.classList.add("ok"); form.reset(); };
-    if (!CONFIG.accessEndpoint) return done();
-    fetch(CONFIG.accessEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email }) })
-      .then(function (r) { if (!r.ok) throw new Error(); done(); })
-      .catch(function () { msg.textContent = "That didn't go through. Please try again in a moment."; msg.classList.add("err"); });
-  });
+  if (form) {
+    var pre = new URLSearchParams(location.search).get("email");
+    if (pre) form.email.value = pre;
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var data = {};
+      $$("input, select, textarea", form).forEach(function (f) { if (f.name) data[f.name] = f.value.trim(); });
+      var email = data.email;
+      msg.className = "form-msg";
+      form.email.removeAttribute("aria-invalid");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        msg.textContent = "Enter a work email, like you@company.com."; msg.classList.add("err");
+        form.email.setAttribute("aria-invalid", "true"); form.email.focus(); return;
+      }
+      var done = function () {
+        msg.textContent = "Thanks" + (data.name ? ", " + data.name.split(" ")[0] : "") + ". We'll email you at " + email + " with a quote and your access.";
+        msg.classList.add("ok"); form.classList.add("sent"); form.reset();
+      };
+      if (!CONFIG.accessEndpoint) return done();
+      fetch(CONFIG.accessEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        .then(function (r) { if (!r.ok) throw new Error(); done(); })
+        .catch(function () { msg.textContent = "That didn't go through. Please try again in a moment."; msg.classList.add("err"); });
+    });
+  }
 })();
