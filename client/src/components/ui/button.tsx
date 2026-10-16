@@ -15,6 +15,8 @@ export interface ButtonProps extends Omit<ArcButtonProps, "variant" | "size"> {
   shortcut?: string;
   active?: boolean;
   fullWidth?: boolean;
+  /** Toolbar buttons (Filter, Export, Display): the label hides on phones and the button becomes icon-only. */
+  collapse?: boolean;
 }
 
 const arcVariant = { primary: "primary", secondary: "secondary", ghost: "ghost", danger: "danger", "danger-ghost": "ghost", link: "ghost" } as const;
@@ -22,7 +24,7 @@ const extra: Record<ButtonVariant, string | undefined> = { primary: s.primary, s
 
 /** Arc Button with the app's icon, shortcut and variant conveniences. Defaults to a secondary, non-submitting button. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "secondary", size = "md", icon, iconRight, shortcut, active, fullWidth, className, children, type = "button", ...rest },
+  { variant = "secondary", size = "md", icon, iconRight, shortcut, active, fullWidth, collapse, className, children, type = "button", ...rest },
   ref,
 ) {
   const iconOnly = children == null && !!icon;
@@ -32,11 +34,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       variant={arcVariant[variant]}
       size={size === "xs" ? "sm" : size}
-      className={cx(s.btn, extra[variant], size === "xs" && s.xs, iconOnly && s.icon, iconOnly && s[size === "xs" ? "sm" : size], active && s.active, fullWidth && s.full, className)}
+      className={cx(s.btn, extra[variant], size === "xs" && s.xs, iconOnly && s.icon, iconOnly && s[size === "xs" ? "sm" : size], active && s.active, fullWidth && s.full, collapse && "tb-collapse", className)}
+      aria-label={collapse && typeof children === "string" ? children : undefined}
       {...rest}
     >
       {icon}
-      {children}
+      {collapse && children != null ? <span className="tb-label">{children}</span> : children}
       {iconRight}
       {shortcut && <span className={s.shortcut}>{shortcut}</span>}
     </ArcButton>

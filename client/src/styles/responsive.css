@@ -1,0 +1,81 @@
+/* ==========================================================================================================
+   Responsive rules for the signed-in app. Loaded last so it can settle layout on tablets and phones.
+   ========================================================================================================== */
+
+/* ---------- Wide tables scroll sideways inside their own box, never the page ----------
+   Every .table-wrap / .hscroll is its own horizontal scroller. A scroll-driven animation sets --hs-l (scrolled away from
+   the start) and --hs-r (more to see on the right); the edges fade while there's more content that way, and a pinned first
+   column (.pin-col) casts a shadow once rows slide under it. Browsers without scroll timelines simply show no fade. */
+@property --hs-l { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hs-r { syntax: "<number>"; inherits: true; initial-value: 0; }
+@keyframes tp-hscroll {
+  0% { --hs-l: 0; --hs-r: 1; }
+  4% { --hs-l: 1; }
+  96% { --hs-r: 1; }
+  100% { --hs-l: 1; --hs-r: 0; }
+}
+.table-wrap, .hscroll {
+  overflow-x: auto; overscroll-behavior-x: contain; max-width: 100%;
+  --hs-fade: 32px; --hs-lfade: 1;
+  animation: tp-hscroll linear both; animation-timeline: scroll(self inline);
+  mask-image: linear-gradient(to right,
+    rgb(0 0 0 / calc(1 - var(--hs-l) * var(--hs-lfade) * 0.85)) 0, #000 var(--hs-fade),
+    #000 calc(100% - var(--hs-fade)), rgb(0 0 0 / calc(1 - var(--hs-r) * 0.85)) 100%);
+}
+@media (prefers-reduced-motion: reduce) { .table-wrap, .hscroll { animation-duration: auto !important; } }
+/* With a pinned first column only the right edge fades; the pinned column shows the shadow instead. */
+.table-wrap:has(.pin-col), .hscroll:has(.pin-col) { --hs-lfade: 0; }
+.pin-col { position: sticky; left: 0; z-index: 1; background: var(--bg); background-clip: padding-box; }
+thead .pin-col, th.pin-col { z-index: 3; }
+.pin-col { box-shadow: 6px 0 8px -6px rgb(0 0 0 / calc(0.22 * var(--hs-l))); }
+:root[data-theme="dark"] .pin-col { box-shadow: 6px 0 8px -6px rgb(0 0 0 / calc(0.6 * var(--hs-l))); }
+
+/* Phones and small tablets: pinned columns stay narrow so the data columns are visible next to them. */
+:root { --pin-w: 300px; }
+@media (max-width: 760px) {
+  :root { --pin-w: 136px; }
+  table .pin-col { width: var(--pin-w) !important; min-width: var(--pin-w) !important; max-width: var(--pin-w) !important; }
+  table .pin-col > * { max-width: calc(var(--pin-w) - 20px); }
+  table .pin-col { overflow: hidden; text-overflow: ellipsis; }
+  .page-body .table :is(th, td) { padding-left: 10px; padding-right: 10px; }
+}
+
+/* ---------- Page header and toolbar ---------- */
+/* One control height (32px) across header and toolbar; groups wrap into tidy rows instead of overflowing. */
+.page-header h1 { min-width: 0; }
+.page-header h1 > span:not([class]) { overflow: hidden; text-overflow: ellipsis; }
+.page-actions { justify-content: flex-end; }
+.page-toolbar { row-gap: 8px; }
+.page-toolbar > :is(div, span):not(.grow):not(.page-tabs) { min-width: 0; max-width: 100%; }
+/* A toolbar's own wrapper (filter bars and the like) spans the row so its spacer can push trailing actions right. */
+.page-toolbar > .tp-bar { flex: 1 1 100%; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 8px; min-width: 0; }
+
+@media (max-width: 760px) {
+  .page-header { gap: 8px; padding-bottom: 10px; }
+  .page-header h1 { font-size: 20px; line-height: 28px; flex: 1 1 auto; }
+  .page-actions { flex-wrap: nowrap; gap: 6px; margin-left: auto; }
+  .page-toolbar { padding: 2px var(--gutter) 12px; gap: 8px; }
+  /* Tab rows (segmented or underline) take their own line and scroll sideways rather than wrap. */
+  .page-tabs { overflow-x: auto; scrollbar-width: none; padding-right: 0; margin-right: 0; }
+  .page-tabs::-webkit-scrollbar { display: none; }
+}
+
+/* Tablets, small laptops and phones: Filter, Export, Display and similar toolbar buttons become square icon buttons (an active-filter
+   count stays visible), so a toolbar fits on one or two tidy rows. */
+@media (max-width: 1100px) {
+  .tb-collapse .tb-label { display: none; }
+  .tb-collapse { padding-inline: 0 !important; min-width: var(--control-height-sm, 32px); justify-content: center; gap: 0 !important; }
+  .tb-collapse:has(> span:not(.tb-label)), .tb-collapse:has(> .tb-label + svg) { padding-inline: 8px !important; gap: 4px !important; }
+  .tb-collapse > span:not(.tb-label) { margin-left: 0 !important; }
+}
+.hide-md { }
+@media (max-width: 1100px) { .hide-md { display: none !important; } }
+
+/* Phones: the toolbar search gets a full-width row of its own (the input sits three wrappers deep). */
+@media (max-width: 760px) {
+  :is(div:has(> .tp-search), div:has(> div > .tp-search), div:has(> div > div > .tp-search)) { width: 100%; flex: 1 1 100%; max-width: none; }
+}
+@media (max-width: 520px) { .hide-xs { display: none !important; } }
+
+/* Whatever follows a toolbar spacer stays right-aligned, even when it wraps onto a new row. */
+.page-toolbar .grow + :not(.grow) { margin-left: auto; }

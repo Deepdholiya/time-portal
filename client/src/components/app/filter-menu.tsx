@@ -42,7 +42,7 @@ export function FilterMenu({ sections, value, onApply, label = "Filter", width =
     <Popover
       open={open} onOpenChange={onOpenChange} placement={placement} padded={false} width={width}
       trigger={
-        <Button size="sm" variant="secondary" icon={<ListFilter size={14} />} aria-label={count ? `${label}, ${count} on` : label}>
+        <Button size="sm" variant="secondary" collapse icon={<ListFilter size={14} />} aria-label={count ? `${label}, ${count} on` : label}>
           {label}{count > 0 && <span className={s.count}>{count}</span>}
         </Button>
       }

@@ -1,4 +1,12 @@
 .list { display: flex; flex-direction: column; min-width: 0; }
+.nameCell { position: static; box-shadow: none; background: transparent; }
+/* Phones: the list scrolls sideways with the name pinned. */
+@media (max-width: 760px) {
+  .list .row { width: max-content; min-width: 100%; }
+  .list .nameCell { position: sticky; left: 0; z-index: 1; align-self: stretch; display: flex; align-items: center; background: inherit; margin-left: calc(var(--gutter) * -1); padding-left: var(--gutter); box-shadow: 6px 0 8px -6px rgb(0 0 0 / calc(0.22 * var(--hs-l))); }
+  .list .row { background: var(--bg); }
+  .list .head { background: var(--bg-subtle); }
+}
 .row {
   display: grid; align-items: center; gap: 12px; height: var(--row-h); padding: 0 var(--gutter); border-bottom: 1px solid var(--border);
 }

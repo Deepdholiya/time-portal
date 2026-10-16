@@ -34,8 +34,6 @@ export function TaskToolbar({ filters, setFilters, display, setDisplay, options,
   return (
     <div className={s.toolbar}>
       <SearchField placeholder="Search tasks…" value={q} onChange={setQ} />
-      {active && <Button size="sm" variant="ghost" icon={<X size={13} />} onClick={() => { setQ(""); setFilters({ ...EMPTY_FILTERS }); }}>Clear</Button>}
-      <span className="grow" />
       <FilterMenu
         placement="bottom-start"
         sections={[
@@ -58,10 +56,12 @@ export function TaskToolbar({ filters, setFilters, display, setDisplay, options,
           milestoneId: v.milestone?.[0] ? Number(v.milestone[0]) : null, tag: v.tag?.[0] ?? null, due: (v.due?.[0] ?? "") as TaskFilters["due"],
         })}
       />
+      {active && <Button size="sm" variant="ghost" icon={<X size={13} />} onClick={() => { setQ(""); setFilters({ ...EMPTY_FILTERS }); }}>Clear</Button>}
       {extra}
+      <span className="grow" />
       <Popover
         placement="bottom-end" padded={false}
-        trigger={<Button size="sm" variant="secondary" icon={<SlidersHorizontal size={14} />}>Display</Button>}
+        trigger={<Button size="sm" variant="secondary" collapse icon={<SlidersHorizontal size={14} />}>Display</Button>}
       >
         <div className={s.displayPanel}>
           {display.view === "list" && (

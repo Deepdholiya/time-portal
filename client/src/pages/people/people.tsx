@@ -5,7 +5,7 @@ import { Page } from "@/components/app/page";
 import { Avatar, Button, EmptyState, ErrorState, SkeletonRows, Tooltip } from "@/components/ui";
 import { FilterMenu } from "@/components/app/filter-menu";
 import { InviteDialog } from "../admin/invite-dialogs";
-import { useApi, useDebounced, useLocal } from "@/lib/hooks";
+import { useApi, useDebounced, useLocal, useMedia } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { addDays, hours, today, weekStart } from "@/lib/format";
 import { RoleBadge, StatusBadge } from "../admin/shared";
@@ -38,7 +38,8 @@ export default function People() {
   const allHours = can("analytics", "all");
   const week = useApi<Group[]>(can("analytics", "own") ? "/analytics/group" : null, { groupBy: "employee", from: ws, to: addDays(ws, 6) });
   const minutesBy = useMemo(() => new Map((week.data ?? []).map((g) => [Number(g.id), g.minutes])), [week.data]);
-  const cols = ["minmax(220px, 2.2fr)", "minmax(110px, 1fr)", "90px", "minmax(160px, 1.4fr)", ...(full ? ["100px", "70px"] : []), "120px"].join(" ");
+  const narrow = useMedia("(max-width: 760px)");
+  const cols = [narrow ? "136px" : "minmax(220px, 2.2fr)", "minmax(110px, 1fr)", "90px", narrow ? "200px" : "minmax(160px, 1.4fr)", ...(full ? ["100px", "70px"] : []), "120px"].join(" ");
 
   const toolbar = (
     <>
@@ -63,9 +64,9 @@ export default function People() {
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : !data?.length ? (
         <EmptyState icon={<Users size={28} />} title="No one matches" description="Try a different search or clear the filters." />
       ) : (
-        <div className={s.list} role="table">
+        <div className={`${s.list} hscroll`} role="table">
           <div className={`${s.row} ${s.head}`} role="row" style={{ gridTemplateColumns: cols }}>
-            <span>Name</span><span>Team</span><span>Role</span><span >Email</span>
+            <span className={`${s.nameCell} pin-col`}>Name</span><span>Team</span><span>Role</span><span >Email</span>
             {full && <span >Status</span>}
             {full && <span className="right">Capacity</span>}
             <span className="right">This week</span>
@@ -76,7 +77,7 @@ export default function People() {
             const cap = p.weeklyCapacity ?? 40;
             return (
               <div key={p.id} className={`${s.row} ${s.clickable}`} role="row" style={{ gridTemplateColumns: cols }} tabIndex={0} onClick={() => nav(`/people/${p.id}`)} onKeyDown={(e) => e.key === "Enter" && nav(`/people/${p.id}`)}>
-                <span className="row ellipsis">
+                <span className={`row ellipsis ${s.nameCell} pin-col`} title={p.title ? `${p.name} · ${p.title}` : p.name}>
                   <Avatar name={p.name} size={24} />
                   <span className="ellipsis">
                     <span className="medium">{p.name}</span>

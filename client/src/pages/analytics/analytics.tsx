@@ -47,7 +47,7 @@ export default function Analytics() {
   return (
     <Page
       title="Analytics" icon={<BarChart3 size={15} />}
-      toolbar={<FilterBar value={filters} onChange={setFilters} hide={own ? ["team", "employee"] : []} trailing={can("export", "own") && <Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>} leading={!own && <ScopePicker value={filters.userId} meId={me?.user.id} onChange={(userId) => setFilters({ ...filters, userId })} />} presets={["Today", "This week", "Last week", "This month", "Last month", "Last 30 days", "This quarter", "Last quarter", "This year"]} />}
+      toolbar={<FilterBar value={filters} onChange={setFilters} hide={own ? ["team", "employee"] : []} trailing={can("export", "own") && <Button size="sm" variant="secondary" collapse icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>} leading={!own && <ScopePicker value={filters.userId} meId={me?.user.id} onChange={(userId) => setFilters({ ...filters, userId })} />} presets={["Today", "This week", "Last week", "This month", "Last month", "Last 30 days", "This quarter", "Last quarter", "This year"]} />}
     >
       <div className={s.tabsRow}>
         <Tabs variant="underline" items={tabs} value={tab === "financials" && !showFin ? "overview" : tab} onChange={setTab} />

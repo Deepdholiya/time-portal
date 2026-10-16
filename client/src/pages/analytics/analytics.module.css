@@ -37,7 +37,7 @@
 .tipRow { display: flex; align-items: center; gap: 6px; line-height: 20px; }
 
 .barList { display: flex; flex-direction: column; }
-.barRow { display: grid; grid-template-columns: minmax(110px, 38%) 1fr 64px; align-items: center; gap: 10px; height: 38px; padding: 0 6px; margin: 0 -6px; border-radius: var(--radius-sm); }
+.barRow { display: grid; grid-template-columns: minmax(96px, 38%) minmax(0, 1fr) 64px; align-items: center; gap: 10px; height: 38px; padding: 0 6px; margin: 0 -6px; border-radius: var(--radius-sm); }
 .barRow.clickable { cursor: pointer; }
 .barRow.clickable:hover { background: var(--bg-hover); }
 .barLabel { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
@@ -90,3 +90,6 @@
 .donutWrap { grid-template-columns: 200px 1fr; padding-top: 8px; }
 .donut { width: 200px; height: 200px; }
 .chartHead, .panelHead { flex-wrap: wrap; row-gap: 6px; }
+/* Phones: the tab strip scrolls sideways and the date note drops under it. */
+.tabsRow > :first-child { min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+@media (max-width: 760px) { .tabsRow > :first-child { flex: 1 1 100%; } .tabsRow { row-gap: 2px; padding-bottom: 8px; } }

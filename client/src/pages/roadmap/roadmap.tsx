@@ -180,23 +180,23 @@ export default function Roadmap() {
       }
       toolbar={
         <>
-          <Button size="sm" variant="secondary" icon={<CalendarDays size={14} />} onClick={() => setTodayTick((n) => n + 1)}>Today</Button>
+          <Button size="sm" variant="secondary" collapse icon={<CalendarDays size={14} />} onClick={() => setTodayTick((n) => n + 1)}>Today</Button>
           <Tooltip content={collapsed.length ? "Expand all" : "Collapse projects"}>
             <IconButton size="sm" variant="secondary" label="Expand or collapse all" icon={collapsed.length ? <ChevronsUpDown size={14} /> : <ChevronsDownUp size={14} />} onClick={collapsed.length ? expandAll : collapseAll} />
           </Tooltip>
           <FilterMenu placement="bottom-start" sections={sections} value={fv} onApply={applyFilters} />
           {(conflicts > 0 || onlyConflicts) && (
             <Tooltip content={onlyConflicts ? "Show everything again" : "Show only tasks that start before a blocking task is due"}>
-              <Button size="sm" variant="secondary" active={onlyConflicts} icon={<AlertTriangle size={14} className="danger" />} onClick={() => setOnlyConflicts(!onlyConflicts)}>
-                {conflicts} conflict{conflicts === 1 ? "" : "s"}{onlyConflicts && <X size={13} className="faint" />}
+              <Button size="sm" variant="secondary" active={onlyConflicts} aria-label={`${conflicts} conflict${conflicts === 1 ? "" : "s"}`} icon={<AlertTriangle size={14} className="danger" />} onClick={() => setOnlyConflicts(!onlyConflicts)}>
+                {conflicts}<span className="hide-xs"> conflict{conflicts === 1 ? "" : "s"}</span>{onlyConflicts && <X size={13} className="faint" />}
               </Button>
             </Tooltip>
           )}
           <span className="grow" />
-          {canEdit && <span className="small faint hide-sm">Drag a bar to move it, or its edge to resize.</span>}
-          <Menu trigger={<Button size="sm" variant="secondary" icon={<Rows3 size={14} />} iconRight={<ChevronDown size={13} />}>Group: {GROUPS.find((g) => g.value === groupBy)?.label}</Button>}
+          {canEdit && <span className="small faint hide-md">Drag a bar to move it, or its edge to resize.</span>}
+          <Menu trigger={<Button size="sm" variant="secondary" collapse aria-label={`Group: ${GROUPS.find((g) => g.value === groupBy)?.label}`} icon={<Rows3 size={14} />} iconRight={<ChevronDown size={13} />}>Group: {GROUPS.find((g) => g.value === groupBy)?.label}</Button>}
             items={GROUPS.map((g) => ({ label: g.label, icon: g.value === groupBy ? <Check size={14} /> : <span style={{ width: 14 }} />, onSelect: () => { setGroupBy(g.value); setCollapsed([]); } }))} />
-          <Menu trigger={<Button size="sm" variant="secondary" icon={<ZoomIn size={14} />} iconRight={<ChevronDown size={13} />}>Zoom: {ZOOMS.find((z) => z.value === zoom)?.label}</Button>}
+          <Menu trigger={<Button size="sm" variant="secondary" collapse aria-label={`Zoom: ${ZOOMS.find((z) => z.value === zoom)?.label}`} icon={<ZoomIn size={14} />} iconRight={<ChevronDown size={13} />}>Zoom: {ZOOMS.find((z) => z.value === zoom)?.label}</Button>}
             items={ZOOMS.map((z) => ({ label: z.title, icon: z.value === zoom ? <Check size={14} /> : <span style={{ width: 14 }} />, onSelect: () => setZoom(z.value) }))} />
         </>
       }

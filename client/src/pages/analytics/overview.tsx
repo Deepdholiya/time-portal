@@ -7,6 +7,7 @@ import { addDays, fmtDate, fmtDay, hm, pct, range, weekStart } from "@/lib/forma
 import { BarList, ChartCard, Kpi, Legend, UtilBar } from "./chart-kit";
 import type { AnalyticsData } from "./types";
 import s from "./analytics.module.css";
+import { useMedia } from "@/lib/hooks";
 
 type Drill = { title: string; query: Record<string, string> } | null;
 const OTHER = "var(--border-strong)";
@@ -64,7 +65,8 @@ export function Overview({ data, q, own, single, weekStartsOn, focused, onProjec
       </div>
     );
   };
-  const barSize = Math.max(6, Math.min(36, Math.floor(760 / Math.max(1, bars.length)) - 6));
+  const narrow = useMedia("(max-width: 760px)");
+  const barSize = Math.max(6, Math.min(36, Math.floor((narrow ? 300 : 760) / Math.max(1, bars.length)) - 6));
 
   return (
     <>
@@ -101,7 +103,7 @@ export function Overview({ data, q, own, single, weekStartsOn, focused, onProjec
                       <Bar key={x.key} dataKey={x.key} stackId="a" fill={x.color} barSize={barSize} isAnimationActive={false} style={{ cursor: "pointer" }}
                         radius={i === series.length - 1 ? [3, 3, 0, 0] : 0} stroke="var(--bg)" strokeWidth={1}
                       >
-                        {i === series.length - 1 && bars.length <= 31 && <LabelList dataKey="total" position="top" fontSize={10} fill="var(--text-3)" formatter={(v: unknown) => (Number(v) ? short(Number(v)) : "")} />}
+                        {i === series.length - 1 && bars.length <= (narrow ? 8 : 31) && <LabelList dataKey="total" position="top" fontSize={10} fill="var(--text-3)" formatter={(v: unknown) => (Number(v) ? short(Number(v)) : "")} />}
                       </Bar>
                     ))}
                   </BarChart>
@@ -161,7 +163,7 @@ export function Overview({ data, q, own, single, weekStartsOn, focused, onProjec
             {data.byEmployee.length ? (
               <div className={s.barList}>
                 {data.byEmployee.map((e) => (
-                  <div key={e.key} className={`${s.barRow} ${s.clickable}`} style={{ gridTemplateColumns: "minmax(110px, 34%) 1fr 64px" }} role="button" tabIndex={0}
+                  <div key={e.key} className={`${s.barRow} ${s.clickable}`} style={{ gridTemplateColumns: "minmax(96px, 34%) minmax(0, 1fr) 56px" }} role="button" tabIndex={0}
                     onClick={() => onDrill({ title: e.name, query: { ...q, userId: String(e.id) } })}>
                     <div className={s.barLabel}><span className="ellipsis">{e.name}</span><span className="faint small">{e.leaveDays ? `${e.leaveDays}d leave · ` : ""}{e.daysWorked}/{e.workingDays} days</span></div>
                     <UtilBar value={e.utilization} width={220} />

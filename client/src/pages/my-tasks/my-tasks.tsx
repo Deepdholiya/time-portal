@@ -99,14 +99,14 @@ export default function MyTasks() {
             items={[{ value: "assigned", label: "Assigned" }, { value: "created", label: "Created" }, { value: "following", label: "Following" }]}
           />
         </div>
-        <SegmentedControl aria-label="View" value={view} onChange={setView}
-          options={[{ value: "list", label: "List", icon: <LayoutList size={14} /> }, { value: "board", label: "Board", icon: <Columns3 size={14} /> }]} />
-        <span className="grow" />
-        {view === "list" && <Switch checked={showDone} onChange={setShowDone} label={<span className="small muted">Show completed</span>} />}
         {view === "list" && (
           <Select size="sm" fullWidth={false} value={mode} onChange={(v) => setMode(v as GroupMode)} aria-label="Group by"
             options={[{ value: "due", label: "Group by due date" }, { value: "status", label: "Group by status" }]} />
         )}
+        {view === "list" && <Switch checked={showDone} onChange={setShowDone} label={<span className="small muted">Show completed</span>} />}
+        <span className="grow" />
+        <SegmentedControl aria-label="View" value={view} onChange={setView}
+          options={[{ value: "list", label: "List", icon: <LayoutList size={14} /> }, { value: "board", label: "Board", icon: <Columns3 size={14} /> }]} />
       </div>
       <div className="page-body">{body}</div>
     </div>

@@ -44,7 +44,7 @@ export default function Users() {
       title="Users & invitations" icon={<UserCog size={15} />} toolbar={toolbar}
       actions={can("people", "invite") && (
         <>
-          <Button size="sm" variant="secondary" icon={<Upload size={14} />} onClick={() => setBulk(true)}>Bulk invite</Button>
+          <Button size="sm" variant="secondary" collapse icon={<Upload size={14} />} onClick={() => setBulk(true)}>Bulk invite</Button>
           <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setInvite(true)}>Invite people</Button>
         </>
       )}

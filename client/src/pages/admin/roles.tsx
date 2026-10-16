@@ -97,11 +97,11 @@ export default function Roles() {
     >
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : data && (tab === "people" ? <PeopleAccess roles={data.roleList} onChanged={reload} /> : tab === "nav" ? <NavAccess data={data} admin={admin} roles={editable} /> : (
         <div className={s.wrap}>
-          <div className={s.scroller}>
+          <div className={s.scroller}><div className="hscroll">
             <table className={`table ${s.matrix}`}>
               <thead>
                 <tr>
-                  <th className={s.featureCol}>Permission</th>
+                  <th className={`${s.featureCol} pin-col`}>Permission</th>
                   {admin && <th className={s.roleCol}><span className="row gap-4"><Lock size={12} className="faint" />{roleHead(admin)}</span></th>}
                   {editable.map((r) => <th key={r.key} className={s.roleCol}>{roleHead(r)}</th>)}
                   <th className={s.fill} aria-hidden />
@@ -113,7 +113,7 @@ export default function Roles() {
                 return (
                   <tbody key={g}>
                     <tr className={s.group}>
-                      <td className={s.featureCol}>
+                      <td className={`${s.featureCol} pin-col`}>
                         <button type="button" className={s.groupBtn} aria-expanded={!shut} onClick={() => setClosed(shut ? closed.filter((x) => x !== g) : [...closed, g])}>
                           <ChevronDown size={14} className={shut ? s.chevShut : s.chev} />{g}<span className={s.groupCount}>{rows.length}</span>
                         </button>
@@ -122,7 +122,7 @@ export default function Roles() {
                     </tr>
                     {!shut && rows.map((row) => (
                       <tr key={`${row.feature}:${row.index}`} className={s.permRow}>
-                        <td className={s.featureCol}>
+                        <td className={`${s.featureCol} pin-col`}>
                           <Tooltip content={row.help}><span className={s.permLabel}>{row.label}</span></Tooltip>
                         </td>
                         <td className={s.roleCol}><span className={s.cell}><Switch checked disabled onChange={() => {}} aria-label={`Admin: ${row.label}`} /></span></td>
@@ -150,7 +150,7 @@ export default function Roles() {
                 );
               })}
             </table>
-          </div>
+          </div></div>
         </div>
       ))}
       {form && data && (
@@ -231,11 +231,11 @@ function NavAccess({ data, admin, roles }: { data: Resp; admin?: RoleInfo; roles
   const locked = (i: NavItem) => i.to === "/";
   return (
     <div className={s.wrap}>
-      <div className={s.scroller}>
+      <div className={s.scroller}><div className="hscroll">
         <table className={`table ${s.matrix}`}>
           <thead>
             <tr>
-              <th className={s.featureCol}>Page</th>
+              <th className={`${s.featureCol} pin-col`}>Page</th>
               {admin && <th className={s.roleCol}><span className="row gap-4"><Lock size={12} className="faint" /><span className={s.roleHead}>{admin.name}</span></span></th>}
               {roles.map((r) => <th key={r.key} className={s.roleCol}><span className={s.roleHead}><span className="ellipsis">{r.name}</span></span></th>)}
               <th className={s.fill} aria-hidden />
@@ -247,7 +247,7 @@ function NavAccess({ data, admin, roles }: { data: Resp; admin?: RoleInfo; roles
             return (
               <tbody key={sec.id}>
                 <tr className={s.group}>
-                  <td className={s.featureCol}>
+                  <td className={`${s.featureCol} pin-col`}>
                     <button type="button" className={s.groupBtn} aria-expanded={!shut} onClick={() => setClosed(shut ? closed.filter((x) => x !== sec.id) : [...closed, sec.id])}>
                       <ChevronDown size={14} className={shut ? s.chevShut : s.chev} />{sec.menu ? "Account menu" : sec.label}<span className={s.groupCount}>{items.length}</span>
                     </button>
@@ -256,7 +256,7 @@ function NavAccess({ data, admin, roles }: { data: Resp; admin?: RoleInfo; roles
                 </tr>
                 {!shut && items.map((i) => (
                   <tr key={i.to} className={s.permRow}>
-                    <td className={s.featureCol}><span className="row gap-8"><i.icon size={15} className="faint" />{i.label}</span></td>
+                    <td className={`${s.featureCol} pin-col`}><span className="row gap-8"><i.icon size={15} className="faint" />{i.label}</span></td>
                     <td className={s.roleCol}><span className={s.cell}><Switch checked disabled onChange={() => {}} aria-label={`Admin: ${i.label}`} /></span></td>
                     {roles.map((r) => {
                       const allowed = permits(canFor(r.key), i);
@@ -281,7 +281,7 @@ function NavAccess({ data, admin, roles }: { data: Resp; admin?: RoleInfo; roles
             );
           })}
         </table>
-      </div>
+      </div></div>
     </div>
   );
 }

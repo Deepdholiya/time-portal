@@ -38,7 +38,7 @@ export function ProjectTaskPicker({ options, value, onChange, fallback, withTask
           {taskTitle && <span className="ellipsis muted">· {taskTitle}</span>}
         </>
       ) : (
-        <>{placeholderIcon ?? <FolderKanban size={14} className="faint" />}<span className="faint">{placeholder}</span></>
+        <>{placeholderIcon ?? <FolderKanban size={14} className="faint" />}<span className="faint ellipsis">{placeholder}</span></>
       )}
     </button>
   );
