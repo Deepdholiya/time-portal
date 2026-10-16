@@ -17,7 +17,8 @@ def faq_block(title, items):
 def product_page(slug, d):
     name = next(t for s, i, t, _ in PRODUCTS if s == slug)
     body = page_hero(name, d["h1"], d["sub"], ctas_default()) + "\n"
-    body += sec('<div class="hero-shot reveal">' + d["visual"] + "</div>", "sec-tight") + "\n"
+    chips = "".join(f'<span class="float-chip fc{n}" aria-hidden="true"><span class="fc-ico">{icon(ic, "ico-s")}</span>{t}</span>' for n, (ic, t) in enumerate(d.get("chips", [])))
+    body += sec('<div class="hero-shot reveal" data-tilt>' + chips + d["visual"] + "</div>", "sec-tight") + "\n"
     body += sec(sec_head("How it works.", eyebrow="Three steps", center=True) + hsteps(d["steps"])) + "\n"
     body += sec(sec_head(d["tiles_h"], d.get("tiles_p", ""), eyebrow="What you get") + tiles(d["tiles"])) + "\n"
     body += sec(frow(slug + "-more", d["more"][0], d["more"][1], d["more"][2], d["more"][3], d["more"][4], flip=True,
@@ -29,7 +30,12 @@ def product_page(slug, d):
 def solution_page(slug, d):
     name = next(t for s, i, t, _ in ROLES + TEAMS if s == slug)
     body = page_hero(d["eyebrow"], d["h1"], d["sub"], ctas_default()) + "\n"
-    body += sec(sec_head(d["pain_h"], eyebrow="What gets in the way") + tiles(d["pains"])) + "\n"
+    sw = ('<div class="pf-switch reveal" role="group" aria-label="Compare"><button type="button" aria-pressed="true" data-pf="0">Without Orbit0</button>'
+          '<button type="button" aria-pressed="false" data-pf="1">With Orbit0</button><i aria-hidden="true"></i></div>')
+    cards = "".join(f'<div class="tile pf-tile reveal"><div class="pf-a"><span class="tile-ico">{icon(ic)}</span><b>{b}</b><p>{t}</p></div>'
+                    f'<div class="pf-b" aria-hidden="true"><span class="tile-ico ok">{icon("check")}</span><b>{fb}</b><p>{ft}</p></div></div>'
+                    for (ic, b, t), (fb, ft) in zip(d["pains"], d["fixes"]))
+    body += sec('<div class="pf-head">' + sec_head(d["pain_h"], eyebrow="What gets in the way") + sw + '</div><div class="tiles c3 pf" data-pf-box>' + cards + "</div>") + "\n"
     rows = "".join(frow(f"{slug}-{n}", e, h, p, items, v, flip=n % 2 == 1, link=(f"See {t.lower()}", "{p}product/" + ps + "/"))
                    for n, (e, h, p, items, v, ps, t) in enumerate(d["rows"]))
     body += sec(sec_head("How Orbit0 helps.", eyebrow="For " + name.lower()) + rows) + "\n"
@@ -42,6 +48,7 @@ def solution_page(slug, d):
 # ---------------- PRODUCTS ----------------
 PRODUCT_DATA = {
 "time-tracking": dict(
+  chips=[('clock', 'Day submitted at 23:59'), ('check', '+1:15 logged on Website')],
   desc="Log time in Orbit0 by typing a duration. The start fills itself, overlaps are blocked and each day submits itself.",
   h1="Log a day<br><span class=\"soft\">in a minute.</span>",
   sub="Type a duration, pick the project and say what you did. The start time fills from where your last entry ended, so nobody runs a timer all day.",
@@ -63,6 +70,7 @@ PRODUCT_DATA = {
        ("Can people log time in the future?", "No. Future dates are rejected, and entries can't overlap each other."),
        ("Can we require tags?", "Yes. Tags can be required and limited to the teams that use them.")]),
 "timesheets": dict(
+  chips=[('leave', 'Leave shown on Thursday'), ('receipt', 'Exported to Excel')],
   desc="Orbit0 timesheets show your week as a table or a calendar, with leave and holidays in place and team exports for managers.",
   h1="One week,<br><span class=\"soft\">two views.</span>",
   sub="See the same week as a table or a calendar, with leave and company holidays in place. Managers see the whole team and export it.",
@@ -84,6 +92,7 @@ PRODUCT_DATA = {
        ("Who can see team timesheets?", "Managers and admins by default. An admin can change this per role or per person."),
        ("What formats can we export?", "Excel, PDF and CSV, with totals.")]),
 "leave": dict(
+  chips=[('check', 'Leave approved'), ('cal', 'Added to the calendar')],
   desc="Request leave and reimbursements in Orbit0, approve them in one queue, and see approved leave on the calendar.",
   h1="Leave and expenses<br><span class=\"soft\">in one inbox.</span>",
   sub="Leave and reimbursement requests land in one Approvals queue. Approved leave shows on the calendar and blocks those days for logging.",
@@ -105,6 +114,7 @@ PRODUCT_DATA = {
        ("Who approves requests?", "Managers and admins, from the Approvals queue."),
        ("Can we claim expenses?", "Yes. Reimbursement requests take an amount and a receipt and go to the same queue.")]),
 "projects": dict(
+  chips=[('bolt', '2 dependent tasks moved'), ('task', 'Milestone · Brand sprint')],
   desc="Plan projects, tasks and milestones on one roadmap in Orbit0, and drag to reschedule with dependencies.",
   h1="Plan the work<br><span class=\"soft\">where the hours land.</span>",
   sub="Projects, sub-projects, tasks and milestones share one timeline. Drag a bar to reschedule and the dependent tasks move with it.",
@@ -126,6 +136,7 @@ PRODUCT_DATA = {
        ("Can clients see progress?", "You can share a read-only status link for a single project."),
        ("Can we mark projects as billable?", "Yes, with a rate per project.")]),
 "analytics": dict(
+  chips=[('shield', 'QA is 31% over budget'), ('receipt', 'Report exported as PDF')],
   desc="Orbit0 analytics follow hours by project, task and person against budget, with workload and Excel, PDF and CSV exports.",
   h1="From a total<br><span class=\"soft\">down to the single entry.</span>",
   sub="Follow hours by project, sub-project, task and person against budget. Group a report eight ways and export it with totals.",
@@ -147,6 +158,7 @@ PRODUCT_DATA = {
        ("Who can see financials?", "It depends on the role. An admin decides who sees rates, budgets and financials."),
        ("Does workload include leave?", "Yes. Approved leave is counted against each person's capacity.")]),
 "ai": dict(
+  chips=[('shield', 'Only what your role can see'), ('mail', 'Client update drafted')],
   desc="Ask Orbit0 about your team's time in plain words, and let AI draft tasks, summaries and client updates you review.",
   h1="Ask about your time<br><span class=\"soft\">in plain words.</span>",
   sub="Ask from the search bar and get an answer with the numbers behind it. AI also tidies descriptions and drafts tasks, summaries and client updates you review.",
@@ -168,6 +180,7 @@ PRODUCT_DATA = {
        ("Where do I ask?", "From the search bar, opened with ⌘K or Ctrl K."),
        ("Is there a record of sent emails?", "Yes. Every email is copied to the email log.")]),
 "admin": dict(
+  chips=[('key', 'Override saved for Meera'), ('log', 'Added to the audit log')],
   desc="Orbit0 admin: roles and permissions, per-person overrides, several companies from one login and automations.",
   h1="You decide<br><span class=\"soft\">who sees what.</span>",
   sub="Start with Admin, Manager and Employee, add your own roles, and override a single person when you need to. Run more than one company from one login.",
@@ -192,7 +205,8 @@ PRODUCT_DATA = {
 
 # ---------------- SOLUTIONS ----------------
 SOLUTION_DATA = {
-"leaders": dict(eyebrow="For leaders",
+"leaders": dict(fixes=[('Alerts come early', 'A project at risk is flagged while there is still time to act.'), ('Workload in one view', 'Planned and logged hours for every person, with leave counted.'), ('One login, every company', 'Switch companies in a click, each one kept separate.')],
+  eyebrow="For leaders",
   desc="Orbit0 for leaders: utilisation, budgets and project health across every team and company.",
   h1="Know where the business stands<br><span class=\"soft\">without asking.</span>",
   sub="See utilisation, budgets and project health across every team and company you run, from numbers your team already logs.",
@@ -208,7 +222,8 @@ SOLUTION_DATA = {
   faq=[("Do I need to log time myself?", "No. Leaders usually read reports and workload. Logging is for the people doing the work."),
        ("Can I see every company at once?", "You switch between companies. Each one keeps its own data."),
        ("Can I limit who sees financials?", "Yes. Financials are a permission you give per role or per person.")]),
-"project-managers": dict(eyebrow="For project managers",
+"project-managers": dict(fixes=[('Plans move together', 'Drag a task and the ones that depend on it follow.'), ('Assign with room', "Check each person's workload before you hand out work."), ('One Approvals queue', 'Leave and expenses wait in one list, with receipts attached.')],
+  eyebrow="For project managers",
   desc="Orbit0 for project managers: roadmap, tasks, workload and approvals next to the hours.",
   h1="Plan the work<br><span class=\"soft\">and know it's on track.</span>",
   sub="Build the plan on a roadmap, assign tasks to people with room, and see the hours against the budget as they come in.",
@@ -224,7 +239,8 @@ SOLUTION_DATA = {
   faq=[("Can clients see the plan?", "You can share a read-only status link for one project."),
        ("Can I see who has room?", "Yes. Workload shows planned and logged hours for each person, with leave counted."),
        ("Can I approve leave?", "Yes. Managers approve leave and reimbursements from the Approvals queue.")]),
-"employees": dict(eyebrow="For employees",
+"employees": dict(fixes=[('Log as you go', 'Type a duration and the day submits itself at the cutoff.'), ('Time on the task', 'Log straight against the task you worked on.'), ('Leave in a short form', 'Approved leave shows on the calendar for everyone.')],
+  eyebrow="For employees",
   desc="Orbit0 for employees: log the day in a minute, see your tasks, and request leave.",
   h1="Log the day in a minute<br><span class=\"soft\">and get back to work.</span>",
   sub="Type a duration into the tracker or a timesheet cell. Your day submits itself, and leave and expenses are a short form away.",
@@ -240,7 +256,8 @@ SOLUTION_DATA = {
   faq=[("Do I have to run a timer?", "No. You type a duration and the start fills itself."),
        ("What if I forget to submit?", "Each day submits itself at your company's cutoff."),
        ("Is there dark mode?", "Yes, and keyboard shortcuts throughout.")]),
-"agencies": dict(eyebrow="For agencies",
+"agencies": dict(fixes=[('Budgets per retainer', 'Hours tracked against each retainer as they come in.'), ('Reports in minutes', 'Hours per client, exported to Excel, PDF or CSV.'), ('See who is on what', "Workload shows each person's week and who has room.")],
+  eyebrow="For agencies",
   desc="Orbit0 for agencies: track clients and retainers against budget and send the reports clients pay for.",
   h1="Every client and retainer,<br><span class=\"soft\">against its budget.</span>",
   sub="Track each client's projects and retainers against their budget, and send the report clients pay for.",
@@ -256,7 +273,8 @@ SOLUTION_DATA = {
   faq=[("Can we track retainers?", "Yes. Set a budget on the retainer project and follow hours against it."),
        ("Can clients see progress?", "You can share a read-only status link for a single project."),
        ("Can we export for invoicing?", "Yes, to Excel, PDF or CSV with totals.")]),
-"design-studios": dict(eyebrow="For design studios",
+"design-studios": dict(fixes=[('Quote from real numbers', 'Past phases show what the next one is likely to take.'), ('Each phase on its own line', 'Sub-projects keep discovery, design and QA apart.'), ('No timer needed', 'Type a duration and the start time fills itself.')],
+  eyebrow="For design studios",
   desc="Orbit0 for design studios: see which phase takes the hours and plan the next project with that in mind.",
   h1="See which phase<br><span class=\"soft\">takes the hours.</span>",
   sub="Split projects into phases, see where the time goes, and quote the next one with real numbers.",
@@ -272,7 +290,8 @@ SOLUTION_DATA = {
   faq=[("Can we track phases separately?", "Yes. Use sub-projects for each phase and they roll up into the project."),
        ("Do designers need to run a timer?", "No. They type a duration and the start fills itself."),
        ("Can we see which phase overran?", "Yes. Analytics shows each phase against its budget.")]),
-"consultancies": dict(eyebrow="For consultancies",
+"consultancies": dict(fixes=[('Billable by default', 'Projects are marked billable, with a rate.'), ('Utilisation, always current', 'Per person and per team, from the hours already logged.'), ('Rates for the right people', 'Choose which roles see rates and financials.')],
+  eyebrow="For consultancies",
   desc="Orbit0 for consultancies: billable and non-billable time, utilisation per person and team, and clean exports.",
   h1="Billable time<br><span class=\"soft\">and utilisation, clearly.</span>",
   sub="Log billable and non-billable time, see utilisation per person and team, and export it for invoicing.",

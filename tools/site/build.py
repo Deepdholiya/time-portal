@@ -50,6 +50,12 @@ sub1('<p>Two demo companies with four months of sample data. Sign in with one cl
 sub1('<p>Every team is set up personally. Tell us about yours and we\'ll send a quote with your access.</p>', '<p>Every team is set up personally. Tell us about yours and we\'ll send a quote with your access.</p>\n      <a class="link" href="pricing/">Compare plans <svg class="ico-s"><use href="#i-arrow"/></svg></a>')
 sub1('<a class="faq-ask" href="mailto:hello@orbit0.app">', '<a class="faq-ask" href="contact/">')
 sub1('<a class="btn btn-outline btn-block" href="#access">Talk to us</a>', '<a class="btn btn-outline btn-block" href="contact/">Talk to us</a>')
+# one voice: sentence case headings, brand orange for every Request access button
+for old, new in [('data-a="Time Tracking and" data-b="Know where every">Time Tracking and<', 'data-a="Time tracking and" data-b="Know where every">Time tracking and<'),
+                 ('data-a="Project Reports." data-b="hour goes.">Project Reports.<', 'data-a="project reports." data-b="hour goes.">project reports.<'),
+                 ('<h2>Frequently Asked Questions.</h2>', '<h2>Frequently asked questions.</h2>'),
+                 ('<a class="btn btn-dark btn-sm" href="request-access/"><svg', '<a class="btn btn-brand btn-sm" href="request-access/"><svg')]:
+    idx = idx.replace(old, new)
 for old, new in [('href="product/#ai"', 'href="product/ai/"'), ('href="product/#reports"', 'href="product/analytics/"'),
                  ('href="solutions/#leaders"', 'href="solutions/leaders/"'), ('href="solutions/#managers"', 'href="solutions/project-managers/"'),
                  ('href="solutions/#employees"', 'href="solutions/employees/"'), ('href="#access"', 'href="request-access/"')]:

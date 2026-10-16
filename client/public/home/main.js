@@ -65,6 +65,15 @@
   }
   $$(".dots").forEach(function (d) { buildDots(d, false); });
 
+  /* ---------- stagger: number the items in each group so they arrive one after another ---------- */
+  $$(".tiles, .rel-grid, .tries, .c-side, .rq-side").forEach(function (g) {
+    $$(":scope > .reveal", g).forEach(function (el, i) { el.style.setProperty("--i", i); });
+  });
+  $$(".ticks").forEach(function (t) { $$("li", t).forEach(function (li, i) { li.style.setProperty("--i", i); }); });
+  $$(".hero-shot, .frow-v").forEach(function (v) {
+    $$(".lr, .bcard, .ap-row, .wr-row, .at-r, .lf-r, .cb", v).forEach(function (r, i) { r.style.setProperty("--i", i); });
+  });
+
   /* ---------- scroll reveal ---------- */
   var revealEls = $$(".reveal");
   if (!("IntersectionObserver" in window) || reduce) {
@@ -74,6 +83,8 @@
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
         e.target.classList.add("in");
+        // once it has arrived, hover effects shouldn't wait for the stagger delay
+        setTimeout(function () { e.target.style.removeProperty("--i"); }, 1400);
         $$(".dots", e.target).forEach(function (d) { buildDots(d, true); });
         io.unobserve(e.target);
       });
@@ -313,4 +324,61 @@
         .catch(function () { msg.textContent = "That didn't go through. Please try again in a moment."; msg.classList.add("err"); });
     });
   }
+  /* ---------- nav: shadow once scrolled, and a reading-progress line ---------- */
+  var nav = $("#nav");
+  if (nav) {
+    var bar = document.createElement("span"); bar.className = "nav-progress"; bar.setAttribute("aria-hidden", "true"); nav.appendChild(bar);
+    var onScroll = function () {
+      var max = document.documentElement.scrollHeight - innerHeight;
+      nav.classList.toggle("scrolled", scrollY > 8);
+      bar.style.setProperty("--p", max > 0 ? Math.min(1, scrollY / max) : 0);
+    };
+    addEventListener("scroll", onScroll, { passive: true }); onScroll();
+  }
+
+  /* ---------- cards: a soft light follows the pointer ---------- */
+  $$(".tile, .rel-card, .c-link, .demo-card, .plan, .dd-card, .try, .hero-shot").forEach(function (c) {
+    c.classList.add("spot");
+    c.addEventListener("pointermove", function (e) {
+      var r = c.getBoundingClientRect();
+      c.style.setProperty("--mx", (e.clientX - r.left) + "px");
+      c.style.setProperty("--my", (e.clientY - r.top) + "px");
+    });
+  });
+
+  /* ---------- product hero shot: tilted back, flattens as it scrolls into place ---------- */
+  var shots = $$("[data-tilt]");
+  if (shots.length && !reduce) {
+    var tilt = function () {
+      shots.forEach(function (s) {
+        var top = s.getBoundingClientRect().top, p = Math.max(0, Math.min(1, 1 - (top - innerHeight * 0.25) / (innerHeight * 0.55)));
+        s.style.setProperty("--tilt", (14 * (1 - p)).toFixed(2) + "deg");
+        s.style.setProperty("--sc", (0.94 + 0.06 * p).toFixed(3));
+      });
+    };
+    var ticking = false;
+    addEventListener("scroll", function () { if (!ticking) { ticking = true; requestAnimationFrame(function () { tilt(); ticking = false; }); } }, { passive: true });
+    tilt();
+  }
+
+  /* ---------- solution pages: Without / With Orbit0 ---------- */
+  $$(".pf-switch").forEach(function (sw) {
+    var box = sw.closest(".wrap").querySelector("[data-pf-box]"), btns = $$("button", sw), touched = false;
+    var set = function (on) {
+      sw.classList.toggle("on", on); box.classList.toggle("on", on);
+      btns.forEach(function (b) { b.setAttribute("aria-pressed", String((b.dataset.pf === "1") === on)); });
+      $$(".pf-a", box).forEach(function (a) { a.setAttribute("aria-hidden", String(on)); });
+      $$(".pf-b", box).forEach(function (b) { b.setAttribute("aria-hidden", String(!on)); });
+    };
+    btns.forEach(function (b) { b.addEventListener("click", function () { touched = true; set(b.dataset.pf === "1"); }); });
+    // show the fix on its own once, a moment after the problems have been read
+    if (!reduce && "IntersectionObserver" in window) {
+      var pio = new IntersectionObserver(function (en) {
+        if (!en[0].isIntersecting) return;
+        pio.disconnect();
+        setTimeout(function () { if (!touched) set(true); }, 2600);
+      }, { threshold: 0.35 });
+      pio.observe(box);
+    }
+  });
 })();

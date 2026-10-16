@@ -97,7 +97,7 @@ def nav():
     <div class="nav-actions">
       <a class="nav-login" data-link="signin" href="/login">Sign in</a>
       <a class="btn btn-outline btn-sm hide-sm" data-link="demo" data-role="admin" href="/login">Try the demo</a>
-      <a class="btn btn-dark btn-sm" href="{{p}}request-access/">Request access</a>
+      <a class="btn btn-brand btn-sm" href="{{p}}request-access/">Request access</a>
       <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span></button>
     </div>
   </div>
