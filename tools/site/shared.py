@@ -145,12 +145,12 @@ def final_cta(title="Request access to Orbit0.", text="Tell us your work email. 
       </div>
       <div class="final-r" aria-hidden="true">
         {char("astro", "final-ch")}
-        <div class="mini-list"><span>Website redesign</span><span>Brand sprint</span><span>Mobile app · v2</span></div>
-        <div class="mini-card">
+        <div class="mini-list" data-w="minilist"><span>Website redesign</span><span>Brand sprint</span><span>Mobile app · v2</span></div>
+        <div class="mini-card" data-w="mini">
           <div class="mc-h"><b>Website redesign · report</b><span class="pill pill-brand">On budget</span></div>
-          <div class="mc-r"><span>Logged</span><span class="dots" data-n="20" data-on="18"></span><span class="r">184h</span></div>
-          <div class="mc-r hi"><span>Billable</span><span class="dots brand" data-n="20" data-on="17"></span><span class="r">171h</span></div>
-          <div class="mc-f"><strong>92%</strong><span class="xs muted">of budget used · 6 people · Excel ready</span></div>
+          <div class="mc-r"><span>Logged</span><span class="dots" data-n="20" data-on="18"></span><span class="r cu">184h</span></div>
+          <div class="mc-r hi"><span>Billable</span><span class="dots brand" data-n="20" data-on="17"></span><span class="r cu">171h</span></div>
+          <div class="mc-f"><strong class="cu">92%</strong><span class="xs muted">of budget used · 6 people · Excel ready</span></div>
         </div>
       </div>
     </div>
@@ -178,7 +178,7 @@ def head(title, desc, p, sprite):
 {sprite}
 '''
 
-def page_hero(eyebrow, h1, sub, ctas, chars=("astro", "pointer")):
+def page_hero(eyebrow, h1, sub, ctas, chars=("maya", "dev")):
     return f'''<section class="page-hero">
   {char(chars[0], "ph-l")}{char(chars[1], "ph-r")}
   <div class="wrap ph-inner">
@@ -233,6 +233,23 @@ def faq(items, id_="faqAcc"):
 def decorate(html):
     # a space after each heading line break, so the words don't run together where phones hide the break
     html = html.replace('<br><span class="soft">', '<br> <span class="soft">')
-    html = re.sub(r'(<ol class="hsteps reveal">.*?</ol>)', lambda m: '<div class="hs-wrap">' + char("walker", "hs-walker") + m.group(1) + "</div>", html, flags=re.S)
-    html = re.sub(r'(<div class="faq-l reveal">.*?</a>)(</div>)', lambda m: m.group(1) + char("typist", "faq-ch") + m.group(2), html, flags=re.S)
+    html = re.sub(r'(<ol class="hsteps reveal">.*?</ol>)', lambda m: '<div class="hs-wrap">' + char("ravi", "hs-walker") + m.group(1) + "</div>", html, flags=re.S)
     return html
+
+def scrolly(steps, tag="h2"):
+    """A tall section: the steps scroll by on the left while the visual on the right stays put and swaps
+    to the matching mock-up, with a progress bar per step. Phones get each mock-up under its own step.
+    steps: dicts with id, short (progress label), eyebrow, title, text, items, visual, link=(label, href), icon."""
+    out_steps, panels, segs = "", "", ""
+    for i, st in enumerate(steps):
+        ico = f'<span class="sy-ico">{icon(st["icon"], "acc-ico" if st["icon"] in ("funnel", "split", "route") else "ico")}</span>' if st.get("icon") else ""
+        link = f'<a class="link" href="{st["link"][1]}">{st["link"][0]} {ARROW}</a>' if st.get("link") else ""
+        id_ = f' id="{st["id"]}"' if st.get("id") else ""
+        out_steps += (f'<div class="sy-step{" on" if i == 0 else ""}"{id_} data-i="{i}"><div class="sy-text reveal">{ico}<span class="eyebrow">{st["eyebrow"]}</span>'
+                      f'<{tag}>{st["title"]}</{tag}><p>{st["text"]}</p>{ticks(st["items"]) if st.get("items") else ""}{link}</div>'
+                      f'<div class="sy-mob">{st["visual"]}</div></div>')
+        panels += st["visual"].replace('<div class="panel show">', f'<div class="panel{" show" if i == 0 else ""}" data-for="{i}">', 1)
+        segs += f'<button class="sy-seg{" on" if i == 0 else ""}" type="button" tabindex="-1" data-go="{i}"><i></i><em>{st["short"]}</em></button>'
+    return (f'<div class="scrolly" data-scrolly style="--n:{len(steps)}"><div class="sy-steps">{out_steps}</div>'
+            f'<div class="sy-side" aria-hidden="true"><div class="sy-sticky"><div class="sy-prog"><span class="sy-count"><b>1</b> / {len(steps)}</span>{segs}</div>'
+            f'<div class="stage sy-stage">{panels}</div></div></div></div>')

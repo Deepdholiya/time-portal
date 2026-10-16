@@ -1,20 +1,21 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, Bell, ChevronRight, Clock, CornerDownLeft, FolderKanban, LogOut, Moon, PanelLeft, Plus, Search, Sparkles, Sun, UserRound, X } from "lucide-react";
-import { Avatar, Button, IconButton, Kbd, Menu, Spinner, Tooltip } from "@/components/ui";
+import { Bell, ChevronRight, Clock, CornerDownLeft, FolderKanban, LogOut, Moon, PanelLeft, Plus, Search, Sparkles, Sun, UserRound, X } from "lucide-react";
+import { Avatar, Button, IconButton, Kbd, Menu, Tooltip } from "@/components/ui";
 import { get as getJson } from "@/lib/api";
-import { get, post } from "@/lib/api";
+import { get } from "@/lib/api";
 import { useDebounced } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
 import { toggleTheme } from "@/lib/theme";
 import type { Task } from "@/lib/types";
 import { navItems, sectionFor, visibleNav } from "./nav";
 import { StatusIcon } from "./icons";
+import { AskAi } from "./ask-ai";
+import { useAiAvailable } from "./ai-button";
 import { useShell } from "./shell-context";
 import s from "./top-bar.module.css";
 
 interface Result { id: string; group: string; label: string; hint?: string; icon: ReactNode; run: () => void }
-interface Answer { answer: string; source: string; links: { label: string; to: string }[] }
 export interface TopBarHandle { focus: () => void }
 
 /** Where you are: the area, then the page ("Work › Tasks"). */
@@ -53,8 +54,8 @@ function useUnread() {
 }
 
 /**
- * Top bar with one search box for pages, projects and tasks, plus "Ask AI" for questions about your own time
- * ("how many hours did I log last week?"). ⌘K or / focuses it.
+ * Top bar with one search box for pages, projects and tasks, and an Ask AI chat about your own work
+ * ("how many hours did I log last week?"). ⌘K or / focuses the search; a question typed there opens the chat.
  */
 export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSidebar: () => void }>(function TopBar({ onMenu, onToggleSidebar }, ref) {
   const nav = useNavigate();
@@ -69,9 +70,9 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
   const [hi, setHi] = useState(0);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<{ id: number; name: string; color: string; parentId?: number | null }[]>([]);
-  const [asking, setAsking] = useState(false);
-  const [answer, setAnswer] = useState<(Answer & { q: string }) | null>(null);
-  const [askError, setAskError] = useState<string | null>(null);
+  const aiOn = useAiAvailable();
+  const [chat, setChat] = useState(false);
+  const [question, setQuestion] = useState<string | null>(null);
   const dq = useDebounced(q, 150);
 
   useImperativeHandle(ref, () => ({ focus: () => { input.current?.focus(); setOpen(true); } }), []);
@@ -90,22 +91,19 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
     return () => document.removeEventListener("mousedown", h);
   }, [open]);
 
-  const close = () => { setOpen(false); setAnswer(null); setAskError(null); input.current?.blur(); };
+  const close = () => { setOpen(false); input.current?.blur(); };
   const go = (to: string) => () => { nav(to); setQ(""); close(); };
-  const ask = async () => {
-    const question = q.trim();
-    if (question.length < 2) return;
-    setAsking(true); setAskError(null); setAnswer(null);
-    try { setAnswer({ ...(await post<Answer>("/ai/ask", { q: question })), q: question }); }
-    catch (e) { setAskError(e instanceof Error ? e.message : "Couldn't get an answer"); }
-    finally { setAsking(false); }
+  const ask = () => {
+    const text = q.trim();
+    if (text.length < 2) return;
+    close(); setQ(""); setQuestion(text); setChat(true);
   };
 
   const results = useMemo<Result[]>(() => {
     const t = q.trim().toLowerCase();
     const match = (...xs: (string | undefined)[]) => !t || xs.some((x) => x?.toLowerCase().includes(t));
     const out: Result[] = [];
-    if (t.length >= 2) out.push({ id: "ai", group: "Ask AI", label: `Ask AI: “${q.trim()}”`, hint: "About your time and tasks", icon: <Sparkles size={15} />, run: ask });
+    if (t.length >= 2 && aiOn) out.push({ id: "ai", group: "Ask AI", label: `Ask AI: “${q.trim()}”`, hint: "About your time and tasks", icon: <Sparkles size={15} />, run: ask });
     if (!t) {
       out.push(
         { id: "log", group: "Actions", label: "Log time", icon: <Clock size={15} />, run: () => { close(); shell.logTime(); } },
@@ -118,10 +116,9 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
     out.push(...tasks.map((tk) => ({ id: "t" + tk.id, group: "Tasks", label: tk.title, hint: tk.key, icon: <StatusIcon status={tk.status} />, run: () => { close(); setQ(""); shell.openTask(tk.id); } })));
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, can, navHidden, projects, tasks]);
+  }, [q, can, navHidden, projects, tasks, aiOn]);
 
   useEffect(() => setHi(0), [q]);
-  const showAnswer = asking || answer || askError;
 
   let lastGroup = "";
   return (
@@ -141,9 +138,9 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
             role="combobox"
             aria-expanded={open}
             aria-controls="top-search-results"
-            aria-activedescendant={open && !showAnswer && results[hi] ? `sr-${results[hi].id}` : undefined}
+            aria-activedescendant={open && results[hi] ? `sr-${results[hi].id}` : undefined}
             onFocus={() => setOpen(true)}
-            onChange={(e) => { setQ(e.target.value); setOpen(true); setAnswer(null); setAskError(null); }}
+            onChange={(e) => { setQ(e.target.value); setOpen(true); }}
             onKeyDown={(e) => {
               if (e.key === "Escape") { e.preventDefault(); if (q) setQ(""); else close(); }
               else if (e.key === "ArrowDown") { e.preventDefault(); setHi((h) => Math.min(results.length - 1, h + 1)); }
@@ -151,27 +148,11 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
               else if (e.key === "Enter") { e.preventDefault(); results[hi]?.run(); }
             }}
           />
-          {q ? <button type="button" className={s.clear} aria-label="Clear search" onClick={() => { setQ(""); setAnswer(null); input.current?.focus(); }}><X size={13} /></button> : <span className={s.hideSm}><Kbd>⌘K</Kbd></span>}
+          {q ? <button type="button" className={s.clear} aria-label="Clear search" onClick={() => { setQ(""); input.current?.focus(); }}><X size={13} /></button> : <span className={s.hideSm}><Kbd>⌘K</Kbd></span>}
         </div>
         {open && (
           <div className={s.dropdown} id="top-search-results" role="listbox" aria-label="Search results">
-            {showAnswer ? (
-              <div className={s.answer} aria-live="polite">
-                <div className={s.answerHead}><Sparkles size={14} /> <span className="medium">AI answer</span><span className="grow" />{answer && <span className="tiny faint">{answer.source === "claude" ? "Claude" : "Built-in reader"}</span>}</div>
-                {asking ? <div className="row gap-4 muted small"><Spinner size={13} /> Looking at your time…</div>
-                  : askError ? <div className="small danger">{askError}</div>
-                  : answer && (
-                    <>
-                      <div className="faint small">“{answer.q}”</div>
-                      <p className={s.answerText}>{answer.answer}</p>
-                      <div className="row gap-4" style={{ flexWrap: "wrap" }}>
-                        {answer.links.map((l) => <Button key={l.to} size="sm" variant="secondary" iconRight={<ArrowRight size={13} />} onClick={go(l.to)}>{l.label}</Button>)}
-                        <Button size="sm" variant="ghost" onClick={() => { setAnswer(null); input.current?.focus(); }}>Back to results</Button>
-                      </div>
-                    </>
-                  )}
-              </div>
-            ) : results.length === 0 ? <div className={s.empty}>No matches. Press Enter to ask AI.</div> : results.map((r, i) => {
+            {results.length === 0 ? <div className={s.empty}>{aiOn ? "No matches. Type a question to ask AI." : "No matches."}</div> : results.map((r, i) => {
               const head = r.group !== lastGroup ? <div className={s.group}>{r.group}</div> : null;
               lastGroup = r.group;
               return (
@@ -190,6 +171,11 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
         )}
       </div>
       <div className={s.actions}>
+        {aiOn && (
+          <Tooltip content="Ask AI about your time, tasks and projects">
+            <Button size="sm" variant="secondary" className={s.askBtn} icon={<Sparkles size={14} />} onClick={() => setChat(true)} aria-label="Ask AI"><span className={s.hideSm}>Ask AI</span></Button>
+          </Tooltip>
+        )}
         <Tooltip content="Inbox">
           <span className={s.bellWrap}>
             <IconButton variant="secondary" label={unread ? `Inbox, ${unread} unread` : "Inbox"} icon={<Bell size={15} />} onClick={() => nav("/inbox")} />
@@ -212,6 +198,7 @@ export const TopBar = forwardRef<TopBarHandle, { onMenu: () => void; onToggleSid
           />
         )}
       </div>
+      {aiOn && <AskAi open={chat} onClose={() => setChat(false)} question={question} onQuestionTaken={() => setQuestion(null)} />}
     </header>
   );
 });

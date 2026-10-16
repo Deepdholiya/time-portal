@@ -86,3 +86,9 @@
 }
 .suggestItem { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: var(--radius-sm); cursor: pointer; }
 .suggestItem.hi, .suggestItem:hover { background: var(--bg-hover); }
+
+/* AI-suggested sub-tasks, reviewed before they're added. */
+.ideas { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; margin: 4px 0 6px; border: 1px dashed var(--border-strong); border-radius: 8px; background: var(--bg-subtle); }
+.ideaRow { display: flex; align-items: center; gap: 8px; animation: idea-in .22s ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
+@keyframes idea-in { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { .ideaRow { animation: none; } }

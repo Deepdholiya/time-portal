@@ -10,22 +10,29 @@ PAGES = {}
 jump = related(PRODUCTS, "product/", None)
 product = page_hero("Product", "Everything about the work,<br><span class=\"soft\">next to the time.</span>",
   "Orbit0 brings time logging, projects, leave and reports into one workspace. One set of projects, people and permissions runs through all of it.",
-  ctas_default()) + "\n" + sec(jump + "\n" +
-  frow("time", "01 · Time tracking", "Log a day in a minute.", "Type a duration, pick the project and say what you did. The start fills itself from where your last entry ended, so nobody runs a timer all day.",
-    ["Start time fills from your last entry", "Overlaps and future dates are blocked", "Each day submits itself at your cutoff", "Tags, required where you need them"], V_TIME, link=("Learn more about time tracking", "{p}product/time-tracking/")) +
-  frow("timesheets", "02 · Timesheets", "One week, two views.", "See the same week as a table or a calendar, with leave and company holidays in place. Managers see the whole team and export it.",
-    ["Table and calendar views of the same time", "Leave, holidays, tasks and milestones as layers", "Team timesheets grouped any way you like", "Lock days a manager approved"], V_SHEET, flip=True, link=("Learn more about timesheets", "{p}product/timesheets/")) +
-  frow("projects", "03 · Projects and roadmap", "Plan the work where the hours land.", "Projects, sub-projects, tasks and milestones share one timeline. Drag a bar to reschedule and the dependent tasks move with it.",
-    ["Projects and sub-projects per client", "Tasks in list or board view, with dependencies", "Roadmap built from project dates and milestones", "A read-only status link for your client"], V_ROAD, link=("Learn more about projects", "{p}product/projects/")) +
-  frow("reports", "04 · Analytics and reports", "From a total down to the single entry.", "Follow hours by project, sub-project, task and person against budget. Group a report eight ways and export it with totals.",
-    ["Budget and hour variance per project", "Alerts when a project is at risk", "Workload against each person's week", "Excel, PDF and CSV exports"], V_BARS, flip=True, link=("Learn more about analytics", "{p}product/analytics/")) +
-  frow("leave", "05 · Leave and approvals", "Leave and expenses in one inbox.", "Leave and reimbursement requests land in one Approvals queue. Approved leave shows on the calendar and blocks those days for logging.",
-    ["Leave requests and company holidays", "Reimbursements with receipts", "One Approvals queue for managers", "Every change kept in the audit log"], V_APPROVE, link=("Learn more about leave", "{p}product/leave/")) +
-  frow("ai", "06 · Ask AI", "Ask about your time in plain words.", "Ask from the search bar and get an answer with the numbers behind it. AI also tidies descriptions, drafts tasks and summaries, and drafts client updates you review.",
-    ["Answers only with what your role can see", "Drafts tasks and project summaries", "Drafts client emails, sent only when you press send", "A copy of every email in the email log"], V_AI, flip=True, link=("Learn more about Ask AI", "{p}product/ai/")) +
-  frow("admin", "07 · Admin", "You decide who sees what.", "Start with Admin, Manager and Employee, add your own roles, and override a single person when you need to. Run more than one company from one login.",
-    ["Custom roles and per-person overrides", "Several companies, each with its own data and currency", "Brand colour per company", "Google or Microsoft sign-in per company"], V_PERM, link=("Learn more about admin", "{p}product/admin/"))
-) + "\n" + sec(sec_head("And the small things<br><span class=\"soft\">that save the day.</span>", "Details your team will notice in the first week.") +
+  ctas_default()) + "\n" + sec(jump + "\n" + sec_head("A tour of Orbit0.", "Scroll through each part of the workspace. The screen on the right follows along.", eyebrow="Product tour") + scrolly([
+  dict(id="time", short="Time", eyebrow="01 · Time tracking", title="Log a day in a minute.", icon="clock",
+    text="Type a duration, pick the project and say what you did. The start fills itself from where your last entry ended, so nobody runs a timer all day.",
+    items=["Start time fills from your last entry", "Overlaps and future dates are blocked", "Each day submits itself at your cutoff", "Tags, required where you need them"], visual=V_TIME, link=("Learn more about time tracking", "{p}product/time-tracking/")),
+  dict(id="timesheets", short="Timesheets", eyebrow="02 · Timesheets", title="One week, two views.", icon="grid",
+    text="See the same week as a table or a calendar, with leave and company holidays in place. Managers see the whole team and export it.",
+    items=["Table and calendar views of the same time", "Leave, holidays, tasks and milestones as layers", "Team timesheets grouped any way you like", "Lock days a manager approved"], visual=V_SHEET, link=("Learn more about timesheets", "{p}product/timesheets/")),
+  dict(id="projects", short="Roadmap", eyebrow="03 · Projects and roadmap", title="Plan the work where the hours land.", icon="task",
+    text="Projects, sub-projects, tasks and milestones share one timeline. Drag a bar to reschedule and the dependent tasks move with it.",
+    items=["Projects and sub-projects per client", "Tasks in list or board view, with dependencies", "Roadmap built from project dates and milestones", "A read-only status link for your client"], visual=V_ROAD, link=("Learn more about projects", "{p}product/projects/")),
+  dict(id="reports", short="Analytics", eyebrow="04 · Analytics and reports", title="From a total down to the single entry.", icon="chart",
+    text="Follow hours by project, sub-project, task and person against budget. Group a report eight ways and export it with totals.",
+    items=["Budget and hour variance per project", "Alerts when a project is at risk", "Workload against each person's week", "Excel, PDF and CSV exports"], visual=V_BARS, link=("Learn more about analytics", "{p}product/analytics/")),
+  dict(id="leave", short="Leave", eyebrow="05 · Leave and approvals", title="Leave and expenses in one inbox.", icon="leave",
+    text="Leave and reimbursement requests land in one Approvals queue. Approved leave shows on the calendar and blocks those days for logging.",
+    items=["Leave requests and company holidays", "Reimbursements with receipts", "One Approvals queue for managers", "Every change kept in the audit log"], visual=V_APPROVE, link=("Learn more about leave", "{p}product/leave/")),
+  dict(id="ai", short="Ask AI", eyebrow="06 · Ask AI", title="Ask about your time in plain words.", icon="spark",
+    text="Ask from the search bar and get an answer with the numbers behind it. AI also tidies descriptions, drafts tasks and summaries, and drafts client updates you review.",
+    items=["Answers only with what your role can see", "Drafts tasks and project summaries", "Drafts client emails, sent only when you press send", "A copy of every email in the email log"], visual=V_AI, link=("Learn more about Ask AI", "{p}product/ai/")),
+  dict(id="admin", short="Admin", eyebrow="07 · Admin", title="You decide who sees what.", icon="users",
+    text="Start with Admin, Manager and Employee, add your own roles, and override a single person when you need to. Run more than one company from one login.",
+    items=["Custom roles and per-person overrides", "Several companies, each with its own data and currency", "Brand colour per company", "Google or Microsoft sign-in per company"], visual=V_PERM, link=("Learn more about admin", "{p}product/admin/")),
+])) + "\n" + sec(sec_head("And the small things<br><span class=\"soft\">that save the day.</span>", "Details your team will notice in the first week.") +
   tiles([("inbox","Inbox","Mentions, approvals and alerts in one list, so nothing waits on email."),
          ("task","My tasks","Everything assigned to you across projects, with time logged against each."),
          ("search","Search with ⌘K","Jump to any page, project or task, or ask AI, from one search bar."),
@@ -39,20 +46,23 @@ sol = page_hero("Solutions", "Built for everyone<br><span class=\"soft\">who tou
   "Leaders see where the business stands, project managers keep work on track, and employees log the day and get back to it.",
   ctas_default()) + "\n" + sec(
   '<div class="role-tabs reveal"><a href="{p}solutions/leaders/">' + icon("chart","ico-s") + 'Leaders</a><a href="{p}solutions/project-managers/">' + icon("task","ico-s") + 'Project managers</a><a href="{p}solutions/employees/">' + icon("clock","ico-s") + 'Employees</a><a href="#teams">' + icon("building","ico-s") + 'Agencies and studios</a></div>' +
-  frow("leaders", "For leaders", "Know where the business stands without asking.", "See utilisation, budgets and project health across every team and company you run, from numbers your team already logs.",
-    ["Utilisation and billable share by team", "Budget health and at-risk alerts", "Financials per project and client", "Each company's data kept separate"], V_LOAD, link=("Orbit0 for leaders", "{p}solutions/leaders/")) +
-  frow("managers", "For project managers", "Plan the work and know it's on track.", "Build the plan on a roadmap, assign tasks to people with room, and see the hours against the budget as they come in.",
-    ["Roadmap with milestones and dependencies", "Workload before you assign", "Approve leave and expenses in one queue", "Share a status link with the client"], V_ROAD, flip=True, link=("Orbit0 for project managers", "{p}solutions/project-managers/")) +
-  frow("employees", "For employees", "Log the day in a minute and get back to work.", "Type a duration into the tracker or a timesheet cell. Your day submits itself, and leave and expenses are a short form away.",
-    ["Quick logging that fills the start time", "My tasks with time logged against each", "Leave and reimbursement requests", "Dark mode and keyboard shortcuts"], V_TIME, link=("Orbit0 for employees", "{p}solutions/employees/"))
-) + "\n" + sec(sec_head("Made for teams that bill<br><span class=\"soft\">by the project.</span>", "Orbit0 fits any team that sells its time and needs to know where it went.", eyebrow="Who uses it") +
+  scrolly([
+  dict(id="leaders", short="Leaders", eyebrow="For leaders", title="Know where the business stands.", icon="chart",
+    text="See utilisation, budgets and project health across every team and company you run, from numbers your team already logs.",
+    items=["Utilisation and billable share by team", "Budget health and at-risk alerts", "Financials per project and client", "Each company's data kept separate"], visual=V_LOAD, link=("Orbit0 for leaders", "{p}solutions/leaders/")),
+  dict(id="managers", short="Project managers", eyebrow="For project managers", title="Plan the work and know it's on track.", icon="task",
+    text="Build the plan on a roadmap, assign tasks to people with room, and see the hours against the budget as they come in.",
+    items=["Roadmap with milestones and dependencies", "Workload before you assign", "Approve leave and expenses in one queue", "Share a status link with the client"], visual=V_ROAD, link=("Orbit0 for project managers", "{p}solutions/project-managers/")),
+  dict(id="employees", short="Employees", eyebrow="For employees", title="Log the day in a minute and get back to work.", icon="clock",
+    text="Type a duration into the tracker or a timesheet cell. Your day submits itself, and leave and expenses are a short form away.",
+    items=["Quick logging that fills the start time", "My tasks with time logged against each", "Leave and reimbursement requests", "Dark mode and keyboard shortcuts"], visual=V_TIME, link=("Orbit0 for employees", "{p}solutions/employees/"))])) + "\n" + sec(sec_head("Made for teams that bill<br><span class=\"soft\">by the project.</span>", "Orbit0 fits any team that sells its time and needs to know where it went.", eyebrow="Who uses it") +
   related(TEAMS, "solutions/", None) + tiles([("bolt","Dev shops","Tasks, dependencies and a roadmap next to the hours each sprint actually took."),
          ("grid","In-house teams","Show internal clients where the team's time goes, with exports leadership can read."),
          ("receipt","Service firms","Leave, holidays and reimbursements in the same place as the time.")]), id_="teams")
 PAGES["solutions"] = ("Solutions · Orbit0", "Orbit0 for leaders, project managers and employees at agencies, studios and service teams.", sol)
 
 # ---------------- PRICING ----------------
-price_grid = '''<div class="price-grid reveal">
+price_grid = '''<div class="price-grid reveal" data-w="plans">
   <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
   <div class="plan plan-hi">
     <div class="plan-h"><b>Orbit0</b><span class="pill pill-brand">Everything included</span></div>
@@ -76,7 +86,7 @@ price_grid = '''<div class="price-grid reveal">
 def cmp_row(name, a, b):
     m = lambda v: '<svg class="ico-s ok"><use href="#i-check"/></svg>' if v is True else (f'<span class="muted">{v}</span>' if v else '<span class="muted">—</span>')
     return f'<div class="cmp-r"><span>{name}</span><span>{m(a)}</span><span>{m(b)}</span></div>'
-cmp = '<div class="cmp reveal"><div class="cmp-r cmp-h"><span></span><b>Orbit0</b><b>Several companies</b></div>' + "".join(cmp_row(*r) for r in [
+cmp = '<div class="cmp reveal" data-w="cmp"><div class="cmp-r cmp-h"><span></span><b>Orbit0</b><b>Several companies</b></div>' + "".join(cmp_row(*r) for r in [
   ("Time tracker and timesheets", True, True), ("Projects, tasks and roadmap", True, True), ("Analytics, workload and exports", True, True),
   ("Leave, reimbursements and approvals", True, True), ("Custom roles and overrides", True, True), ("Ask AI and drafting", True, True),
   ("Two-factor sign-in and audit log", True, True), ("Companies", "One", "Several"), ("Google or Microsoft sign-in", True, "Per company"),
@@ -95,13 +105,13 @@ pricing = page_hero("Pricing", "Pricing on request.", "Every team is set up pers
 PAGES["pricing"] = ("Pricing · Orbit0", "Orbit0 pricing is on request. Every team is set up personally.", pricing)
 
 # ---------------- DEMO ----------------
-demo_cards = '''<div class="demo-row reveal">
+demo_cards = '''<div class="demo-row reveal" data-w="demo">
   <a class="demo-card" data-link="demo" data-role="admin" href="/login"><span class="role">Admin</span><b>Set up the company</b><span class="xs muted">Roles, permissions, holidays, brand colour</span><span class="go">Sign in as Admin ''' + ARROW + '''</span></a>
   <a class="demo-card" data-link="demo" data-role="manager" href="/login"><span class="role">Manager</span><b>Run the projects</b><span class="xs muted">Roadmap, workload, approvals, team timesheets</span><span class="go">Sign in as Manager ''' + ARROW + '''</span></a>
   <a class="demo-card" data-link="demo" data-role="employee" href="/login"><span class="role">Employee</span><b>Log a day</b><span class="xs muted">Time tracker, timesheet, leave, reimbursements</span><span class="go">Sign in as Employee ''' + ARROW + '''</span></a>
 </div>'''
 def try_col(role, items):
-    return f'<div class="try reveal"><span class="role">{role}</span>' + "".join(f'<div class="try-i"><span class="n">{i+1}</span><span>{t}</span></div>' for i, t in enumerate(items)) + "</div>"
+    return f'<div class="try reveal" data-w="try"><span class="role">{role}</span>' + "".join(f'<div class="try-i"><span class="n">{i+1}</span><span>{t}</span></div>' for i, t in enumerate(items)) + "</div>"
 demo = page_hero("Live demo", "Try Orbit0<br><span class=\"soft\">with sample data.</span>", "Two demo companies with about four months of time, projects and tasks. Pick a role and sign in with one click.",
   '<a class="btn btn-brand" data-link="demo" data-role="admin" href="/login">Sign in as Admin</a><a class="btn btn-outline" href="#roles-demo">Choose a role</a>') + "\n" + sec(
   '<div id="roles-demo"></div>' + demo_cards + '<p class="note reveal">' + icon("lock","ico-s") + ' The demo is shared with other visitors, so please don\'t enter anything private.</p>') + "\n" + sec(
@@ -110,7 +120,7 @@ demo = page_hero("Live demo", "Try Orbit0<br><span class=\"soft\">with sample da
   try_col("Manager", ["Drag a project on the Roadmap", "Check Workload before assigning a task", "Approve a leave request in Approvals", "Export team timesheets to Excel"]) +
   try_col("Employee", ["Log time in the Time tracker", "Type a duration into a Timesheet cell", "Request a day of leave", "Ask AI how your week went"]) + "</div>") + "\n" + sec(
   sec_head("Two companies, kept apart.", "Sign in as Admin to switch between them and see that each company's data stays its own.") +
-  '<div class="duo-co reveal"><div class="co"><span class="logo-mark co-b">B</span><div><b>Bridge UX</b><span class="xs muted">Rupees · about four months of time · 5 projects · more than 70 tasks with dependencies, milestones, leave and pending approvals</span></div></div><div class="co"><span class="logo-mark co-n">N</span><div><b>Northwind Studio</b><span class="xs muted">US dollars · its own people, projects and time</span></div></div></div>')
+  '<div class="duo-co reveal" data-w="demo"><div class="co"><span class="logo-mark co-b">B</span><div><b>Bridge UX</b><span class="xs muted">Rupees · about four months of time · 5 projects · more than 70 tasks with dependencies, milestones, leave and pending approvals</span></div></div><div class="co"><span class="logo-mark co-n">N</span><div><b>Northwind Studio</b><span class="xs muted">US dollars · its own people, projects and time</span></div></div></div>')
 PAGES["demo"] = ("Live demo · Orbit0", "Try Orbit0 with sample data as an Admin, Manager or Employee.", demo)
 
 # ---------------- ABOUT ----------------
@@ -124,7 +134,7 @@ about = page_hero("About", "One place<br><span class=\"soft\">for every hour.</s
   tiles([("clock","Logging should take seconds","If it takes longer, people do it on Friday from memory. So we made a duration and a project enough."),
          ("chart","Every hour should lead somewhere","Time that never reaches a report or a budget is wasted twice. Orbit0 connects it all."),
          ("shield","You stay in control","Admins decide who sees what. AI drafts, and nothing is sent until a person presses send.")])) + "\n" + sec(
-  '<div class="facts-mini reveal"><div><strong data-count="8">0</strong><span>ways to group a report</span></div><div><strong>23:59</strong><span>days submit themselves</span></div><div><strong data-count="3">0</strong><span>roles to start, plus your own</span></div><div><strong>1</strong><span>login across companies</span></div></div>')
+  '<div class="facts-mini reveal" data-w="facts"><div><strong data-count="8">0</strong><span>ways to group a report</span></div><div><strong class="cu" data-from="23:00">23:59</strong><span>days submit themselves</span></div><div><strong data-count="3">0</strong><span>roles to start, plus your own</span></div><div><strong>1</strong><span>login across companies</span></div></div>')
 PAGES["about"] = ("About · Orbit0", "Why we built Orbit0, a time tracking and project reporting workspace for teams that sell their time.", about)
 
 # ---------------- CONTACT ----------------

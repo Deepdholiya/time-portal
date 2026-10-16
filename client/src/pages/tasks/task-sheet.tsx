@@ -88,7 +88,7 @@ export default function TaskSheet({ id, onClose, onOpenTask }: { id: number; onC
 
   const actions = t && (
     <>
-      <AiButton size="sm" label="Summarize with AI" loading={aiBusy} onClick={aiSummary} />
+      <AiButton plain size="sm" label="Summarize with AI" loading={aiBusy} onClick={aiSummary} />
       <Tooltip content={following ? "Unfollow" : "Follow"}><IconButton label={following ? "Unfollow" : "Follow"} icon={following ? <BellOff size={15} /> : <Bell size={15} />} onClick={follow} /></Tooltip>
       <Tooltip content="Copy link"><IconButton label="Copy link" icon={<Copy size={15} />} onClick={copyLink} /></Tooltip>
       <Menu

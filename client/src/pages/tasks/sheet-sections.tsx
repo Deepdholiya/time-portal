@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { AlertTriangle, Clock3, Download, FileText, Image as ImageIcon, Link2, Plus, Trash2, Upload, X } from "lucide-react";
-import { Avatar, Button, Combobox, ConfirmDialog, IconButton, Spinner, toast } from "@/components/ui";
+import { Avatar, Button, Checkbox, Combobox, ConfirmDialog, IconButton, Spinner, toast } from "@/components/ui";
+import { AiButton } from "@/components/app/ai-button";
 import { StatusIcon } from "@/components/app/icons";
 import { StatusPicker } from "@/components/app/properties";
 import { useShell } from "@/components/app/shell-context";
@@ -23,6 +24,27 @@ export function SubTasks({ task, onOpenTask, reload }: { task: TaskDetail; onOpe
   const [busy, setBusy] = useState(false);
   const canAdd = can("tasks", "create");
   const done = task.subtasks.filter((t) => t.status === "DONE").length;
+  const [ideas, setIdeas] = useState<{ title: string; keep: boolean }[] | null>(null);
+  const [drafting, setDrafting] = useState(false);
+
+  const draft = async () => {
+    setDrafting(true);
+    try {
+      const r = await post<{ subtasks: string[] }>("/ai/subtasks-draft", { taskId: task.id });
+      if (!r.subtasks.length) toast.success("No new sub-tasks to suggest");
+      setIdeas(r.subtasks.length ? r.subtasks.map((title) => ({ title, keep: true })) : null);
+    } catch (e) { toast.error(e); } finally { setDrafting(false); }
+  };
+  const addIdeas = async () => {
+    const list = (ideas ?? []).filter((x) => x.keep && x.title.trim());
+    setBusy(true);
+    let ok = 0;
+    for (const x of list) {
+      try { await post("/tasks", { title: x.title.trim(), projectId: task.projectId, parentId: task.id, ...(task.canManage ? { assigneeId: task.assignee?.id ?? null } : {}) }); ok++; } catch (e) { toast.error(e); break; }
+    }
+    setBusy(false); setIdeas(null);
+    if (ok) { toast.success(`Added ${ok} sub-task${ok === 1 ? "" : "s"}`); invalidate("/tasks"); reload(); }
+  };
 
   const add = async () => {
     if (!title.trim()) { setAdding(false); return; }
@@ -45,6 +67,7 @@ export function SubTasks({ task, onOpenTask, reload }: { task: TaskDetail; onOpe
         title="Sub-tasks"
         action={<>
           {task.subtasks.length > 0 && <span className="small faint num">{done}/{task.subtasks.length} done</span>}
+          {canAdd && <AiButton size="sm" label="Break into sub-tasks with AI" loading={drafting} onClick={draft} />}
           {canAdd && task.subtasks.length > 0 && <IconButton size="sm" label="Add sub-task" icon={<Plus size={14} />} onClick={() => setAdding(true)} />}
         </>}
       />
@@ -57,6 +80,21 @@ export function SubTasks({ task, onOpenTask, reload }: { task: TaskDetail; onOpe
           <Avatar name={t.assignee?.name} size={18} />
         </div>
       ))}
+      {ideas && (
+        <div className={s.ideas}>
+          <div className="small muted">Suggested sub-tasks. Edit or untick before adding.</div>
+          {ideas.map((x, i) => (
+            <div key={i} className={s.ideaRow} style={{ "--i": i } as React.CSSProperties}>
+              <Checkbox checked={x.keep} onChange={(v) => setIdeas((l) => l && l.map((y, j) => (j === i ? { ...y, keep: v } : y)))} aria-label={`Keep ${x.title}`} />
+              <input className={s.inlineInput} value={x.title} onChange={(e) => setIdeas((l) => l && l.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} aria-label="Sub-task title" />
+            </div>
+          ))}
+          <div className="row gap-4">
+            <Button size="sm" variant="primary" loading={busy} disabled={!ideas.some((x) => x.keep)} onClick={addIdeas}>Add {ideas.filter((x) => x.keep).length}</Button>
+            <Button size="sm" variant="ghost" onClick={() => setIdeas(null)}>Dismiss</Button>
+          </div>
+        </div>
+      )}
       {adding ? (
         <div className={s.addRow}>
           <StatusIcon status="TODO" />

@@ -15,6 +15,8 @@ import { PROJECT_STATUS } from "../projects/lib";
 import { LoadError } from "../analytics/entries";
 import { Gantt, type Target as BarTarget } from "./gantt";
 import { ImpactDialog } from "./impact-dialog";
+import { AiPlanDialog } from "./ai-plan";
+import { AiButton } from "@/components/app/ai-button";
 import { ZOOMS, type Zoom } from "./scale";
 import type { Impact, RoadmapData, RProject, RTask, Row } from "./types";
 
@@ -47,6 +49,7 @@ export default function Roadmap() {
   const [groupBy, setGroupBy] = useLocal<GroupBy>("roadmap.groupBy", "initiative");
   const [creating, setCreating] = useState<boolean | string>(false);
   const [impact, setImpact] = useState<{ task: RTask; items: Impact[] } | null>(null);
+  const [planning, setPlanning] = useState(false);
 
   const projects = useMemo(() => {
     const conflictIn = new Set((data?.tasks ?? []).filter((t) => t.conflict).map((t) => t.projectId));
@@ -171,6 +174,7 @@ export default function Roadmap() {
       actions={
         <div className="row gap-4">
           {!canEdit && data && <Badge size="sm" icon={<Eye size={11} />}>Read-only</Badge>}
+          {canEdit && !!projects.length && <AiButton label="Plan task dates with AI" onClick={() => setPlanning(true)} />}
           {manage && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>Add project</Button>}
         </div>
       }
@@ -206,6 +210,7 @@ export default function Roadmap() {
           onAdd={(r) => { if (r.what === "task") shell.newTask({ projectId: r.projectId }, () => reload()); else setCreating(r.groupId ?? true); }} />
       )}
       {creating && <ProjectFormDialog withDates initiativeId={typeof creating === "string" ? Number(creating) : undefined} onClose={() => setCreating(false)} onSaved={() => { setCreating(false); reload(); }} />}
+      <AiPlanDialog open={planning} projects={projects.filter((p) => p.access === "member")} onClose={() => setPlanning(false)} onApplied={reload} />
       <ImpactDialog value={impact} onClose={() => setImpact(null)} onShifted={() => { reload(); invalidate("/tasks"); }} />
     </Page>
   );

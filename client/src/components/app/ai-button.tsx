@@ -19,20 +19,22 @@ export interface AiButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEleme
   loading?: boolean;
   /** Render even when AI isn't available (for example inside a component that already checked). */
   force?: boolean;
+  /** Neutral outline style instead of the gradient, for read-only summaries. */
+  plain?: boolean;
 }
 
-const Inner = forwardRef<HTMLButtonElement, AiButtonProps>(function Inner({ label, size = "md", loading, disabled, className, force: _f, ...rest }, ref) {
+const Inner = forwardRef<HTMLButtonElement, AiButtonProps>(function Inner({ label, size = "md", loading, disabled, className, force: _f, plain, ...rest }, ref) {
   return (
     <button
       ref={ref} type="button" aria-label={label} aria-busy={loading || undefined} disabled={disabled || loading}
-      className={[s.btn, size === "sm" && s.sm, className].filter(Boolean).join(" ")} {...rest}
+      className={[s.btn, size === "sm" && s.sm, plain && s.plain, className].filter(Boolean).join(" ")} {...rest}
     >
       {loading ? <span className={s.spin} aria-hidden /> : <Sparkles size={size === "sm" ? 14 : 16} strokeWidth={2} aria-hidden />}
     </button>
   );
 });
 
-/** Square, icon-only gradient button for AI actions. Hidden when the person can't use AI. Forwards its ref so it can be a popover trigger. */
+/** Square, icon-only button for AI actions: gradient when AI does work for you, `plain` when it only summarizes. Hidden when the person can't use AI. Forwards its ref so it can be a popover trigger. */
 export const AiButton = forwardRef<HTMLButtonElement, AiButtonProps>(function AiButton(props, ref) {
   const available = useAiAvailable();
   if (!available && !props.force) return null;
@@ -80,7 +82,7 @@ export function AiInsight({ label, title = "AI summary", load, size, placement =
     <Popover
       open={open} placement={placement} width={width} padded={false}
       onOpenChange={(v) => { setOpen(v); if (v) { setResult(null); run(); } }}
-      trigger={<AiButton label={label} size={size} loading={busy && !open} />}
+      trigger={<AiButton plain label={label} size={size} loading={busy && !open} />}
     >
       <div className={s.insight}>
         <AiPanel title={title} source={result?.source} onClose={() => setOpen(false)}>
