@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
-import { Button, Input, toast } from "@/components/arc";
+import { Button, Input, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { AuthError, AuthLayout, PasswordRules, authStyles as s, passwordChecks } from "./auth-layout";

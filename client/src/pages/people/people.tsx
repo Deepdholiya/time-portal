@@ -1,13 +1,16 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Avatar, EmptyState, ErrorState, Input, Select, SkeletonRows, Tooltip } from "@/components/arc";
+import { Avatar, Button, EmptyState, ErrorState, SkeletonRows, Tooltip } from "@/components/ui";
+import { FilterMenu } from "@/components/app/filter-menu";
+import { InviteDialog } from "../admin/invite-dialogs";
 import { useApi, useDebounced, useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
-import { addDays, hours, money, today, weekStart } from "@/lib/format";
+import { addDays, hours, today, weekStart } from "@/lib/format";
 import { RoleBadge, StatusBadge } from "../admin/shared";
 import s from "./people.module.css";
+import { SearchField } from "@/components/app/search-field";
 
 export interface DirPerson {
   id: number; name: string; email: string; role: string; title?: string | null; status: string; location?: string | null;
@@ -19,12 +22,13 @@ export interface DirPerson {
 type Group = { id: number | string | null; minutes: number };
 
 export default function People() {
-  const { me, can, currency } = useMe();
+  const { me, can } = useMe();
   const nav = useNavigate();
   const [q, setQ] = useState("");
   const [team, setTeam] = useLocal(`people:team:${me.company.id}`, "");
   const [role, setRole] = useLocal("people:role", "");
   const full = can("directory", "full");
+  const [invite, setInvite] = useState(false);
   const [status, setStatus] = useLocal("people:status", "ACTIVE");
   const dq = useDebounced(q);
   const { data, error, loading, reload } = useApi<DirPerson[]>("/people", { q: dq, teamId: team, role, status: full ? status : undefined });
@@ -34,25 +38,28 @@ export default function People() {
   const allHours = can("analytics", "all");
   const week = useApi<Group[]>(can("analytics", "own") ? "/analytics/group" : null, { groupBy: "employee", from: ws, to: addDays(ws, 6) });
   const minutesBy = useMemo(() => new Map((week.data ?? []).map((g) => [Number(g.id), g.minutes])), [week.data]);
-  const showRates = (data ?? []).some((p) => p.billRate !== undefined);
-  const cols = ["minmax(220px, 2.2fr)", "minmax(110px, 1fr)", "90px", "minmax(160px, 1.4fr)", ...(full ? ["100px", "70px"] : []), "120px", ...(showRates ? ["90px"] : [])].join(" ");
+  const cols = ["minmax(220px, 2.2fr)", "minmax(110px, 1fr)", "90px", "minmax(160px, 1.4fr)", ...(full ? ["100px", "70px"] : []), "120px"].join(" ");
 
   const toolbar = (
     <>
-      <Input size="sm" icon={<Search size={14} />} placeholder="Search name, email, title" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
-      <Select size="sm" fullWidth={false} value={team} onChange={setTeam} options={[{ value: "", label: "All teams" }, ...(teams.data ?? []).map((t) => ({ value: String(t.id), label: t.name }))]} aria-label="Team" />
-      <Select size="sm" fullWidth={false} value={role} onChange={setRole} options={[{ value: "", label: "All roles" }, { value: "ADMIN", label: "Admins" }, { value: "MANAGER", label: "Managers" }, { value: "EMPLOYEE", label: "Employees" }]} aria-label="Role" />
-      {full && (
-        <Select size="sm" fullWidth={false} value={status} onChange={setStatus} aria-label="Status"
-          options={[{ value: "", label: "Any status" }, { value: "ACTIVE", label: "Active" }, { value: "INVITED", label: "Invited" }, { value: "DEACTIVATED", label: "Inactive" }]} />
-      )}
+      <SearchField placeholder="Search name, email, title" value={q} onChange={setQ} />
+      <FilterMenu placement="bottom-start"
+        sections={[
+          { key: "team", label: "Team", single: true, options: (teams.data ?? []).map((x) => ({ value: String(x.id), label: x.name, icon: <span className="dot" style={{ background: x.color }} /> })) },
+          { key: "role", label: "Role", single: true, options: (me.roles ?? []).map((r) => ({ value: r.key, label: r.name })) },
+          ...(full ? [{ key: "status", label: "Status", single: true, required: true, defaultValue: "ACTIVE", options: [{ value: "", label: "Any status" }, { value: "ACTIVE", label: "Active" }, { value: "INVITED", label: "Invited" }, { value: "DEACTIVATED", label: "Inactive" }] }] : []),
+        ]}
+        value={{ team: team ? [team] : [], role: role ? [role] : [], status: [status] }}
+        onApply={(v) => { setTeam(v.team?.[0] ?? ""); setRole(v.role?.[0] ?? ""); setStatus(v.status?.[0] ?? "ACTIVE"); }}
+      />
       <div className="grow" />
       {data && <span className="small faint">{data.length} {data.length === 1 ? "person" : "people"}</span>}
     </>
   );
 
   return (
-    <Page title="Employees" icon={<Users size={15} />} toolbar={toolbar}>
+    <Page title="Employees" icon={<Users size={15} />} toolbar={toolbar}
+      actions={can("people", "invite") && <Button size="sm" variant="primary" icon={<UserPlus size={14} />} onClick={() => setInvite(true)}>Add employee</Button>}>
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : !data?.length ? (
         <EmptyState icon={<Users size={28} />} title="No one matches" description="Try a different search or clear the filters." />
       ) : (
@@ -62,7 +69,6 @@ export default function People() {
             {full && <span >Status</span>}
             {full && <span className="right">Capacity</span>}
             <span className="right">This week</span>
-            {showRates && <span className="right">Bill rate</span>}
           </div>
           {data.map((p) => {
             const min = minutesBy.get(p.id);
@@ -92,12 +98,12 @@ export default function People() {
                     </Tooltip>
                   ) : visible ? <span className="faint">0h</span> : <span className="faint">—</span>}
                 </span>
-                {showRates && <span className="right num muted">{p.billRate != null ? money(p.billRate, currency) : "—"}</span>}
               </div>
             );
           })}
         </div>
       )}
+      {invite && <InviteDialog onClose={() => { setInvite(false); reload(); }} />}
     </Page>
   );
 }

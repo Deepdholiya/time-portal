@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { CheckCircle2, Plus } from "lucide-react";
-import { Button, EmptyState, ErrorState, SkeletonRows, toast } from "@/components/arc";
+import { Button, EmptyState, ErrorState, SkeletonRows, toast } from "@/components/ui";
 import { useShell, type NewTaskDefaults } from "@/components/app/shell-context";
 import { useApi, useHotkey, useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
@@ -83,7 +83,7 @@ export function TaskView({ storageKey, fixedProjectId, newDefaults, toolbarExtra
   else if (!visible.length) {
     body = filtersActive(f)
       ? <EmptyState title="No tasks match these filters" description="Try removing a filter or searching for something else." action={<Button variant="secondary" onClick={() => setFilters({ ...EMPTY_FILTERS })}>Clear filters</Button>} />
-      : <EmptyState icon={<CheckCircle2 size={28} />} title="No tasks yet" description="Tasks you create or that are assigned to you show up here." action={canCreate ? <Button variant="primary" icon={<Plus size={14} />} onClick={() => onAdd({})}>New task</Button> : undefined} />;
+      : <EmptyState icon={<CheckCircle2 size={28} />} title="No tasks yet" description="Tasks you create or that are assigned to you show up here." action={canCreate ? <Button variant="secondary" icon={<Plus size={14} />} onClick={() => onAdd({})}>New task</Button> : undefined} />;
   } else if (d.view === "board") {
     body = <TaskBoard tasks={visible} meId={me.user.id} canManage={canManage} canCreate={canCreate} onOpen={shell.openTask} onMove={(t, status: TaskStatus) => onPatch(t, { status })} onAdd={onAdd} showProject={showProject} />;
   } else {

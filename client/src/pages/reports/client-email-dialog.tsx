@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { RefreshCw, Send, Sparkles, FileText } from "lucide-react";
-import { Badge, Button, Checkbox, ConfirmDialog, Dialog, Field, Input, Select, Skeleton, Textarea, toast } from "@/components/arc";
+import { Badge, Button, Checkbox, ConfirmDialog, Dialog, Field, Input, Select, Skeleton, Textarea, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { useSession } from "@/lib/session";
 
@@ -80,7 +80,7 @@ export default function ClientEmailDialog({ open, onClose, projectId, projectNam
               ? <Badge tone="purple" icon={<Sparkles size={12} />}>AI drafted · review before sending</Badge>
               : <Badge tone="gray" icon={<FileText size={12} />}>Template draft (AI not configured)</Badge>)}
             <div className="grow" />
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button variant="secondary" onClick={onClose}>Cancel</Button>
             <Button variant="primary" icon={<Send size={14} />} disabled={!ready || drafting} onClick={() => setConfirm(true)}>Send…</Button>
           </>
         }

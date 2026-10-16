@@ -1,5 +1,5 @@
 import { CalendarClock, Diamond, PartyPopper, Palmtree, Plus } from "lucide-react";
-import { Avatar, Button, DatePicker, EmptyState, toast } from "@/components/arc";
+import { Avatar, Button, DatePicker, EmptyState, toast } from "@/components/ui";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { patch } from "@/lib/api";

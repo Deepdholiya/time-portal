@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
-import { Badge, Button, EmptyState, ErrorState, IconButton, Sheet, SkeletonRows } from "@/components/arc";
+import { Badge, Button, EmptyState, ErrorState, IconButton, Sheet, SkeletonRows } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { useApi } from "@/lib/hooks";

@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from "recharts";
-import { Tooltip } from "@/components/arc";
+import { Tooltip } from "@/components/ui";
 import { hm, pct } from "@/lib/format";
 import s from "./analytics.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 // Shared chart vocabulary: thin bars with rounded data ends, 2px lines, recessive grid, one axis,
 // legend for 2+ series, tooltips on hover, text in text tokens and series colours from project colours.
@@ -148,7 +149,7 @@ export function ChartCard({ title, action, children, className }: { title: React
 export function Kpi({ label, value, sub, icon }: { label: ReactNode; value: ReactNode; sub?: ReactNode; icon?: ReactNode }) {
   return (
     <div className={s.kpi}>
-      <div className="stat-label">{icon}{label}</div>
+      {icon ? <MetricLabel icon={icon}>{label}</MetricLabel> : <div className="stat-label">{label}</div>}
       <div className={s.kpiValue}>{value}</div>
       {sub && <div className="stat-sub">{sub}</div>}
     </div>

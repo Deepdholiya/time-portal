@@ -1,14 +1,16 @@
 import { Fragment, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge, Button, EmptyState } from "@/components/arc";
+import { ChevronDown, ChevronRight, Timer, BadgeDollarSign, CircleSlash, ListChecks } from "lucide-react";
+import { Badge, Button, EmptyState } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { fmtDate, hm, hours } from "@/lib/format";
-import { ChartCard, Kpi, TimeChart, SERIES } from "../analytics/chart-kit";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+import { ChartCard, TimeChart, SERIES } from "../analytics/chart-kit";
 import type { EntryRow } from "../analytics/entries";
 import type { Group } from "../analytics/types";
-import { COLUMN_OPTIONS, GROUP_OPTIONS, type ReportConfig } from "./report-config";
+import { ChartControls, COLUMN_OPTIONS, GROUP_OPTIONS, TableControls, type ReportConfig } from "./report-config";
 import a from "../analytics/analytics.module.css";
 import s from "./reports.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 export interface ReportGroup extends Group { children?: Group[] }
 export interface ReportResult {
@@ -44,7 +46,7 @@ function cell(r: EntryRow, k: string) {
   }
 }
 
-export function ResultView({ data, config, onMore, loadingMore }: { data: ReportResult; config: ReportConfig; onMore: () => void; loadingMore: boolean }) {
+export function ResultView({ data, config, onConfig, view, onMore, loadingMore }: { data: ReportResult; config: ReportConfig; onConfig: (c: ReportConfig) => void; view: "summary" | "detailed"; onMore: () => void; loadingMore: boolean }) {
   const t = data.totals;
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const toggle = (k: string) => setCollapsed((c) => { const n = new Set(c); if (n.has(k)) n.delete(k); else n.add(k); return n; });
@@ -57,22 +59,29 @@ export function ResultView({ data, config, onMore, loadingMore }: { data: Report
 
   return (
     <div className="col gap-16">
-      <div className={a.kpis} style={{ marginBottom: 0 }}>
-        <Kpi label="Total" value={hm(t.minutes)} sub={`${hours(t.minutes, 2)} h`} />
-        <Kpi label="Billable" value={hm(t.billableMinutes)} sub={t.minutes ? `${Math.round((t.billableMinutes / t.minutes) * 100)}%` : ""} />
-        <Kpi label="Non-billable" value={hm(t.nonBillableMinutes)} />
-        <Kpi label="Entries" value={t.entries} sub={data.level === "own" ? "Your own time" : "All permitted time"} />
+      <div className={s.totals}>
+        <span className="row"><MetricLabel icon={<Timer />}>Total</MetricLabel><b className="num">{hm(t.minutes)}</b></span>
+        <span className="row"><MetricLabel icon={<BadgeDollarSign />}>Billable</MetricLabel><b className="num">{hm(t.billableMinutes)}</b>{t.minutes ? <span className="faint"> · {Math.round((t.billableMinutes / t.minutes) * 100)}%</span> : null}</span>
+        <span className="row"><MetricLabel icon={<CircleSlash />}>Non-billable</MetricLabel><b className="num">{hm(t.nonBillableMinutes)}</b></span>
+        <span className="row"><MetricLabel icon={<ListChecks />}>Entries</MetricLabel><b className="num">{t.entries}</b></span>
+        <span className="grow" />
+        <span className="faint small">{data.level === "own" ? "Your own time" : "All time you can see"}</span>
       </div>
 
-      {config.chart !== "none" && chartData.length > 0 && (
-        <ChartCard title={`Hours by ${groupLabel(config.chartBy).toLowerCase()}`}>
+      {view === "summary" && config.chart === "none" && (
+        <div className="row"><span className="small muted">Chart hidden</span><ChartControls value={config} onChange={onConfig} /></div>
+      )}
+      {view === "summary" && config.chart !== "none" && chartData.length > 0 && (
+        <ChartCard title={`Hours by ${groupLabel(config.chartBy).toLowerCase()}`} action={<ChartControls value={config} onChange={onConfig} />}>
           <TimeChart data={chartData} kind={config.chart} fmtX={fmtX} height={220}
             series={config.chart === "line" ? [{ key: "billable", label: "Billable", color: SERIES.billable }, { key: "nonBillable", label: "Non-billable", color: "var(--text-3)" }]
               : [{ key: "billable", label: "Billable", color: SERIES.billable }, { key: "nonBillable", label: "Non-billable", color: SERIES.nonBillable }]} />
         </ChartCard>
       )}
 
-      {g1 && data.groups.length > 0 && (
+      {view === "summary" && !g1 && <EmptyState title="Pick a Group by" description="Choose what to group the summary by, or open Detailed to see every entry." />}
+      {view === "summary" && g1 && data.groups.length > 0 && (
+        <div className={s.summaryGrid}>
         <section className={a.panel}>
           <div className={a.panelHead}><span className="medium">Summary by {groupLabel(g1).toLowerCase()}{g2 ? ` and ${groupLabel(g2).toLowerCase()}` : ""}</span></div>
           <div className="table-wrap">
@@ -116,10 +125,12 @@ export function ResultView({ data, config, onMore, loadingMore }: { data: Report
             </table>
           </div>
         </section>
+        <ShareDonut groups={data.groups} total={t.minutes} by={g1} />
+        </div>
       )}
 
-      <section className={a.panel}>
-        <div className={a.panelHead}><span className="medium">Time entries</span><span className="faint small">{data.rows.length} of {data.rowCount}</span></div>
+      {view === "detailed" && <section className={a.panel}>
+        <div className={a.panelHead}><span className="medium">Time entries</span><span className="faint small">{data.rows.length} of {data.rowCount}</span><span className="grow" /><TableControls value={config} onChange={onConfig} /></div>
         <div className="table-wrap">
           <table className="table">
             <thead><tr>{cols.map((c) => <th key={c.value} className={c.value === "hours" ? "num" : ""}>{c.label}</th>)}</tr></thead>
@@ -130,7 +141,42 @@ export function ResultView({ data, config, onMore, loadingMore }: { data: Report
         {data.rows.length < data.rowCount && (
           <div className={a.pager}><Button size="sm" variant="secondary" loading={loadingMore} onClick={onMore}>Load {Math.min(200, data.rowCount - data.rows.length)} more</Button></div>
         )}
-      </section>
+      </section>}
     </div>
+  );
+}
+
+const PALETTE = ["#6366f1", "#ef4444", "#22c55e", "#f59e0b", "#06b6d4", "#a855f7", "#ec4899", "#84cc16"];
+
+/** Share of the total per top-level group, as in Clockify's summary donut. */
+function ShareDonut({ groups, total, by }: { groups: ReportGroup[]; total: number; by: string }) {
+  const top = groups.slice(0, 8).map((g, i) => ({ key: g.key, name: fmtGroupName(by, g), minutes: g.minutes, color: g.color ?? PALETTE[i % PALETTE.length] }));
+  const rest = groups.slice(8).reduce((a, g) => a + g.minutes, 0);
+  if (rest) top.push({ key: "other", name: `Other (${groups.length - 8})`, minutes: rest, color: "var(--border-strong)" });
+  return (
+    <section className={`${a.panel} ${s.donutPanel}`}>
+      <div className={a.panelHead}><span className="medium">Share by {groupLabel(by).toLowerCase()}</span></div>
+      <div className={s.donutBox}>
+        <div className={s.donut}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={top} dataKey="minutes" nameKey="name" innerRadius="62%" outerRadius="100%" paddingAngle={top.length > 1 ? 1 : 0} stroke="none" isAnimationActive={false}>
+                {top.map((x) => <Cell key={x.key} fill={x.color} />)}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          <div className={s.donutCenter}><div className="num medium">{hm(total)}</div><div className="faint small">total</div></div>
+        </div>
+        <div className={s.shareList}>
+          {top.map((x) => (
+            <div key={x.key} className={s.shareRow}>
+              <span className="swatch" style={{ background: x.color }} />
+              <span className="ellipsis grow">{x.name}</span>
+              <span className="num small">{Math.round((x.minutes / Math.max(1, total)) * 1000) / 10}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }

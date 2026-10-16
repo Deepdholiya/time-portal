@@ -1,0 +1,10 @@
+.body { display: flex; flex-direction: column; gap: 18px; }
+.section { display: flex; flex-direction: column; gap: 8px; }
+.label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+.hint { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.presets, .dims { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset, .dim { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--text-2); font-size: 12.5px; cursor: pointer; box-shadow: var(--shadow-xs); }
+.preset:hover, .dim:hover { border-color: var(--border-strong); color: var(--text); }
+.preset.on, .dim.on { border-color: var(--sh-primary); color: var(--text); background: var(--sh-accent); }
+.order { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--radius-pill); background: var(--sh-primary); color: var(--sh-primary-foreground); font-size: 10px; font-weight: 600; }
+.preview { font-size: 12.5px; color: var(--text-2); padding: 8px 10px; border-radius: var(--radius-md); background: var(--bg-subtle); }

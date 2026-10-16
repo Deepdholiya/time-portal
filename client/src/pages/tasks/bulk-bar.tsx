@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CalendarDays, CircleDashed, Trash2, UserRound, X } from "lucide-react";
-import { Avatar, Combobox, ConfirmDialog, DatePicker, IconButton, toast } from "@/components/arc";
+import { Avatar, Combobox, ConfirmDialog, DatePicker, IconButton, toast } from "@/components/ui";
 import { PRIORITIES, PRIORITY_META, PriorityIcon, STATUSES, STATUS_META, StatusIcon } from "@/components/app/icons";
 import { post } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";

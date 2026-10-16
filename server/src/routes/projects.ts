@@ -31,7 +31,7 @@ function serialize(req: Request, p: FullProject, stats: Awaited<ReturnType<typeo
   return {
     id: p.id, name: p.name, code: p.code, description: p.description, color: p.color, status: p.status, priority: p.priority, archived: p.archived,
     startDate: p.startDate, endDate: p.endDate, estimatedHours: p.estimatedHours, billingType: p.billingType,
-    budget: fin ? p.budget : undefined, hourlyRate: fin ? p.hourlyRate : undefined,
+    budget: fin ? p.budget : undefined, hourlyRate: fin ? p.hourlyRate : undefined, currency: p.currency,
     tags: parseJson<string[]>(p.tags, []), links: parseJson<Links>(p.links, {}),
     client: p.client, manager: p.manager, team: p.team, initiative: p.initiative,
     members: p.members.map((m) => m.user), children: p.children, milestones: p.milestones,
@@ -94,6 +94,7 @@ const projectSchema = z.object({
   startDate: DATE.nullish(), endDate: DATE.nullish(),
   estimatedHours: z.number().min(0).nullish(),
   budget: z.number().min(0).nullish(),
+  currency: z.string().regex(/^[A-Z]{3}$/).nullish(),
   billingType: z.enum(["HOURLY", "FIXED", "NON_BILLABLE"]).default("HOURLY"),
   hourlyRate: z.number().min(0).nullish(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
@@ -129,7 +130,7 @@ function projectData(d: z.infer<typeof projectSchema>, clientId: number | null, 
   return {
     name: d.name, code: d.code ?? null, description: d.description ?? null, status: d.status, priority: d.priority, health: d.health,
     startDate: d.startDate ?? null, endDate: d.endDate ?? null, estimatedHours: d.estimatedHours ?? null, billingType: d.billingType,
-    ...(fin ? { budget: d.budget ?? null, hourlyRate: d.hourlyRate ?? null } : {}),
+    ...(fin ? { budget: d.budget ?? null, hourlyRate: d.hourlyRate ?? null, ...(d.currency !== undefined ? { currency: d.currency ?? null } : {}) } : {}),
     tags: JSON.stringify(d.tags), links: JSON.stringify(d.links), clientId,
     parentId: d.parentId ?? null, managerId: d.managerId ?? null, teamId: d.teamId ?? null, initiativeId: d.initiativeId ?? null,
     ...(d.color ? { color: d.color } : {}),
@@ -186,7 +187,7 @@ projectsRouter.post("/:id/archive", manageP, async (req, res) => {
 });
 
 projectsRouter.delete("/:id", async (req, res) => {
-  if (req.user!.role !== "ADMIN") throw new HttpError(403, "Only admins can delete projects. Archive it instead.");
+  if (!can(req, "projects", "manage")) throw new HttpError(403, "Only admins and project managers can delete projects.");
   const { p } = await getProject(req, Number(req.params.id));
   const entries = await prisma.timeEntry.count({ where: { OR: [{ projectId: p.id }, { project: { parentId: p.id } }] } });
   if (entries) throw new HttpError(409, `${p.name} has ${entries} time entries. Archive it so its history stays reportable.`);

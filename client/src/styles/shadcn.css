@@ -1,0 +1,157 @@
+/* shadcn/ui design tokens (new-york, neutral base) and the app and Arc tokens mapped onto them.
+   Loaded last, so every page and component reads one palette, one radius scale and one shadow scale.
+   Radius scale, as shadcn derives it from --radius (0.625rem):
+     --radius-xs 4px   checkboxes, tiny chips
+     --radius-sm 6px   menu items, list options, kbd, small icon buttons
+     --radius-md 8px   buttons, inputs, selects, popovers, menus, tooltips
+     --radius-lg 10px  dialogs, tab and segmented lists, the content frame
+     --radius-xl 14px  cards and panels
+     --radius-pill     badges, tags, progress tracks, avatars */
+:root {
+  --sh-radius: 0.625rem;
+  --sh-background: oklch(1 0 0);
+  --sh-foreground: oklch(0.145 0 0);
+  --sh-card: oklch(1 0 0);
+  --sh-popover: oklch(1 0 0);
+  --sh-primary: oklch(0.205 0 0);
+  --sh-primary-foreground: oklch(0.985 0 0);
+  --sh-secondary: oklch(0.97 0 0);
+  --sh-muted: oklch(0.97 0 0);
+  --sh-muted-foreground: oklch(0.556 0 0);
+  --sh-accent: oklch(0.97 0 0);
+  --sh-destructive: oklch(0.577 0.245 27.325);
+  --sh-border: oklch(0.922 0 0);
+  --sh-input: oklch(0.922 0 0);
+  --sh-ring: oklch(0.708 0 0);
+  --sh-sidebar: oklch(0.985 0 0);
+  --sh-sidebar-accent: oklch(0.97 0 0);
+  --sh-sidebar-border: oklch(0.922 0 0);
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --sh-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --sh-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --sh-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+}
+
+/* Mappings live on both selectors so they beat the dark blocks in global.css and arc-theme.css. */
+:root, :root[data-theme="dark"] {
+  /* Radius scale */
+  --radius-xs: 4px;
+  --radius-sm: calc(var(--sh-radius) - 4px);
+  --radius-md: calc(var(--sh-radius) - 2px);
+  --radius: var(--radius-md);
+  --radius-lg: var(--sh-radius);
+  --radius-xl: calc(var(--sh-radius) + 4px);
+  --radius-pill: 9999px;
+  --radius-control: var(--radius-md);
+  --radius-panel: var(--radius-md);
+  --radius-surface: var(--radius-lg);
+
+  /* Control heights: h-8 small, h-9 default, h-10 large */
+  --control-height-sm: 32px;
+  --control-height-md: 36px;
+  --control-height-lg: 40px;
+
+  /* App tokens */
+  --bg: var(--sh-background);
+  --bg-app: var(--sh-sidebar);
+  --bg-sidebar: var(--sh-sidebar);
+  --bg-subtle: color-mix(in oklab, var(--sh-muted) 50%, var(--sh-background));
+  --bg-hover: var(--sh-accent);
+  --bg-active: oklch(0.94 0 0);
+  --bg-elevated: var(--sh-popover);
+  --bg-input: transparent;
+  --border: var(--sh-border);
+  --border-strong: oklch(0.87 0 0);
+  --text: var(--sh-foreground);
+  --text-2: var(--sh-muted-foreground);
+  --text-3: oklch(0.65 0 0);
+  --text-inv: var(--sh-primary-foreground);
+  --accent: var(--sh-primary);
+  --accent-hover: color-mix(in oklab, var(--sh-primary) 90%, transparent);
+  --accent-soft: oklch(0.955 0 0);
+  --accent-text: var(--sh-primary);
+  --focus: color-mix(in oklab, var(--sh-ring) 50%, transparent);
+  --red: var(--sh-destructive);
+  --shadow-sm: var(--shadow-xs);
+  --shadow-md: var(--sh-shadow-md);
+  --shadow-lg: var(--sh-shadow-lg);
+
+  /* Arc tokens */
+  --background: var(--sh-background);
+  --surface: var(--sh-card);
+  --surface-raised: var(--sh-popover);
+  --surface-muted: var(--sh-accent);
+  --foreground: var(--sh-foreground);
+  --text-secondary: var(--sh-muted-foreground);
+  --text-muted: oklch(0.65 0 0);
+  --border-subtle: oklch(0.95 0 0);
+  --accent-strong: var(--sh-primary);
+  --accent-subtle: var(--sh-accent);
+  --accent-foreground: var(--sh-primary-foreground);
+  --control-on: var(--sh-primary);
+  --control-glyph: var(--sh-primary-foreground);
+  --control-track: var(--sh-input);
+  --control-track-hover: oklch(0.88 0 0);
+  --control-thumb: var(--sh-background);
+  --control-thumb-on: var(--sh-background);
+  --control-fill: var(--sh-primary);
+  --danger: var(--sh-destructive);
+  --shadow-resting: var(--shadow-xs);
+  --shadow-raised: var(--sh-shadow-md);
+  --shadow-floating: var(--sh-shadow-lg);
+  --focus-ring: color-mix(in oklab, var(--sh-ring) 50%, transparent);
+  --focus-outline: color-mix(in oklab, var(--sh-ring) 70%, transparent);
+  --text-sm: 13px;
+}
+
+:root[data-theme="dark"] {
+  --sh-background: oklch(0.145 0 0);
+  --sh-foreground: oklch(0.985 0 0);
+  --sh-card: oklch(0.205 0 0);
+  --sh-popover: oklch(0.205 0 0);
+  --sh-primary: oklch(0.922 0 0);
+  --sh-primary-foreground: oklch(0.205 0 0);
+  --sh-secondary: oklch(0.269 0 0);
+  --sh-muted: oklch(0.269 0 0);
+  --sh-muted-foreground: oklch(0.708 0 0);
+  --sh-accent: oklch(0.269 0 0);
+  --sh-destructive: oklch(0.704 0.191 22.216);
+  --sh-border: oklch(1 0 0 / 10%);
+  --sh-input: oklch(1 0 0 / 15%);
+  --sh-ring: oklch(0.556 0 0);
+  --sh-sidebar: oklch(0.205 0 0);
+  --sh-sidebar-accent: oklch(0.269 0 0);
+  --sh-sidebar-border: oklch(1 0 0 / 10%);
+
+  --bg-app: var(--sh-sidebar);
+  --bg-active: oklch(0.3 0 0);
+  --bg-input: oklch(1 0 0 / 4.5%);
+  --bg-subtle: oklch(0.175 0 0);
+  --border-strong: oklch(1 0 0 / 18%);
+  --text-3: oklch(0.58 0 0);
+  --accent-soft: oklch(0.24 0 0);
+  --text-muted: oklch(0.58 0 0);
+  --border-subtle: oklch(1 0 0 / 6%);
+  --control-track: oklch(1 0 0 / 12%);
+  --control-track-hover: oklch(1 0 0 / 18%);
+  --control-thumb: var(--sh-foreground);
+  --control-thumb-on: var(--sh-primary-foreground);
+  --control-fill: var(--sh-primary);
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --sh-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --sh-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+}
+
+/* Cards are rounded-xl with a light shadow, like shadcn's Card. */
+.card { border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--sh-card); }
+.list-row.selected { background: var(--accent-soft); }
+.link { color: var(--accent-text); font-weight: 500; text-underline-offset: 4px; }
+.link:hover { text-decoration: underline; }
+::selection { background: color-mix(in oklab, var(--sh-ring) 35%, transparent); }
+:focus-visible { outline-color: var(--focus-outline); }
+
+/* On phones the date mode sits on its own line so previous, picker and next stay together. */
+.range-break { display: none; }
+@media (max-width: 520px) { .range-break { display: block; flex-basis: 100%; height: 0; } }

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Gauge, Plane } from "lucide-react";
-import { Avatar, Badge, Button, EmptyState, IconButton, SegmentedControl, Select, SkeletonRows, Tooltip } from "@/components/arc";
+import { Gauge, Plane } from "lucide-react";
+import { Avatar, Badge, EmptyState, SkeletonRows, Tooltip } from "@/components/ui";
+import { FilterMenu } from "@/components/app/filter-menu";
+import { PeriodNav } from "@/components/app/time-range";
 import { Page } from "@/components/app/page";
 import { get } from "@/lib/api";
 import { useApi, useLocal } from "@/lib/hooks";
@@ -69,18 +71,29 @@ export default function Workload() {
       title="Workload" icon={<Gauge size={15} />}
       toolbar={
         <div className="row wrap" style={{ width: "100%" }}>
-          <IconButton size="sm" label="Previous" icon={<ChevronLeft size={15} />} onClick={() => setAnchor(addDays(anchor, -7 * weeks))} />
-          <span className={s.period}>{fmtDate(from)} – {fmtDate(to, true)}</span>
-          <IconButton size="sm" label="Next" icon={<ChevronRight size={15} />} onClick={() => setAnchor(addDays(anchor, 7 * weeks))} />
-          <Button size="sm" variant="ghost" onClick={() => setAnchor(weekStart(today(), ws))}>This week</Button>
-          <SegmentedControl aria-label="Weeks" value={String(weeks)} onChange={(v) => setWeeks(Number(v) as Span)}
-            options={[{ value: "1", label: "1 wk" }, { value: "2", label: "2 wks" }, { value: "4", label: "4 wks" }, { value: "6", label: "6 wks" }]} />
-          <SegmentedControl aria-label="Columns" value={effGrain} onChange={(g) => { setGrain(g); if (g === "day" && weeks > 2) setWeeks(2); }}
-            options={[{ value: "week", label: "By week" }, { value: "day", label: "By day" }]} />
-          <SegmentedControl aria-label="Metric" value={metric} onChange={setMetric}
-            options={[{ value: "planned", label: "Planned" }, { value: "tracked", label: "Logged" }]} />
-          <Select size="sm" fullWidth={false} value={teamId} onChange={setTeamId} aria-label="Team"
-            options={[{ value: "", label: "All teams" }, ...(opts?.teams ?? []).map((x) => ({ value: String(x.id), label: x.name }))]} />
+          <PeriodNav
+            unit="period"
+            label={`${fmtDate(from)} – ${fmtDate(to, true)}`}
+            date={anchor}
+            onPick={(d) => setAnchor(weekStart(d, ws))}
+            onPrev={() => setAnchor(addDays(anchor, -7 * weeks))}
+            onNext={() => setAnchor(addDays(anchor, 7 * weeks))}
+            onToday={() => setAnchor(weekStart(today(), ws))}
+            todayLabel="This week"
+            atToday={anchor === weekStart(today(), ws)}
+          />
+          <FilterMenu placement="bottom-start"
+            sections={[
+              { key: "weeks", label: "Period", single: true, required: true, defaultValue: "4", options: [{ value: "1", label: "1 week" }, { value: "2", label: "2 weeks" }, { value: "4", label: "4 weeks" }, { value: "6", label: "6 weeks" }] },
+              { key: "grain", label: "Columns", single: true, required: true, defaultValue: "week", options: [{ value: "week", label: "By week" }, { value: "day", label: "By day (up to 2 weeks)" }] },
+              { key: "metric", label: "Show", single: true, required: true, defaultValue: "planned", options: [{ value: "planned", label: "Planned" }, { value: "tracked", label: "Logged" }] },
+              { key: "team", label: "Team", single: true, options: (opts?.teams ?? []).map((x) => ({ value: String(x.id), label: x.name })) },
+            ]}
+            value={{ weeks: [String(weeks)], grain: [effGrain], metric: [metric], team: teamId ? [teamId] : [] }}
+            onApply={(v) => {
+              const w = Number(v.weeks?.[0] ?? 4) as Span; const g = (v.grain?.[0] ?? "week") as Grain;
+              setGrain(g); setWeeks(g === "day" && w > 2 ? 2 : w); setMetric((v.metric?.[0] ?? "planned") as Metric); setTeamId(v.team?.[0] ?? "");
+            }} />
           <div className="grow" />
           <div className={s.legend}>
             {(Object.keys(STATUS) as WRow["status"][]).map((k) => (

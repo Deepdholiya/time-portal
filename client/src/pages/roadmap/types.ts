@@ -24,4 +24,5 @@ export type Row =
   | { kind: "project"; key: string; project: RProject; open: boolean; depth: number }
   | { kind: "sub"; key: string; sub: RProject["children"][number]; parent: RProject; open: boolean; count: number }
   | { kind: "milestones"; key: string; project: RProject }
-  | { kind: "task"; key: string; task: RTask; color: string; depth: number };
+  | { kind: "task"; key: string; task: RTask; color: string; depth: number }
+  | { kind: "add"; key: string; what: "project" | "task"; projectId?: number; groupId?: string; depth: number };

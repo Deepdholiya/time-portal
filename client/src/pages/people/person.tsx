@@ -1,9 +1,9 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, UserCog, Users } from "lucide-react";
+import { ArrowLeft, Mail, Phone, UserCog, Users, CalendarDays, CalendarRange, ListChecks } from "lucide-react";
 import { Page } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { PriorityIcon, StatusIcon } from "@/components/app/icons";
-import { Avatar, Button, EmptyState, ErrorState, SkeletonRows } from "@/components/arc";
+import { Avatar, Button, EmptyState, ErrorState, SkeletonRows } from "@/components/ui";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { addDays, dueLabel, fmtDate, fmtDateTime, hm, hours, monthEnd, monthStart, today, weekStart } from "@/lib/format";
@@ -11,6 +11,7 @@ import type { Task } from "@/lib/types";
 import { Prop, RoleBadge, StatusBadge } from "../admin/shared";
 import type { DirPerson } from "./people";
 import s from "./people.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 type Group = { id: string | number | null; name: string; minutes: number; billableMinutes: number };
 type EntryRow = { id: number; date: string; minutes: number; description: string; project: string; projectColor: string; subProject: string | null; task: string | null; taskId: number | null; billable: boolean };
@@ -60,9 +61,9 @@ export default function Person() {
             <section>
               <div className="section-title">Hours</div>
               <div className={s.stats}>
-                <div className="stat"><div className="stat-label">This week</div><div className="stat-value">{hours(sum(weekMin.data))}h</div><div className="stat-sub">of {cap}h capacity</div></div>
-                <div className="stat"><div className="stat-label">This month</div><div className="stat-value">{hours(sum(monthMin.data))}h</div><div className="stat-sub">{hours((monthMin.data ?? []).reduce((a, x) => a + x.billableMinutes, 0))}h billable</div></div>
-                <div className="stat"><div className="stat-label">Open tasks</div><div className="stat-value">{tasks.data?.length ?? "—"}</div><div className="stat-sub">{open.filter((t) => t.overdue).length} overdue</div></div>
+                <div className="stat"><MetricLabel icon={<CalendarDays />}>This week</MetricLabel><div className="stat-value">{hours(sum(weekMin.data))}h</div><div className="stat-sub">of {cap}h capacity</div></div>
+                <div className="stat"><MetricLabel icon={<CalendarRange />}>This month</MetricLabel><div className="stat-value">{hours(sum(monthMin.data))}h</div><div className="stat-sub">{hours((monthMin.data ?? []).reduce((a, x) => a + x.billableMinutes, 0))}h billable</div></div>
+                <div className="stat"><MetricLabel icon={<ListChecks />}>Open tasks</MetricLabel><div className="stat-value">{tasks.data?.length ?? "—"}</div><div className="stat-sub">{open.filter((t) => t.overdue).length} overdue</div></div>
               </div>
             </section>
           )}

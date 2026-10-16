@@ -1,4 +1,4 @@
-.period { min-width: 170px; text-align: center; font-weight: 500; font-variant-numeric: tabular-nums; }
+.period { min-width: 170px; text-align: center; font-weight: 500; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .grid th, .grid td { padding: 0 10px; }
 .grid th:first-child, .grid td:first-child { padding-left: 20px; }
 .sticky { position: sticky; left: 0; background: var(--bg); z-index: 1; min-width: 220px; border-right: 1px solid var(--border); }

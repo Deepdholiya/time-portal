@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { AtSign, MoreHorizontal } from "lucide-react";
-import { Avatar, Button, ConfirmDialog, Menu, IconButton, toast } from "@/components/arc";
+import { Avatar, Button, ConfirmDialog, Menu, IconButton, toast } from "@/components/ui";
 import { PRIORITY_META, STATUS_META } from "@/components/app/icons";
 import { del, patch, post } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";
@@ -173,7 +173,7 @@ export function ActivityFeed({ task, options, reload }: { task: TaskDetail; opti
             {editing?.id === it.c.id ? (
               <div className="col">
                 <textarea className={s.descInput} style={{ border: "1px solid var(--border)", borderRadius: 6, padding: 8 }} value={editing.body} autoFocus onChange={(e) => setEditing({ ...editing, body: e.target.value })} />
-                <div className="row end"><Button size="sm" variant="ghost" onClick={() => setEditing(null)}>Cancel</Button><Button size="sm" variant="primary" onClick={saveEdit}>Save</Button></div>
+                <div className="row end"><Button size="sm" variant="secondary" onClick={() => setEditing(null)}>Cancel</Button><Button size="sm" variant="primary" onClick={saveEdit}>Save</Button></div>
               </div>
             ) : <div className={s.commentBody}><Body text={it.c.body} mentions={it.c.mentions} users={users} /></div>}
           </div>

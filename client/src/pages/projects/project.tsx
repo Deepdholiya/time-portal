@@ -1,11 +1,13 @@
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Archive, Plus } from "lucide-react";
-import { Badge, Button, ErrorState, Loading, Tabs } from "@/components/arc";
+import { useState } from "react";
+import { Archive, Clock, Plus } from "lucide-react";
+import { Badge, Button, ErrorState, Loading, Tabs } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
+import { AiInsight, type AiSource } from "@/components/app/ai-button";
 import { Forbidden } from "@/components/app/page";
 import { useShell } from "@/components/app/shell-context";
 import { useApi } from "@/lib/hooks";
-import { ApiError } from "@/lib/api";
+import { ApiError, post } from "@/lib/api";
 import { useMe } from "@/lib/session";
 import { TaskView } from "../tasks/task-view";
 import { HealthBadge } from "./health-badge";
@@ -14,6 +16,8 @@ import { Overview } from "./project-overview";
 import { Activity, Files, Members, Milestones, Notes, SubProjects } from "./project-tabs";
 import { ProjectTime } from "./project-time";
 import { ProjectSettings } from "./project-settings";
+import { ProjectActions } from "./project-actions";
+import { ProjectFormDialog } from "./project-form";
 import s from "./projects.module.css";
 
 const TABS = ["overview", "tasks", "milestones", "subprojects", "time", "notes", "files", "activity", "members", "settings"] as const;
@@ -30,6 +34,7 @@ export default function Project() {
   const q = useApi<ProjectDetail>(`/projects/${pid}`);
   const p = q.data;
   const manage = can("projects", "manage");
+  const [editing, setEditing] = useState(false);
 
   if (q.error && !p) {
     if (q.error instanceof ApiError && q.error.status === 403) return <div className="page"><Forbidden what="this project" /></div>;
@@ -52,7 +57,7 @@ export default function Project() {
     case "activity": body = <div className="page-body"><Activity p={p} /></div>; break;
     case "members": body = <div className="page-body"><Members p={p} manage={manage} onChanged={q.reload} /></div>; break;
     case "settings": body = <div className="page-body"><ProjectSettings p={p} onChanged={q.reload} /></div>; break;
-    default: body = <div className="page-body"><Overview p={p} /></div>;
+    default: body = <div className="page-body"><Overview p={p} onEdit={manage ? () => setEditing(true) : undefined} /></div>;
   }
 
   return (
@@ -68,7 +73,10 @@ export default function Project() {
         {!p.parentId && <HealthBadge p={p} />}
         {p.archived && <Badge size="sm" icon={<Archive size={11} />}>Archived</Badge>}
         <div className="grow" />
+        <AiInsight label="Summarize project status with AI" title="Project status" load={() => post<{ summary: string; source: AiSource }>("/ai/project-summary", { projectId: p.id })} />
+        {!p.archived && (isMember || manage) && <Button size="sm" variant="secondary" icon={<Clock size={14} />} onClick={() => shell.logTime({ projectId: p.id }, q.reload)}>Log time</Button>}
         {can("tasks", "create") && !p.archived && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={newTask}>New task</Button>}
+        <ProjectActions p={p} onChanged={q.reload} afterDelete={p.parent ? `/projects/${p.parent.id}` : "/projects"} />
       </header>
       <div className={s.tabsBar}>
         <Tabs
@@ -88,6 +96,7 @@ export default function Project() {
         />
       </div>
       {body}
+      {editing && <ProjectFormDialog project={p} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); q.reload(); }} />}
     </div>
   );
 }

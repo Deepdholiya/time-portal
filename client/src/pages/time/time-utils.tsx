@@ -1,8 +1,10 @@
 // Helpers shared by the Time tracker, entry dialog, Timesheet and Calendar pages.
-import type { ComboboxOption } from "@/components/arc";
+import type { BadgeTone, ComboboxOption } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
-import { useApi } from "@/lib/hooks";
-import type { Options, ProjectOption, TimeEntry } from "@/lib/types";
+import { invalidate, useApi } from "@/lib/hooks";
+import { weekday } from "@/lib/format";
+import { useMe } from "@/lib/session";
+import type { DayStatus, DaysResponse, Options, ProjectOption, TimeEntry } from "@/lib/types";
 
 export const useOptions = () => useApi<Options>("/options");
 
@@ -72,3 +74,40 @@ export function resolvePick(o: Options | undefined, v: string | null): { project
 }
 
 export const pickValue = (projectId?: number | null, taskId?: number | null) => (taskId ? `t${taskId}` : projectId ? `p${projectId}` : null);
+
+/** Labels and badge tones for a day's submission state. */
+export const DAY_STATUS: Record<DayStatus, { label: string; tone: BadgeTone; hint: string }> = {
+  SAVED: { label: "Saved", tone: "gray", hint: "Saved. Submits automatically at the cutoff." },
+  SUBMITTED: { label: "Submitted", tone: "blue", hint: "Submitted for approval. Reopen the day to make corrections." },
+  APPROVED: { label: "Approved", tone: "green", hint: "Approved and locked." },
+  REJECTED: { label: "Returned", tone: "red", hint: "Sent back by your manager. Fix it and submit again." },
+  FAILED: { label: "Needs fixes", tone: "orange", hint: "The automatic submission found problems. Fix them and submit." },
+  REOPENED: { label: "Correcting", tone: "yellow", hint: "Reopened for corrections. Submit it again when you're done." },
+};
+
+/** Whether a day is read-only. Time stays editable unless the company locks approved days and this day is approved. */
+export function useDayLock() {
+  const { settings } = useMe();
+  const lock = !!settings.lockApprovedWeeks;
+  return (status?: DayStatus) => lock && status === "APPROVED";
+}
+
+/** Day statuses for a range, keyed by date. */
+export function useDays(from: string, to: string, userId?: number) {
+  const q = useApi<DaysResponse>("/timesheets/days", { from, to, userId });
+  const byDate = new Map((q.data?.days ?? []).map((d) => [d.date, d]));
+  return { ...q, byDate };
+}
+
+interface Holiday { id: number; date: string; name: string }
+export const useHolidays = () => useApi<Holiday[]>("/settings/holidays");
+
+/** Expected minutes for a range: working days (minus holidays) times the person's daily share of their weekly capacity. */
+export function expectedMinutes(days: string[], workWeek: string, weeklyCapacityHours: number, holidays: Set<string>) {
+  const work = new Set(workWeek.split(",").map(Number));
+  const perDay = work.size ? (weeklyCapacityHours * 60) / work.size : 0;
+  return Math.round(days.filter((d) => work.has(weekday(d)) && !holidays.has(d)).length * perDay);
+}
+
+/** Refreshes every view that shows time after an entry changes. */
+export const afterTimeChange = () => { invalidate("/time"); invalidate("/timesheets"); invalidate("/analytics"); invalidate("/calendar"); };

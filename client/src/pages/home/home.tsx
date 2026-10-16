@@ -1,18 +1,20 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, Diamond, Home as HomeIcon, Palmtree, PartyPopper } from "lucide-react";
-import { Avatar, DateRangePicker, EmptyState, ErrorState, SegmentedControl, Skeleton, presetRange, type DateRange } from "@/components/arc";
+import { CalendarDays, Diamond, Home as HomeIcon, Palmtree, PartyPopper, Plus, Clock3, Users, Timer, BadgeDollarSign, Gauge, ListChecks, AlertCircle } from "lucide-react";
+import { Avatar, Button, DateRangePicker, EmptyState, ErrorState, SegmentedControl, Skeleton, presetRange, type DateRange } from "@/components/ui";
 import { Page } from "@/components/app/page";
+import { AiInsight, type AiSource } from "@/components/app/ai-button";
+import { post } from "@/lib/api";
 import { PriorityIcon, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { useApi, useLocal } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { dueLabel, fmtDate, hm, pct, today } from "@/lib/format";
 import type { Priority, Task, TaskStatus, TimeEntry } from "@/lib/types";
-import { useOptions } from "../time/time-utils";
 import { HoursByDay, HoursByProject, type Group } from "./home-charts";
-import { HomeTimer } from "./home-timer";
+import { HomeToday } from "./home-today";
 import s from "./home.module.css";
+import { MetricLabel } from "@/components/app/metric";
 
 type View = "my" | "team" | "company";
 interface SchedTask { id: number; key: string; title: string; status: TaskStatus; priority: Priority; dueDate?: string | null; project?: { name: string; color: string } }
@@ -46,7 +48,6 @@ export default function Home() {
   const dash = useApi<Dashboard>("/analytics/dashboard", { view, from: range.from, to: range.to });
   const todayTime = useApi<TimeEntry[]>("/time", { from: t0, to: t0 });
   const dueTasks = useApi<Task[]>("/tasks", { assigneeId: "me", includeDone: "false", dueTo: t0 });
-  const { data: options } = useOptions();
   const d = dash.data;
   const todayMin = (todayTime.data ?? []).reduce((a, e) => a + e.minutes, 0);
 
@@ -73,13 +74,13 @@ export default function Home() {
   const util = k?.utilization;
   const tiles = k ? [
     view === "my"
-      ? { label: "Today", value: hm(todayMin), sub: `${todayTime.data?.length ?? 0} entries`, to: "/time" }
-      : { label: "People", value: String(k.people), sub: `${k.activeProjects} active projects`, to: "/team-time" },
-    { label: "Total time", value: hm(k.totalMinutes), sub: k.capacityMinutes ? `of ${hm(k.capacityMinutes)} capacity` : range.preset ?? "", to: view === "my" ? "/timesheet" : "/analytics" },
-    { label: "Billable", value: hm(k.billableMinutes), sub: `${hm(k.nonBillableMinutes)} non-billable`, to: "/analytics" },
-    { label: "Utilisation", value: util == null ? "—" : pct(util), sub: util == null ? "No capacity in range" : util > 1 ? "Over capacity" : util < 0.6 ? "Under-utilised" : "Healthy", tone: util != null && util > 1 ? "var(--orange)" : undefined, to: "/analytics" },
-    { label: "Tasks due", value: String(k.tasksDue), sub: `${k.tasksCompleted} completed in range`, to: "/my-tasks" },
-    { label: "Overdue", value: String(k.overdueTasks), sub: k.blockedTasks ? `${k.blockedTasks} blocked` : "Nothing blocked", tone: k.overdueTasks ? "var(--red)" : undefined, to: "/my-tasks" },
+      ? { label: "Today", icon: <Clock3 />, value: hm(todayMin), sub: `${todayTime.data?.length ?? 0} entries`, to: "/time" }
+      : { label: "People", icon: <Users />, value: String(k.people), sub: `${k.activeProjects} active projects`, to: "/team-time" },
+    { label: "Total time", icon: <Timer />, value: hm(k.totalMinutes), sub: k.capacityMinutes ? `of ${hm(k.capacityMinutes)} capacity` : range.preset ?? "", to: view === "my" ? "/timesheet" : "/analytics" },
+    { label: "Billable", icon: <BadgeDollarSign />, value: hm(k.billableMinutes), sub: `${hm(k.nonBillableMinutes)} non-billable`, to: "/analytics" },
+    { label: "Utilisation", icon: <Gauge />, value: util == null ? "—" : pct(util), sub: util == null ? "No capacity in range" : util > 1 ? "Over capacity" : util < 0.6 ? "Under-utilised" : "Healthy", tone: util != null && util > 1 ? "var(--orange)" : undefined, to: "/analytics" },
+    { label: "Tasks due", icon: <ListChecks />, value: String(k.tasksDue), sub: `${k.tasksCompleted} completed in range`, to: "/my-tasks" },
+    { label: "Overdue", icon: <AlertCircle />, value: String(k.overdueTasks), sub: k.blockedTasks ? `${k.blockedTasks} blocked` : "Nothing blocked", tone: k.overdueTasks ? "var(--red)" : undefined, to: "/my-tasks" },
   ] : [];
 
   const viewOptions: { value: View; label: string }[] = [{ value: "my", label: "My work" }, { value: "team", label: "My team" }, { value: "company", label: "Company" }];
@@ -88,11 +89,12 @@ export default function Home() {
     <Page
       title="Home"
       icon={<HomeIcon size={15} className="faint" />}
-      actions={
-        <div className="row">
+      actions={<div className="row gap-4"><AiInsight label="What should I focus on today?" title="Focus for today" load={() => post<{ summary: string; source: AiSource }>("/ai/focus")} /><Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => shell.logTime()}>Log time</Button></div>}
+      toolbar={
+        <>
           {canAll && <SegmentedControl<View> aria-label="Dashboard view" options={viewOptions} value={view} onChange={setView} />}
           <DateRangePicker size="sm" value={range} onChange={setRange} presets={["Today", "Yesterday", "This week", "Last week", "This month", "Last month", "This quarter", "This year"]} />
-        </div>
+        </>
       }
     >
       <div className={s.body}>
@@ -106,7 +108,7 @@ export default function Home() {
             {!k ? Array.from({ length: 6 }, (_, i) => <div key={i} className={s.kpi}><Skeleton width={70} /><Skeleton width={50} height={20} style={{ marginTop: 8 }} /></div>)
               : tiles.map((t) => (
                 <button key={t.label} type="button" className={s.kpi} onClick={() => nav(t.to)} title={`Open ${t.to.slice(1)}`}>
-                  <div className={s.kpiLabel}>{t.label}</div>
+                  <MetricLabel icon={t.icon}>{t.label}</MetricLabel>
                   <div className={s.kpiValue} style={{ color: t.tone }}>{t.value}</div>
                   <div className={s.kpiSub}>{t.sub}</div>
                 </button>
@@ -157,13 +159,13 @@ export default function Home() {
           </div>
 
           <div className={s.stack}>
-            {view === "my" && <HomeTimer options={options} />}
+            {view === "my" && <HomeToday />}
             <section className={s.panel}>
               <div className={s.panelHead}>Hours by project<span className="grow" /><span className="small muted">{range.preset && range.preset !== "Custom" ? range.preset : `${fmtDate(range.from)} – ${fmtDate(range.to)}`}</span></div>
               <div className={s.panelBody} style={{ paddingTop: 6, paddingBottom: 8 }}>{d ? <HoursByProject groups={d.byProject} onOpen={(g) => nav(`/projects/${g.id}`)} /> : <Skeleton height={90} />}</div>
             </section>
             <section className={s.panel}>
-              <div className={s.panelHead}>Coming up<span className="grow" /><a className="link small" onClick={() => nav("/calendar")}>Calendar</a></div>
+              <div className={s.panelHead}>Coming up<span className="grow" /><a className="link small" onClick={() => nav("/timesheet?view=calendar")}>Calendar</a></div>
               {d?.schedule.leave.length ? (
                 <div className={s.schedRow}><Palmtree size={13} color="var(--green)" /><span className="grow small">Out today: {d.schedule.leave.map((l) => l.user.name).join(", ")}</span></div>
               ) : null}

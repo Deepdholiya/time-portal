@@ -14,7 +14,7 @@ export interface ProjectStats {
 }
 export interface Project {
   id: number; name: string; code: string | null; description: string | null; color: string; status: ProjectStatus; priority: string; archived: boolean;
-  startDate: string | null; endDate: string | null; estimatedHours: number | null; billingType: BillingType; budget?: number | null; hourlyRate?: number | null;
+  startDate: string | null; endDate: string | null; estimatedHours: number | null; billingType: BillingType; budget?: number | null; hourlyRate?: number | null; currency?: string | null;
   tags: string[]; links: Links;
   client: { id: number; name: string; email: string | null; contactName: string | null; phone: string | null } | null;
   manager: { id: number; name: string } | null; team: { id: number; name: string } | null; initiative: { id: number; name: string; color: string } | null;
@@ -35,7 +35,7 @@ export function projectBody(p: Project) {
   return {
     name: p.name, code: p.code, description: p.description, color: p.color, status: p.status, priority: p.priority,
     startDate: p.startDate, endDate: p.endDate, estimatedHours: p.estimatedHours, billingType: p.billingType,
-    ...(p.budget !== undefined ? { budget: p.budget } : {}), ...(p.hourlyRate !== undefined ? { hourlyRate: p.hourlyRate } : {}),
+    ...(p.budget !== undefined ? { budget: p.budget, currency: p.currency ?? null } : {}), ...(p.hourlyRate !== undefined ? { hourlyRate: p.hourlyRate } : {}),
     tags: p.tags, links: cleanLinks(p.links), clientId: p.client?.id ?? null, managerId: p.manager?.id ?? null, teamId: p.team?.id ?? null,
     initiativeId: p.initiative?.id ?? null, memberIds: p.members.map((m) => m.id),
   };

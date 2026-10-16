@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { FolderKanban } from "lucide-react";
-import { Combobox } from "@/components/arc";
+import { Combobox } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import type { Options } from "@/lib/types";
 import { optionPath, pickValue, projectTaskOptions, resolvePick } from "./time-utils";

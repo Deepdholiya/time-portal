@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Ban, Mail, MoreHorizontal, RefreshCw } from "lucide-react";
-import { Avatar, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, IconButton, Menu, SkeletonRows, Tooltip, toast } from "@/components/arc";
+import { Avatar, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, IconButton, Menu, SkeletonRows, Tooltip, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";
 import { fmtDateTime, relTime } from "@/lib/format";

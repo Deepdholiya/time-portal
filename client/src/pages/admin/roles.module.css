@@ -1,8 +1,25 @@
-.wrap { padding: 20px 24px 40px; max-width: 920px; }
-.matrix { border: 1px solid var(--border); border-radius: var(--radius-lg); border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.wrap { padding: 24px var(--gutter) 48px; }
+.scroller { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); }
+.matrix { border-collapse: separate; border-spacing: 0; min-width: 100%; }
 .matrix th { position: static; }
 .matrix tr:last-child td { border-bottom: 0; }
-.roleCol { width: 170px; }
-.group td { background: var(--bg-subtle); color: var(--text-2); font-size: 12px; font-weight: 500; height: 30px; }
+.featureCol { width: 320px; min-width: 280px; position: sticky; left: 0; background: var(--bg); z-index: 1; }
+.roleCol { width: 140px; min-width: 140px; text-align: center; }
+.roleCol .roleHead { justify-content: center; }
+.fill { width: auto; }
+.roleHead { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.members { display: inline-flex; align-items: center; gap: 3px; height: 20px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--bg-active); color: var(--text-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+.roleHead > :last-child:not(.members):not(span) { margin-left: auto; }
+.group td { background: var(--bg-subtle); height: 40px; }
+.groupBtn { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0; border: 0; background: none; color: var(--text); font: inherit; font-weight: 500; cursor: pointer; }
+.groupBtn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+.chev, .chevShut { color: var(--text-3); transition: transform .15s ease; }
+.chevShut { transform: rotate(-90deg); }
+.groupCount { font-size: 11px; color: var(--text-3); font-weight: 400; font-variant-numeric: tabular-nums; }
+.permRow td { height: 48px; }
+.permRow .featureCol { padding-left: calc(var(--gutter) + 22px); }
+.permLabel { text-decoration: underline dotted var(--text-4, var(--border-strong)); text-underline-offset: 4px; cursor: help; }
+.cell { display: inline-flex; justify-content: center; width: 100%; }
 .matrix tbody tr.group:hover td { background: var(--bg-subtle); }
 .locked { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; color: var(--text-3); }
+.peopleBar { padding: 16px var(--gutter) 12px; max-width: calc(320px + var(--gutter) * 2); }

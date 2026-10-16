@@ -1,10 +1,11 @@
 // Shapes returned by the API. Only fields the UI relies on are typed; extra fields pass through.
-export type Role = "ADMIN" | "MANAGER" | "EMPLOYEE";
+export type Role = "ADMIN" | "MANAGER" | "EMPLOYEE" | (string & {});
 export type Level = string;
 export type Permissions = Record<string, Level>;
 export interface CompanySettings {
   overloadPct: number; healthyPct: number; underPct: number; tempPasswordHours: number; sessionTimeoutMinutes: number;
   enforceAdminMfa: boolean; aiEnabled: boolean; allowOverlappingTimers: boolean; lockApprovedWeeks: boolean; invitationDays: number; taskKey: string;
+  autoSubmitTime: string; workdayStart: string; requireDescription: boolean; requireTags: boolean; billableEnabled: boolean; navHidden?: Record<string, string[]>;
 }
 export interface Company {
   id: number; name: string; slug: string; color: string; logoUrl?: string | null; country?: string | null; timezone: string; currency: string;
@@ -15,6 +16,8 @@ export interface Me {
   permissions: Permissions;
   company: Company;
   companies: { id: number; name: string; color: string; slug: string }[];
+  /** Every role in the current company, built-in ones first, with display names. */
+  roles: { key: string; name: string }[];
   mfaSetupRequired: boolean;
 }
 export interface UserLite { id: number; name: string; email?: string; title?: string | null; role?: Role; team?: { id: number; name: string; color?: string } | null }
@@ -47,4 +50,13 @@ export interface TimeEntry {
   task?: { id: number; title: string; number?: number; key?: string } | null;
   [k: string]: unknown;
 }
+export interface TagLite { id: number; name: string; color: string }
+export interface Tag extends TagLite { active: boolean; teamIds: number[]; uses: number }
+/** SAVED: has entries, not submitted yet. FAILED: automatic submission found problems. REOPENED: pulled back for corrections. */
+export type DayStatus = "SAVED" | "SUBMITTED" | "APPROVED" | "REJECTED" | "FAILED" | "REOPENED";
+export interface DayState {
+  date: string; minutes: number; entries: number; status: DayStatus; note: string | null; auto: boolean; overdue: boolean;
+  submittedAt: string | null; reviewedAt: string | null; reviewedBy: { name: string } | null;
+}
+export interface DaysResponse { days: DayState[]; today: string; cutoff: string }
 export interface Notification { id: number; type: string; title: string; body?: string | null; link?: string | null; readAt?: string | null; createdAt: string }

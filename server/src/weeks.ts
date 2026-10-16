@@ -1,5 +1,3 @@
-import { prisma, companySettings } from "./db.js";
-import { HttpError } from "./auth.js";
 
 const D = (s: string) => new Date(s + "T00:00:00Z");
 export const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -22,12 +20,20 @@ export function workingDays(from: string, to: string, workWeek: string, holidays
   return n;
 }
 
-// Submitted and approved weeks are read-only until a reviewer sends them back or an admin unlocks them.
-export async function assertWeekOpen(companyId: number, userId: number, date: string) {
-  const company = await prisma.company.findUniqueOrThrow({ where: { id: companyId } });
-  if (!companySettings(company).lockApprovedWeeks) return;
-  const p = await prisma.timesheetPeriod.findUnique({ where: { companyId_userId_weekStart: { companyId, userId, weekStart: weekStartOf(date, company.weekStartsOn) } } });
-  if (p && p.status !== "REJECTED") {
-    throw new HttpError(409, p.status === "APPROVED" ? "That week is approved and locked. An admin can unlock it with a reason." : "That week is submitted for approval. Withdraw it or ask your manager to send it back to make changes.");
-  }
+/** Today's date and the time of day in a timezone, as "YYYY-MM-DD" and "HH:MM". */
+export function zonedNow(timeZone: string, at = new Date()) {
+  let parts: Intl.DateTimeFormatPart[];
+  try { parts = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(at); }
+  catch { return zonedNow("UTC", at); }
+  const v = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+  return { date: `${v("year")}-${v("month")}-${v("day")}`, time: `${v("hour")}:${v("minute")}` };
+}
+
+/** The instant a local date and time in a timezone happens. */
+export function zonedInstant(date: string, time: string, timeZone: string) {
+  const guess = Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10), +time.slice(0, 2), +time.slice(3, 5));
+  // Offset of the zone at that moment: what the local clock shows minus UTC.
+  const shown = zonedNow(timeZone, new Date(guess));
+  const local = Date.UTC(+shown.date.slice(0, 4), +shown.date.slice(5, 7) - 1, +shown.date.slice(8, 10), +shown.time.slice(0, 2), +shown.time.slice(3, 5));
+  return new Date(guess - (local - guess));
 }

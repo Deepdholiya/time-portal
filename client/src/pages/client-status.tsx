@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { CheckCircle2, Diamond, Link2Off } from "lucide-react";
-import { Badge, EmptyState, Loading, type BadgeTone } from "@/components/arc";
+import { Badge, EmptyState, Loading, type BadgeTone } from "@/components/ui";
 import { useApi } from "@/lib/hooks";
 import { dueLabel, fmtDate, titleCase } from "@/lib/format";
 import s from "./client-status.module.css";

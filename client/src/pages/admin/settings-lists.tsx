@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { Badge, Button, ConfirmDialog, DatePicker, ErrorState, Field, IconButton, Input, Select, SkeletonRows, toast } from "@/components/arc";
+import { Badge, Button, ConfirmDialog, DatePicker, ErrorState, Field, IconButton, Input, Select, SkeletonRows, toast } from "@/components/ui";
 import { del, post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

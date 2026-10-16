@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { CheckCircle2, Columns3, LayoutList, Plus, UserRound } from "lucide-react";
-import { Button, EmptyState, ErrorState, Select, SegmentedControl, SkeletonRows, Switch, Tabs, toast } from "@/components/arc";
+import { Button, EmptyState, ErrorState, Select, SegmentedControl, SkeletonRows, Switch, Tabs, toast } from "@/components/ui";
 import { STATUSES, STATUS_META } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { useApi, useLocal } from "@/lib/hooks";
@@ -61,7 +61,6 @@ export default function MyTasks() {
   };
   const add = (defaults: Record<string, unknown>) => shell.newTask({ assigneeId: me.user.id, ...defaults }, () => q.reload());
   const canManage = can("tasks", "manage");
-  const counts = q.data ? list.filter((t) => t.status !== "DONE").length : undefined;
 
   let body;
   if (q.error && !q.data) body = <ErrorState error={q.error} onRetry={q.reload} />;
@@ -72,7 +71,7 @@ export default function MyTasks() {
         icon={<CheckCircle2 size={28} />}
         title={tab === "assigned" ? "Nothing assigned to you" : tab === "created" ? "You haven't created any tasks" : "You're not following any tasks"}
         description={tab === "following" ? "Follow a task from its detail panel to see updates here." : showDone ? undefined : "Completed tasks are hidden. Turn on “Show completed” to see them."}
-        action={can("tasks", "create") ? <Button variant="primary" icon={<Plus size={14} />} onClick={() => add({})}>New task</Button> : undefined}
+        action={can("tasks", "create") ? <Button variant="secondary" icon={<Plus size={14} />} onClick={() => add({})}>New task</Button> : undefined}
       />
     );
   } else if (view === "board") {
@@ -94,18 +93,20 @@ export default function MyTasks() {
         {can("tasks", "create") && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => add({})}>New task</Button>}
       </header>
       <div className="page-toolbar">
-        <Tabs
-          value={tab} onChange={(v) => setTab(v as Tab)}
-          items={[{ value: "assigned", label: "Assigned", count: tab === "assigned" ? counts : undefined }, { value: "created", label: "Created", count: tab === "created" ? counts : undefined }, { value: "following", label: "Following", count: tab === "following" ? counts : undefined }]}
-        />
+        <div className="page-tabs">
+          <Tabs
+            value={tab} onChange={(v) => setTab(v as Tab)}
+            items={[{ value: "assigned", label: "Assigned" }, { value: "created", label: "Created" }, { value: "following", label: "Following" }]}
+          />
+        </div>
+        <SegmentedControl aria-label="View" value={view} onChange={setView}
+          options={[{ value: "list", label: "List", icon: <LayoutList size={14} /> }, { value: "board", label: "Board", icon: <Columns3 size={14} /> }]} />
         <span className="grow" />
+        {view === "list" && <Switch checked={showDone} onChange={setShowDone} label={<span className="small muted">Show completed</span>} />}
         {view === "list" && (
           <Select size="sm" fullWidth={false} value={mode} onChange={(v) => setMode(v as GroupMode)} aria-label="Group by"
             options={[{ value: "due", label: "Group by due date" }, { value: "status", label: "Group by status" }]} />
         )}
-        {view === "list" && <Switch checked={showDone} onChange={setShowDone} label={<span className="small muted">Show completed</span>} />}
-        <SegmentedControl aria-label="View" value={view} onChange={setView}
-          options={[{ value: "list", label: "List", icon: <LayoutList size={14} /> }, { value: "board", label: "Board", icon: <Columns3 size={14} /> }]} />
       </div>
       <div className="page-body">{body}</div>
     </div>

@@ -15,7 +15,7 @@ import { PRIORITIES, STATUSES, dependencyImpact, nextNumber, nextOccurrence, ser
 
 export const tasksRouter = Router();
 
-export const UPLOAD_DIR = path.resolve(import.meta.dirname, "../../uploads");
+export const UPLOAD_DIR = process.env.UPLOAD_DIR || path.resolve(import.meta.dirname, "../../uploads");
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 const ALLOWED = /^(image\/(png|jpe?g|gif|webp)|application\/pdf|text\/(plain|csv|markdown)|application\/(zip|json)|application\/vnd\.openxmlformats-officedocument\.[\w.]+|application\/msword|application\/vnd\.ms-excel)$/;
 const upload = multer({

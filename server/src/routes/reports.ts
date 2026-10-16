@@ -75,23 +75,70 @@ function projectWeekTotals(req: Request, entries: RichEntry[]) {
   return { weeks, projects, cell };
 }
 
+// Grouped summary for exports: one row per combination of the chosen dimensions, in the order they were picked.
+const SUMMARY_DIMS = ["employee", "team", "client", "project", "subProject", "task", "date", "week"] as const;
+type SummaryDim = (typeof SUMMARY_DIMS)[number];
+const DIM_LABEL: Record<SummaryDim, string> = { employee: "Employee", team: "Team", client: "Client", project: "Project", subProject: "Sub-project", task: "Task", date: "Date", week: "Week" };
+type ExportRow = ReturnType<typeof entryRow>;
+const dimValue = (x: ExportRow, d: SummaryDim) => {
+  switch (d) {
+    case "employee": return x.user.name;
+    case "team": return x.team ?? "No team";
+    case "client": return x.client ?? "No client";
+    case "project": return x.project;
+    case "subProject": return x.subProject ?? "No sub-project";
+    case "task": return x.task ?? "No task";
+    case "date": return x.date;
+    case "week": return `Week of ${x.week}`;
+  }
+};
+function summarize(rows: ExportRow[], dims: SummaryDim[]) {
+  const map = new Map<string, { values: string[]; minutes: number; billable: number; entries: number }>();
+  for (const x of rows) {
+    const values = dims.map((d) => dimValue(x, d));
+    const k = values.join("\u0000");
+    const g = map.get(k) ?? { values, minutes: 0, billable: 0, entries: 0 };
+    g.minutes += x.minutes; g.billable += x.billable ? x.minutes : 0; g.entries++;
+    map.set(k, g);
+  }
+  return [...map.values()].sort((a, b) => {
+    for (let i = 0; i < dims.length; i++) { const c = a.values[i].localeCompare(b.values[i]); if (c) return c; }
+    return 0;
+  });
+}
+
 async function exportFile(req: Request, res: Response, format: "xlsx" | "csv" | "pdf") {
   const source = req.method === "GET" ? req.query : req.body;
   const f = filtersSchema.parse((source as { filters?: unknown }).filters ?? source);
   const cfg = configSchema.parse(parseJson((source as { config?: string }).config as string, {}));
   const r = await run(req, f, cfg, "export");
+  const opts = z.object({ summary: z.string().optional(), details: z.enum(["0", "1"]).default("1") }).parse(source);
+  const dims = [...new Set((opts.summary ?? "").split(",").filter((d): d is SummaryDim => (SUMMARY_DIMS as readonly string[]).includes(d)))];
+  const details = opts.details === "1" || !dims.length;
+  const summary = dims.length ? summarize(r.rows, dims) : [];
+  const summaryTitle = dims.map((d) => DIM_LABEL[d]).join(" › ");
   const company = req.company!;
-  const name = `timesheet-${f.from}-to-${f.to}`;
+  const name = `timesheet-${dims.length ? dims.join("-") + "-" : ""}${f.from}-to-${f.to}`;
   await audit(req, "export", "report", null, { new: { format, filters: f, rows: r.rows.length } });
   const { weeks, projects, cell } = projectWeekTotals(req, r.entries);
 
   if (format === "csv") {
+    const lines: string[] = [];
+    if (dims.length) {
+      lines.push(csvSafe(`Summary by ${summaryTitle}`));
+      lines.push([...dims.map((d) => DIM_LABEL[d]), "Hours", "Billable hours", "Entries"].map(csvSafe).join(","));
+      for (const g of summary) lines.push([...g.values, hours(g.minutes), hours(g.billable), g.entries].map(csvSafe).join(","));
+      lines.push([...dims.map((_, i) => (i === 0 ? "Total" : "")), hours(r.totals.minutes), hours(r.totals.billableMinutes), r.totals.entries].map(csvSafe).join(","));
+    }
+    if (details) {
+    if (lines.length) lines.push("");
     const header = ["Company", "Date", "Week", "Employee", "Team", "Client", "Project", "Sub-project", "Task", "Milestone", "Hours", "Billable", "Description"];
-    const lines = [header.join(",")];
+    lines.push(header.join(","));
     for (const x of r.rows) lines.push([company.name, x.date, x.week, x.user.name, x.team, x.client, x.project, x.subProject, x.task, x.milestone, hours(x.minutes), x.billable ? "Yes" : "No", x.description].map(csvSafe).join(","));
     lines.push("", ["Project", ...weeks.map((w) => `Week of ${w}`), "Total"].map(csvSafe).join(","));
     for (const p of projects) lines.push([p.name, ...weeks.map((w) => hours(cell.get(`${p.id}|${w}`) ?? 0)), hours(p.minutes)].map(csvSafe).join(","));
     lines.push(["Grand total", ...weeks.map((w) => hours(projects.reduce((s, p) => s + (cell.get(`${p.id}|${w}`) ?? 0), 0))), hours(r.totals.minutes)].map(csvSafe).join(","));
+    }
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader("Content-Disposition", `attachment; filename="${name}.csv"`);
     return res.send("﻿" + lines.join("\n"));
@@ -100,6 +147,14 @@ async function exportFile(req: Request, res: Response, format: "xlsx" | "csv" | 
   if (format === "xlsx") {
     const wb = new ExcelJS.Workbook();
     wb.creator = "Time Portal";
+    if (dims.length) {
+      const sw = wb.addWorksheet(`By ${summaryTitle}`.replace(/[*?:\\/[\]]/g, " ").slice(0, 31), { views: [{ state: "frozen", ySplit: 1 }] });
+      sw.addRow([...dims.map((d) => DIM_LABEL[d]), "Hours", "Billable hours", "Entries"]).font = { bold: true };
+      for (const g of summary) sw.addRow([...g.values, hours(g.minutes), hours(g.billable), g.entries]);
+      sw.addRow([...dims.map((_, i) => (i === 0 ? "Total" : "")), hours(r.totals.minutes), hours(r.totals.billableMinutes), r.totals.entries]).font = { bold: true };
+      dims.forEach((_, i) => { sw.getColumn(i + 1).width = 24; });
+      for (const i of [dims.length + 1, dims.length + 2]) { sw.getColumn(i).width = 14; sw.getColumn(i).numFmt = "0.00"; }
+    }
     const ws = wb.addWorksheet("Time entries", { views: [{ state: "frozen", ySplit: 1 }] });
     ws.columns = [
       { header: "Company", key: "company", width: 18 }, { header: "Date", key: "date", width: 12 }, { header: "Week", key: "week", width: 12 },
@@ -112,6 +167,7 @@ async function exportFile(req: Request, res: Response, format: "xlsx" | "csv" | 
     totalRow.font = { bold: true };
     ws.getRow(1).font = { bold: true };
     ws.autoFilter = { from: "A1", to: "L1" };
+    if (!details) wb.removeWorksheet(ws.id);
 
     const pw = wb.addWorksheet("Project weekly totals");
     pw.addRow(["Project", ...weeks.map((w) => `Week of ${w}`), "Total"]).font = { bold: true };
@@ -137,15 +193,21 @@ async function exportFile(req: Request, res: Response, format: "xlsx" | "csv" | 
   doc.fontSize(16).text(`${company.name} · Time report`).moveDown(0.2);
   doc.fontSize(9).fillColor("#666").text(`${f.from} to ${f.to} · generated ${new Date().toLocaleString()} by ${req.user!.name}`).moveDown();
   doc.fillColor("#000").fontSize(11).text(`Total ${hours(r.totals.minutes)} h · billable ${hours(r.totals.billableMinutes)} h · non-billable ${hours(r.totals.nonBillableMinutes)} h · ${r.totals.entries} entries`).moveDown();
-  doc.fontSize(11).text("Hours by project").moveDown(0.3);
-  doc.fontSize(9);
-  for (const p of projects) doc.text(`${p.name.padEnd(40, " ")} ${hours(p.minutes).toFixed(2)} h`);
-  doc.moveDown().fontSize(11).text("Entries").moveDown(0.3).fontSize(8);
-  for (const x of r.rows.slice(0, 400)) {
+  if (dims.length) {
+    doc.fontSize(11).text(`Hours by ${summaryTitle}`).moveDown(0.3).fontSize(9);
+    for (const g of summary) doc.text(`${g.values.join("  ›  ")}   ${hours(g.minutes).toFixed(2)} h${g.billable !== g.minutes ? ` (${hours(g.billable).toFixed(2)} h billable)` : ""}`);
+    doc.moveDown();
+  } else {
+    doc.fontSize(11).text("Hours by project").moveDown(0.3);
+    doc.fontSize(9);
+    for (const p of projects) doc.text(`${p.name.padEnd(40, " ")} ${hours(p.minutes).toFixed(2)} h`);
+  }
+  if (details) doc.moveDown().fontSize(11).text("Entries").moveDown(0.3).fontSize(8);
+  for (const x of details ? r.rows.slice(0, 400) : []) {
     doc.text(`${x.date}  ${x.user.name} · ${x.project}${x.subProject ? " › " + x.subProject : ""}${x.task ? " · " + x.task : ""} · ${hours(x.minutes).toFixed(2)} h ${x.billable ? "" : "(non-billable)"}`);
     doc.fillColor("#555").text(`    ${x.description}`).fillColor("#000");
   }
-  if (r.rows.length > 400) doc.moveDown().text(`…and ${r.rows.length - 400} more entries. Use the Excel export for the full list.`);
+  if (details && r.rows.length > 400) doc.moveDown().text(`…and ${r.rows.length - 400} more entries. Use the Excel export for the full list.`);
   doc.end();
 }
 

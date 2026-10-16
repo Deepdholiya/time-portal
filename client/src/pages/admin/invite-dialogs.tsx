@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { Button, Combobox, Dialog, Field, Input, Select, Switch, Textarea, toast } from "@/components/arc";
+import { Button, Combobox, Dialog, Field, Input, Select, Switch, Textarea, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { fmtDateTime, titleCase } from "@/lib/format";
 import type { Options } from "@/lib/types";
-import { copyText, SecretOnce } from "./shared";
+import { copyText, SecretOnce, useRoleOptions } from "./shared";
 
 type InviteResult = { invitation: { email: string; name: string; role: string; expiresAt: string }; tempPassword: string | null; existing: boolean };
 
@@ -68,15 +68,16 @@ export function InviteDialog({ onClose }: { onClose: () => void }) {
   }
 
   const projects = (opts.data?.projects ?? []).filter((p) => !p.parentId);
+  const roleOptions = useRoleOptions(isAdmin);
   return (
     <Dialog open onClose={onClose} title="Invite people" description={`They'll get an email with a temporary password for ${me.company.name}.`} size="lg" onSubmit={submit} dismissable={false}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitation</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitation</Button></>}>
       <div className="form-grid">
         <Field label="Full name" required error={errors.name}><Input autoFocus value={f.name} onChange={(e) => set("name", e.target.value)} placeholder="Jane Doe" name="name" /></Field>
         <Field label="Email" required error={errors.email}><Input type="email" value={f.email} onChange={(e) => set("email", e.target.value)} placeholder="jane@company.com" name="email" /></Field>
         <Field label="Role" hint={!isAdmin ? "Only admins can invite admins." : undefined}>
           <Select value={f.role} onChange={(v) => set("role", v)} aria-label="Role"
-            options={[{ value: "EMPLOYEE", label: "Employee" }, { value: "MANAGER", label: "Manager" }, ...(isAdmin ? [{ value: "ADMIN", label: "Admin" }] : [])]} />
+            options={roleOptions} />
         </Field>
         <Field label="Title"><Input value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Frontend Developer" /></Field>
         <Field label="Team"><Select value={f.teamId} onChange={(v) => set("teamId", v)} options={[{ value: "", label: "No team" }, ...(opts.data?.teams ?? []).map((t) => ({ value: String(t.id), label: t.name }))]} /></Field>
@@ -121,7 +122,7 @@ export function BulkInviteDialog({ onClose }: { onClose: () => void }) {
       onSubmit={rows ? undefined : submit}
       footer={rows
         ? <>{passwords && <Button variant="ghost" onClick={() => copyText(passwords, "Passwords copied")}>Copy emails + passwords</Button>}<Button variant="primary" onClick={onClose}>Done</Button></>
-        : <><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitations</Button></>}>
+        : <><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Send invitations</Button></>}>
       {!rows ? (
         <div className="col gap-12">
           <Textarea rows={9} value={csv} onChange={(e) => setCsv(e.target.value)} placeholder={SAMPLE} className="mono" aria-label="CSV" />

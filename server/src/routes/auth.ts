@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { prisma, audit, notify, companySettings, parseJson } from "../db.js";
 import { HttpError, clearSession, loadSession, randomToken, startSession } from "../auth.js";
 import { appUrl, mailConfigured, sendMail } from "../mail.js";
+import { companyRoles } from "../permissions.js";
 
 export const authRouter = Router();
 
@@ -170,6 +171,7 @@ authRouter.get("/me", async (req, res) => {
     permissions: req.perms ?? null,
     company: company ? { ...company, settings } : null,
     companies: companies.map((c) => ({ id: c.id, name: c.name, color: c.color, slug: c.slug })),
+    roles: company ? (await companyRoles(company.id)).map((r) => ({ key: r.key, name: r.name })) : [],
     mfaSetupRequired: !!(settings?.enforceAdminMfa && user.role === "ADMIN" && !user.mfaEnabled),
   });
 });

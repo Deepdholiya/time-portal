@@ -98,7 +98,7 @@ calendarRouter.get("/", async (req, res) => {
 });
 
 // ---------- Leave ----------
-const leaveSchema = z.object({ type: z.enum(["VACATION", "SICK", "PERSONAL", "OTHER"]).default("VACATION"), from: DATE, to: DATE, halfDay: z.boolean().default(false), reason: z.string().max(1000).nullish() });
+const leaveSchema = z.object({ userId: z.number().int().optional(), type: z.enum(["VACATION", "SICK", "PERSONAL", "HOLIDAY", "OTHER"]).default("VACATION"), from: DATE, to: DATE, halfDay: z.boolean().default(false), reason: z.string().max(1000).nullish() });
 
 leaveRouter.get("/", async (req, res) => {
   const rows = await prisma.leaveRequest.findMany({ where: { companyId: cid(req), userId: uid(req) }, include: { reviewedBy: { select: { name: true } } }, orderBy: { from: "desc" } });
@@ -107,22 +107,49 @@ leaveRouter.get("/", async (req, res) => {
   res.json(rows.map((r) => ({ ...r, days: workingDays(r.from, r.to, c.workWeek, holidays) * (r.halfDay ? 0.5 : 1) })));
 });
 
+// People request their own leave, which waits for approval. Approvers can also add leave or a day off for someone else,
+// which is approved straight away.
 leaveRouter.post("/", async (req, res) => {
-  const d = leaveSchema.parse(req.body);
+  const { userId: forId, ...d } = leaveSchema.parse(req.body);
   if (d.to < d.from) throw new HttpError(400, "The end date must be on or after the start date");
-  const clash = await prisma.leaveRequest.findFirst({ where: { companyId: cid(req), userId: uid(req), status: { in: ["PENDING", "APPROVED"] }, from: { lte: d.to }, to: { gte: d.from } } });
-  if (clash) throw new HttpError(409, `You already have leave from ${clash.from} to ${clash.to}`);
-  const l = await prisma.leaveRequest.create({ data: { companyId: cid(req), userId: uid(req), ...d, reason: d.reason ?? null } });
-  await audit(req, "leave_requested", "leave", l.id, { new: d });
-  const approvers = await prisma.user.findMany({ where: { role: { in: ["MANAGER", "ADMIN"] }, status: "ACTIVE", id: { not: uid(req) }, memberships: { some: { companyId: cid(req) } } }, select: { id: true } });
-  await notify(approvers.map((a) => a.id), { companyId: cid(req), type: "LEAVE_REQUESTED", title: `${req.user!.name} requested leave ${d.from} to ${d.to}`, link: "/approvals?tab=leave" });
+  const userId = forId ?? uid(req);
+  const forOther = userId !== uid(req);
+  let person = req.user!.name;
+  if (forOther) {
+    if (!can(req, "leaveApprove", "yes")) throw new HttpError(403, "Only approvers can add leave for someone else");
+    const u = await prisma.user.findFirst({ where: { id: userId, memberships: { some: { companyId: cid(req) } } }, select: { name: true } });
+    if (!u) throw new HttpError(404, "That person isn't in this company");
+    person = u.name;
+  }
+  const clash = await prisma.leaveRequest.findFirst({ where: { companyId: cid(req), userId, status: { in: ["PENDING", "APPROVED"] }, from: { lte: d.to }, to: { gte: d.from } } });
+  if (clash) throw new HttpError(409, `${forOther ? `${person} already has` : "You already have"} leave from ${clash.from} to ${clash.to}`);
+  const l = await prisma.leaveRequest.create({
+    data: { companyId: cid(req), userId, ...d, reason: d.reason ?? null, ...(forOther ? { status: "APPROVED", reviewedById: uid(req) } : {}) },
+  });
+  await audit(req, forOther ? "leave_added" : "leave_requested", "leave", l.id, { new: { ...d, userId } });
+  if (forOther) {
+    await notify([userId], { companyId: cid(req), type: "LEAVE_REVIEWED", title: `${req.user!.name} added ${d.type === "HOLIDAY" ? "a holiday" : "leave"} for you: ${d.from} to ${d.to}`, body: d.reason ?? undefined, link: "/leave" });
+  } else {
+    const approvers = await prisma.user.findMany({ where: { role: { in: ["MANAGER", "ADMIN"] }, status: "ACTIVE", id: { not: uid(req) }, memberships: { some: { companyId: cid(req) } } }, select: { id: true } });
+    await notify(approvers.map((a) => a.id), { companyId: cid(req), type: "LEAVE_REQUESTED", title: `${req.user!.name} requested leave ${d.from} to ${d.to}`, link: "/approvals?tab=leave" });
+  }
   res.status(201).json(l);
 });
 
+// Everyone's upcoming and recent leave, for approvers managing the team's time off.
+leaveRouter.get("/team", requirePerm("leaveApprove", "yes"), async (req, res) => {
+  const from = today().slice(0, 4) + "-01-01";
+  const rows = await prisma.leaveRequest.findMany({ where: { companyId: cid(req), status: { in: ["APPROVED", "PENDING"] }, to: { gte: from } }, include: { user: { select: { id: true, name: true } }, reviewedBy: { select: { name: true } } }, orderBy: { from: "asc" } });
+  const c = req.company!;
+  const holidays = new Set((await prisma.holiday.findMany({ where: { companyId: c.id } })).map((h) => h.date));
+  res.json(rows.map((r) => ({ ...r, days: workingDays(r.from, r.to, c.workWeek, holidays) * (r.halfDay ? 0.5 : 1) })));
+});
+
 leaveRouter.post("/:id/cancel", async (req, res) => {
-  const l = await prisma.leaveRequest.findFirst({ where: { id: Number(req.params.id), companyId: cid(req), userId: uid(req) } });
+  const approver = can(req, "leaveApprove", "yes");
+  const l = await prisma.leaveRequest.findFirst({ where: { id: Number(req.params.id), companyId: cid(req), ...(approver ? {} : { userId: uid(req) }) } });
   if (!l) throw new HttpError(404, "Leave request not found");
-  if (l.status === "APPROVED" && l.from <= today()) throw new HttpError(409, "Leave that has started can't be cancelled. Ask your manager.");
+  if (!approver && l.status === "APPROVED" && l.from <= today()) throw new HttpError(409, "Leave that has started can't be cancelled. Ask your manager.");
   await prisma.leaveRequest.update({ where: { id: l.id }, data: { status: "CANCELLED" } });
   await audit(req, "leave_cancelled", "leave", l.id);
   res.json({ ok: true });
@@ -145,7 +172,7 @@ leaveRouter.post("/:id/review", requirePerm("leaveApprove", "yes"), async (req, 
   if (d.status === "REJECTED" && !d.note?.trim()) throw new HttpError(400, "Add a note explaining why");
   await prisma.leaveRequest.update({ where: { id: l.id }, data: { status: d.status, reviewNote: d.note ?? null, reviewedById: uid(req) } });
   await audit(req, d.status === "APPROVED" ? "leave_approved" : "leave_rejected", "leave", l.id, { old: { status: l.status }, new: { status: d.status }, reason: d.note });
-  await notify([l.userId], { companyId: cid(req), type: "LEAVE_REVIEWED", title: `Your leave ${l.from} to ${l.to} was ${d.status === "APPROVED" ? "approved" : "declined"}`, body: d.note, link: "/calendar" });
+  await notify([l.userId], { companyId: cid(req), type: "LEAVE_REVIEWED", title: `Your leave ${l.from} to ${l.to} was ${d.status === "APPROVED" ? "approved" : "declined"}`, body: d.note, link: "/timesheet?view=calendar" });
   res.json({ ok: true });
 });
 

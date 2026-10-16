@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Calendar, KeyRound, Mail, MessageSquare, Plug, Sparkles } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Badge, Button, ErrorState, Field, Input, SkeletonRows, Switch, toast } from "@/components/arc";
+import { Badge, Button, ErrorState, Field, Input, SkeletonRows, Switch, toast } from "@/components/ui";
 import { put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";

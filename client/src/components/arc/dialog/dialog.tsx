@@ -1,107 +1,72 @@
-import { useEffect, useRef, type ReactNode } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+"use client";
+
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { createContext, useCallback, useContext, useLayoutEffect, useRef, useState } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { Transition } from "motion/react";
 import { X } from "lucide-react";
-import { Button, IconButton } from "../button/button";
-import { cx, useLayerId } from "../_lib/floating";
-import s from "./dialog.module.css";
+import { motionTokens } from "../lib/motion-tokens";
+import styles from "./dialog.module.css";
 
-export interface DialogProps {
-  open: boolean;
-  onClose: () => void;
-  title?: ReactNode;
-  description?: ReactNode;
-  children?: ReactNode;
-  footer?: ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
-  /** Wrap the body in a form; Enter submits. */
-  onSubmit?: () => void;
-  /** Prevent closing by clicking the backdrop (for forms with unsaved input). */
-  dismissable?: boolean;
+/** Mirrors the open state so the content can stay mounted while it animates out, and retarget mid-flight if it is reopened or closed early. */
+const OpenContext = createContext<boolean | null>(null);
+
+export function Dialog({ open: openProp, defaultOpen = false, onOpenChange, ...props }: ComponentPropsWithoutRef<typeof DialogPrimitive.Root>) {
+  const [uncontrolled, setUncontrolled] = useState(defaultOpen);
+  const open = openProp ?? uncontrolled;
+  const setOpen = useCallback((next: boolean) => { if (openProp === undefined) setUncontrolled(next); onOpenChange?.(next); }, [openProp, onOpenChange]);
+  return <OpenContext.Provider value={open}><DialogPrimitive.Root {...props} open={open} onOpenChange={setOpen}/></OpenContext.Provider>;
 }
 
-export function Dialog({ open, onClose, title, description, children, footer, size = "md", onSubmit, dismissable = true }: DialogProps) {
-  const layer = useLayerId(open);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.activeElement as HTMLElement | null;
-    const t = setTimeout(() => {
-      const first = ref.current?.querySelector<HTMLElement>("[autofocus], input:not([type=hidden]):not([disabled]), textarea, select");
-      (first ?? ref.current)?.focus();
-    }, 30);
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      const top = Math.max(0, ...[...document.querySelectorAll<HTMLElement>("[data-layer]")].map((l) => Number(l.dataset.layer)));
-      if (top > layer) return;
-      onClose();
-    };
-    document.addEventListener("keydown", key);
-    return () => { clearTimeout(t); document.removeEventListener("keydown", key); prev?.focus?.(); };
-  }, [open, layer, onClose]);
+export const DialogTrigger = DialogPrimitive.Trigger;
+export const DialogClose = DialogPrimitive.Close;
 
-  const Body = onSubmit ? "form" : "div";
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className={s.overlay}
-          data-layer={layer}
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
-          onMouseDown={(e) => { if (dismissable && e.target === e.currentTarget) onClose(); }}
-        >
-          <motion.div
-            ref={ref}
-            role="dialog"
-            aria-modal="true"
-            tabIndex={-1}
-            className={cx(s.dialog, s[size])}
-            initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
-          >
-            <Body
-              style={{ display: "contents" }}
-              onSubmit={onSubmit ? (e: React.FormEvent) => { e.preventDefault(); onSubmit(); } : undefined}
-            >
-              {(title || description) && (
-                <div className={s.header}>
-                  <div>
-                    {title && <div className={s.title}>{title}</div>}
-                    {description && <div className={s.description}>{description}</div>}
-                  </div>
-                  <IconButton className={s.close} label="Close" icon={<X size={16} />} onClick={onClose} />
-                </div>
-              )}
-              {children && <div className={s.body}>{children}</div>}
-              {footer && <div className={s.footer}>{footer}</div>}
-            </Body>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    document.body,
-  );
+export interface DialogContentProps extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  title: string;
+  description?: string;
+  children: ReactNode;
 }
 
-/** Confirmation dialog for destructive or outward-facing actions. */
-export function ConfirmDialog({ open, onClose, onConfirm, title, description, confirmLabel = "Confirm", danger, loading, children }: {
-  open: boolean; onClose: () => void; onConfirm: () => void; title: ReactNode; description?: ReactNode; confirmLabel?: string; danger?: boolean; loading?: boolean; children?: ReactNode;
-}) {
-  return (
-    <Dialog
-      open={open} onClose={onClose} title={title} description={description} size="sm" onSubmit={onConfirm}
-      footer={<><ButtonRow onClose={onClose} confirmLabel={confirmLabel} danger={danger} loading={loading} /></>}
-    >
-      {children}
-    </Dialog>
-  );
+const fade: Transition = { duration: motionTokens.duration.instant };
+const leave: Transition = { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] };
+
+/** When the title or description changes while open, the new copy rises in and the old copy leaves upward. */
+function SwapText({ text }: { text: string }) {
+  const reduced = useReducedMotion();
+  return <AnimatePresence mode="popLayout" initial={false}>
+    <motion.span key={text} className={styles.swap} initial={reduced ? false : { opacity: 0, y: "0.3em", filter: `blur(${motionTokens.blur.soft}px)` }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={reduced ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, y: "-0.3em", filter: `blur(${motionTokens.blur.subtle}px)`, transition: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] } }} transition={{ duration: motionTokens.duration.standard, ease: [...motionTokens.ease.enter] }}>{text}</motion.span>
+  </AnimatePresence>;
 }
 
-function ButtonRow({ onClose, confirmLabel, danger, loading }: { onClose: () => void; confirmLabel: string; danger?: boolean; loading?: boolean }) {
-  return (
-    <>
-      <Button variant="ghost" onClick={onClose}>Cancel</Button>
-      <Button type="submit" variant={danger ? "danger" : "primary"} loading={loading}>{confirmLabel}</Button>
-    </>
-  );
+export function DialogContent({ title, description, children, className, onPointerDownOutside, ...props }: DialogContentProps) {
+  const open = useContext(OpenContext);
+  const reduced = useReducedMotion();
+  // When the open state last changed. Radix waits for the click before treating a press as outside, and a press on the trigger
+  // while the dialog leaves reopens it first, so that press must not close it again.
+  const change = useRef({ open, at: 0 });
+  useLayoutEffect(() => { change.current = { open, at: performance.now() }; }, [open]);
+  const pressOutside: DialogContentProps["onPointerDownOutside"] = event => {
+    onPointerDownOutside?.(event);
+    if (open !== null && (!change.current.open || event.detail.originalEvent.timeStamp < change.current.at)) event.preventDefault();
+  };
+  const classes = [styles.content, className].filter(Boolean).join(" ");
+  const inner = <>
+    <div className={styles.header}><div><DialogPrimitive.Title className={styles.title}><SwapText text={title}/></DialogPrimitive.Title>{description ? <DialogPrimitive.Description className={styles.description}><SwapText text={description}/></DialogPrimitive.Description> : null}</div><DialogPrimitive.Close className={styles.close} aria-label="Close dialog"><X size={16} strokeWidth={1.75} aria-hidden="true"/></DialogPrimitive.Close></div>
+    <div className={styles.body}>{children}</div>
+  </>;
+  // Under a bare Radix root the open state is unknown here, so CSS keyframes keyed off data-state animate the layers instead.
+  if (open === null) return <DialogPrimitive.Portal>
+    <DialogPrimitive.Overlay className={`${styles.overlay} ${styles.keyframes}`}/>
+    <DialogPrimitive.Content {...props} onPointerDownOutside={pressOutside} className={`${classes} ${styles.keyframes}`}>{inner}</DialogPrimitive.Content>
+  </DialogPrimitive.Portal>;
+  // The overlay fades while the dialog rises 8px and scales up on a spring. Closing is shorter and quieter, and starts from wherever the entrance is.
+  return <AnimatePresence>
+    {open && <DialogPrimitive.Portal key="dialog" forceMount>
+      <DialogPrimitive.Overlay asChild forceMount><motion.div className={styles.overlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: reduced ? fade : leave }} transition={reduced ? fade : { duration: motionTokens.duration.standard, ease: [...motionTokens.ease.enter] }}/></DialogPrimitive.Overlay>
+      <DialogPrimitive.Content {...props} onPointerDownOutside={pressOutside} asChild forceMount>
+        <motion.div className={classes} initial={reduced ? { opacity: 0 } : { opacity: 0, y: 8, scale: .96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={reduced ? { opacity: 0, transition: fade } : { opacity: 0, y: 4, scale: .98, transition: leave }} transition={reduced ? fade : { default: motionTokens.spring.smooth, opacity: { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.enter] } }}>{inner}</motion.div>
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Portal>}
+  </AnimatePresence>;
 }

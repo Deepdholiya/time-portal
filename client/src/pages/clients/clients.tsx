@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Archive, ArchiveRestore, Briefcase, MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Briefcase, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, SegmentedControl, SkeletonRows, toast } from "@/components/arc";
+import { Badge, Button, ConfirmDialog, Dialog, EmptyState, ErrorState, Field, IconButton, Input, Menu, SegmentedControl, SkeletonRows, toast } from "@/components/ui";
 import { del, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { hours, money } from "@/lib/format";
 import { numOrNull } from "../admin/shared";
+import { SearchField } from "@/components/app/search-field";
 
 export interface Client {
   id: number; name: string; email: string | null; contactName: string | null; phone: string | null; website: string | null; rate?: number | null; archived: boolean;
@@ -44,7 +45,7 @@ export default function Clients() {
 
   const toolbar = (
     <>
-      <Input size="sm" icon={<Search size={14} />} placeholder="Search clients" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 220 }} />
+      <SearchField placeholder="Search clients" value={q} onChange={setQ} />
       <SegmentedControl aria-label="Show" value={show} onChange={setShow} options={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }, { value: "all", label: "All" }]} />
       <div className="grow" />
       {data && <span className="small faint">{rows.length} of {data.length}</span>}
@@ -54,17 +55,17 @@ export default function Clients() {
   return (
     <Page title="Clients" icon={<Briefcase size={15} />} toolbar={toolbar} actions={manage && <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit("new")}>New client</Button>}>
       {error ? <ErrorState error={error} onRetry={reload} /> : loading && !data ? <SkeletonRows /> : !rows.length ? (
-        <EmptyState icon={<Briefcase size={28} />} title={data?.length ? "No clients match" : "No clients yet"} description={data?.length ? "Try another search or filter." : "Add the companies you do work for, then link projects to them."} action={manage && !data?.length && <Button variant="primary" onClick={() => setEdit("new")}>Add a client</Button>} />
+        <EmptyState icon={<Briefcase size={28} />} title={data?.length ? "No clients match" : "No clients yet"} description={data?.length ? "Try another search or filter." : "Add the companies you do work for, then link projects to them."} action={manage && !data?.length && <Button variant="secondary" onClick={() => setEdit("new")}>Add a client</Button>} />
       ) : (
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Client</th><th>Contact</th><th>Email</th><th>Phone</th>
-                {fin && <th className="num">Rate / h</th>}
-                <th className="num">Active projects</th><th className="num">Tracked</th>
-                {fin && <th className="num">Revenue</th>}
-                <th style={{ width: 40 }} />
+                <th>Client</th><th style={{ width: 170 }}>Contact</th><th>Email</th><th className="hide-sm" style={{ width: 170 }}>Phone</th>
+                {fin && <th className="num" style={{ width: 110 }}>Rate / h</th>}
+                <th className="num" style={{ width: 130 }}>Active projects</th><th className="num" style={{ width: 110 }}>Tracked</th>
+                {fin && <th className="num" style={{ width: 140 }}>Revenue</th>}
+                <th style={{ width: 44 }} aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
@@ -77,8 +78,8 @@ export default function Clients() {
                     </span>
                   </td>
                   <td className="muted">{c.contactName ?? <span className="faint">—</span>}</td>
-                  <td>{c.email ? <a className="link" href={`mailto:${c.email}`} onClick={(e) => e.stopPropagation()}>{c.email}</a> : <span className="faint">—</span>}</td>
-                  <td className="muted num">{c.phone ?? <span className="faint">—</span>}</td>
+                  <td>{c.email ? <a className="muted" href={`mailto:${c.email}`} onClick={(e) => e.stopPropagation()}>{c.email}</a> : <span className="faint">—</span>}</td>
+                  <td className="hide-sm muted tnum">{c.phone ?? <span className="faint">—</span>}</td>
                   {fin && <td className="num">{c.rate != null ? money(c.rate, currency) : <span className="faint">—</span>}</td>}
                   <td className="num">{c.activeProjects}<span className="faint"> / {c.projects.length}</span></td>
                   <td className="num">{hours(c.trackedMinutes)}h</td>
@@ -136,7 +137,7 @@ function ClientDialog({ client, fin, currency, onClose }: { client: Client | nul
 
   return (
     <Dialog open onClose={onClose} title={client ? "Edit client" : "New client"} onSubmit={save} dismissable={false}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{client ? "Save" : "Add client"}</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>{client ? "Save" : "Add client"}</Button></>}>
       <div className="form-grid">
         <Field label="Name" required error={err} className="full"><Input autoFocus value={f.name} onChange={(e) => { set("name")(e); setErr(""); }} placeholder="Acme Corp" /></Field>
         <Field label="Contact person"><Input value={f.contactName} onChange={set("contactName")} /></Field>

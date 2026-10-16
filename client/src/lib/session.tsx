@@ -1,3 +1,4 @@
+import { applyBrand } from "./brand";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, ApiError, post } from "./api";
 import { invalidate } from "./hooks";
@@ -6,6 +7,7 @@ import type { Me } from "./types";
 // Ordered levels per feature, mirroring server/src/permissions.ts. The server is the authority; this only hides UI.
 export const LEVELS: Record<string, string[]> = {
   timesheetsView: ["own", "all"], editOthersTime: ["no", "yes"], approveTimesheets: ["no", "yes"], leaveApprove: ["no", "yes"],
+  expenseApprove: ["no", "yes"],
   analytics: ["none", "own", "all"], financials: ["none", "view"], export: ["none", "own", "all"], roadmap: ["none", "view", "edit"],
   projects: ["view", "manage"], tasks: ["own", "create", "manage"], directory: ["limited", "full"], people: ["none", "invite", "manage"],
   aiAssist: ["no", "yes"], clientEmail: ["no", "yes"], audit: ["no", "yes"], settings: ["no", "yes"], companies: ["no", "yes"],
@@ -18,6 +20,8 @@ interface SessionValue {
   /** True when the user's level for `feature` is at least `level` (defaults to the lowest non-zero level). */
   can: (feature: string, level?: string) => boolean;
   isAdmin: boolean;
+  /** Sidebar pages an admin hid for this person's role. */
+  navHidden: string[];
   isManager: boolean;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;
@@ -42,6 +46,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { applyBrand(me?.company.color); }, [me?.company.color]);
   useEffect(() => {
     const h = () => refresh();
     window.addEventListener("tp:session", h);
@@ -69,7 +74,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const need = level ?? order[1] ?? order[0];
       return order.indexOf(have) >= order.indexOf(need);
     };
-    return { status, me, can, isAdmin: me?.user.role === "ADMIN", isManager: me?.user.role === "MANAGER", refresh, logout, switchCompany };
+    const navHidden = me && me.user.role !== "ADMIN" ? me.company.settings.navHidden?.[me.user.role] ?? [] : [];
+    return { status, me, can, navHidden, isAdmin: me?.user.role === "ADMIN", isManager: me?.user.role === "MANAGER", refresh, logout, switchCompany };
   }, [status, me, refresh, logout, switchCompany]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronRight, ListTree } from "lucide-react";
-import { Button, EmptyState, SegmentedControl, SkeletonRows } from "@/components/arc";
+import { Button, EmptyState, SegmentedControl, SkeletonRows } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { useApi } from "@/lib/hooks";
 import { hm, hours } from "@/lib/format";

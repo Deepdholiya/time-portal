@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { LogOut, MonitorSmartphone, RotateCcw } from "lucide-react";
-import { Badge, Button, Combobox, Dialog, Field, Input, Select, SkeletonRows, Switch, Tooltip, toast, ErrorState } from "@/components/arc";
+import { Badge, Button, Combobox, Dialog, Field, Input, Select, SkeletonRows, Switch, Tooltip, toast, ErrorState } from "@/components/ui";
 import { get, post, put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { fmtDateTime, relTime, titleCase } from "@/lib/format";
 import type { Options } from "@/lib/types";
-import { numOrNull } from "./shared";
+import { numOrNull, useRoleName, useRoleOptions } from "./shared";
 import type { AdminUser } from "./users-members";
 
 export type FeatureDef = { label: string; group: string; levels: string[]; help: string };
@@ -16,6 +16,7 @@ export const FEATURE_LABELS: Record<string, FeatureDef> = {
   editOthersTime: { label: "Edit others' time", group: "Time", levels: ["no", "yes"], help: "Add, edit and delete time for other people" },
   approveTimesheets: { label: "Approve timesheets", group: "Time", levels: ["no", "yes"], help: "Approve or send back weekly timesheets, unlock approved weeks" },
   leaveApprove: { label: "Approve leave", group: "Time", levels: ["no", "yes"], help: "Approve or reject leave requests" },
+  expenseApprove: { label: "Approve reimbursements", group: "Time", levels: ["no", "yes"], help: "Approve or reject reimbursement requests" },
   analytics: { label: "Analytics", group: "Insights", levels: ["none", "own", "all"], help: "Dashboards, reports and drill-down" },
   financials: { label: "Financials", group: "Insights", levels: ["none", "view"], help: "Rates, revenue, cost, profit and budgets" },
   export: { label: "Export", group: "Insights", levels: ["none", "own", "all"], help: "Excel, CSV and PDF exports" },
@@ -44,6 +45,7 @@ export function EditUserDialog({ user, onClose }: { user: AdminUser; onClose: ()
   const [busy, setBusy] = useState(false);
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
   const self = user.id === me.user.id;
+  const roleOptions = useRoleOptions(true);
 
   const save = async () => {
     setBusy(true);
@@ -64,11 +66,11 @@ export function EditUserDialog({ user, onClose }: { user: AdminUser; onClose: ()
   const projects = (opts.data?.projects ?? []).filter((p) => !p.parentId);
   return (
     <Dialog open onClose={onClose} title={`Edit ${user.name}`} description={user.email} size="lg" onSubmit={save} dismissable={false}
-      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Save changes</Button></>}>
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy}>Save changes</Button></>}>
       <div className="form-grid">
         <Field label="Name"><Input value={f.name} onChange={(e) => set("name", e.target.value)} /></Field>
         <Field label="Role" hint={self ? "You can't change your own role." : !isAdmin ? "Only admins can change roles." : undefined}>
-          <Select value={f.role} onChange={(v) => set("role", v)} disabled={self || !isAdmin} options={[{ value: "EMPLOYEE", label: "Employee" }, { value: "MANAGER", label: "Manager" }, { value: "ADMIN", label: "Admin" }]} />
+          <Select value={f.role} onChange={(v) => set("role", v)} disabled={self || !isAdmin} options={roleOptions} />
         </Field>
         <Field label="Title"><Input value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Product Designer" /></Field>
         <Field label="Team"><Select value={f.teamId} onChange={(v) => set("teamId", v)} options={[{ value: "", label: "No team" }, ...(opts.data?.teams ?? []).map((t) => ({ value: String(t.id), label: t.name }))]} /></Field>
@@ -95,6 +97,7 @@ export function EditUserDialog({ user, onClose }: { user: AdminUser; onClose: ()
 
 type PermResp = { role: Record<string, string>; effective: Record<string, string>; overrides: Record<string, string> };
 export function PermissionsDialog({ user, onClose }: { user: AdminUser; onClose: () => void }) {
+  const roleName = useRoleName();
   const [data, setData] = useState<PermResp | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [draft, setDraft] = useState<Record<string, string | null>>({});
@@ -113,8 +116,8 @@ export function PermissionsDialog({ user, onClose }: { user: AdminUser; onClose:
   const groups = [...new Set(Object.values(FEATURE_LABELS).map((f) => f.group))];
 
   return (
-    <Dialog open onClose={onClose} size="lg" title={`Access for ${user.name}`} description={`Overrides apply on top of the ${titleCase(user.role)} role in this company. Leave a feature on "Role default" to follow the role.`}
-      onSubmit={save} footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy} disabled={!Object.keys(draft).length}>Save overrides</Button></>}>
+    <Dialog open onClose={onClose} size="lg" title={`Access for ${user.name}`} description={`Overrides apply on top of the ${roleName(user.role)} role in this company. Leave a feature on "Role default" to follow the role.`}
+      onSubmit={save} footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" variant="primary" loading={busy} disabled={!Object.keys(draft).length}>Save overrides</Button></>}>
       {error ? <ErrorState error={error} /> : !data ? <SkeletonRows rows={6} /> : (
         <div className="col" style={{ gap: 0 }}>
           {groups.map((g) => (

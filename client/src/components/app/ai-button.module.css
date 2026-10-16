@@ -1,0 +1,33 @@
+.btn {
+  --ai-gradient: linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #ff4c00 100%);
+  position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px;
+  background: var(--ai-gradient); color: #fff; cursor: pointer;
+  box-shadow: 0 1px 2px rgb(124 58 237 / 0.25), inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+}
+.sm { width: 28px; height: 28px; border-radius: 8px; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08) saturate(1.05); box-shadow: 0 4px 12px rgb(236 72 153 / 0.28), inset 0 0 0 1px rgb(255 255 255 / 0.18); }
+.btn:active:not(:disabled) { transform: translateY(0); filter: brightness(.97); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--sh-background, #fff), 0 0 0 4px #a855f7; }
+.btn:disabled { cursor: not-allowed; filter: grayscale(.55) opacity(.55); }
+.btn[aria-busy="true"] { cursor: progress; filter: none; opacity: 1; }
+.spin { width: 14px; height: 14px; border-radius: 50%; border: 1.75px solid rgb(255 255 255 / 0.4); border-top-color: #fff; animation: ai-spin .7s linear infinite; }
+.sm .spin { width: 12px; height: 12px; }
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .btn, .btn:hover:not(:disabled) { transition: none; transform: none; } }
+
+.panel { border: 1px solid var(--border); background: var(--bg-subtle); border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
+.panelHead { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.panelIcon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #ff4c00 100%); color: #fff; flex-shrink: 0; }
+.panelTitle { font-size: 12px; font-weight: 500; color: var(--text-2); flex: 1; min-width: 0; }
+.source { font-size: 11px; color: var(--text-3); }
+.panelBody { white-space: pre-wrap; color: var(--text); }
+.close { border: 0; background: none; color: var(--text-3); cursor: pointer; display: inline-flex; padding: 2px; border-radius: 6px; }
+.close:hover { color: var(--text); background: var(--bg-hover); }
+
+.insight { padding: 6px; }
+.insight .panel { border: 0; background: none; padding: 8px 10px 6px; }
+.insightFoot { display: flex; justify-content: flex-end; padding: 0 4px 2px; }
+.thinking { display: inline-flex; align-items: center; gap: 8px; color: var(--text-3); }
+.spinDark { width: 13px; height: 13px; border-radius: 50%; border: 1.75px solid var(--border-strong); border-top-color: #a855f7; animation: ai-spin .7s linear infinite; }

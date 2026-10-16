@@ -1,6 +1,6 @@
 import type { MouseEvent, ReactNode } from "react";
 import { AlertTriangle, Ban, Repeat } from "lucide-react";
-import { Avatar, Checkbox, Tooltip } from "@/components/arc";
+import { Avatar, Checkbox, Tooltip } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
 import { AssigneePicker, PriorityPicker, StatusPicker } from "@/components/app/properties";
 import { dueLabel, fmtDate } from "@/lib/format";

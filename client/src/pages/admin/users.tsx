@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Search, Upload, UserCog } from "lucide-react";
+import { Plus, Upload, UserCog } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Button, Input, Select, Tabs } from "@/components/arc";
+import { Button, Tabs } from "@/components/ui";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
 import { Members, type AdminUser } from "./users-members";
 import { Invitations, type Invitation } from "./users-invitations";
 import { BulkInviteDialog, InviteDialog } from "./invite-dialogs";
+import { SearchField } from "@/components/app/search-field";
+import { FilterMenu } from "@/components/app/filter-menu";
 
 export default function Users() {
   const { can } = useMe();
@@ -15,7 +17,7 @@ export default function Users() {
   const tab = params.get("tab") === "invitations" ? "invitations" : "members";
   const [q, setQ] = useState(params.get("q") ?? "");
   const [status, setStatus] = useState("");
-  const [invite, setInvite] = useState(false);
+  const [invite, setInvite] = useState(params.get("invite") === "1");
   const [bulk, setBulk] = useState(false);
   const users = useApi<AdminUser[]>("/people/users");
   const invites = useApi<Invitation[]>("/people/invitations");
@@ -29,11 +31,11 @@ export default function Users() {
         { value: "members", label: "Members", count: users.data?.length },
         { value: "invitations", label: "Invitations", count: pending || undefined },
       ]} />
-      <div className="grow" />
-      <Input size="sm" icon={<Search size={14} />} placeholder={tab === "members" ? "Search people" : "Search invitations"} value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 220 }} />
-      <Select size="sm" fullWidth={false} value={status} onChange={setStatus} aria-label="Status" options={tab === "members"
-        ? [{ value: "", label: "Any status" }, { value: "ACTIVE", label: "Active" }, { value: "INVITED", label: "Invited" }, { value: "DEACTIVATED", label: "Deactivated" }]
-        : [{ value: "", label: "Any status" }, { value: "PENDING", label: "Pending" }, { value: "ACCEPTED", label: "Accepted" }, { value: "EXPIRED", label: "Expired" }, { value: "REVOKED", label: "Revoked" }]} />
+      <SearchField placeholder={tab === "members" ? "Search people" : "Search invitations"} value={q} onChange={setQ} />
+      <FilterMenu placement="bottom-start" sections={[{ key: "status", label: "Status", single: true, options: tab === "members"
+        ? [{ value: "ACTIVE", label: "Active" }, { value: "INVITED", label: "Invited" }, { value: "DEACTIVATED", label: "Deactivated" }]
+        : [{ value: "PENDING", label: "Pending" }, { value: "ACCEPTED", label: "Accepted" }, { value: "EXPIRED", label: "Expired" }, { value: "REVOKED", label: "Revoked" }] }]}
+        value={{ status: status ? [status] : [] }} onApply={(v) => setStatus(v.status?.[0] ?? "")} />
     </>
   );
 
@@ -42,7 +44,7 @@ export default function Users() {
       title="Users & invitations" icon={<UserCog size={15} />} toolbar={toolbar}
       actions={can("people", "invite") && (
         <>
-          <Button size="sm" variant="ghost" icon={<Upload size={14} />} onClick={() => setBulk(true)}>Bulk invite</Button>
+          <Button size="sm" variant="secondary" icon={<Upload size={14} />} onClick={() => setBulk(true)}>Bulk invite</Button>
           <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setInvite(true)}>Invite people</Button>
         </>
       )}

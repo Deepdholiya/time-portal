@@ -3,7 +3,8 @@ import { prisma, notify, companySettings, parseJson } from "./db.js";
 import { projectStats } from "./health.js";
 import { sendMail, appUrl } from "./mail.js";
 import { nextRun } from "./routes/reports.js";
-import { addDays, today, weekStartOf, weekday } from "./weeks.js";
+import { addDays, today, weekStartOf, weekday, zonedNow } from "./weeks.js";
+import { autoSubmitDue } from "./days.js";
 
 type Rule = { trigger: string; config: Record<string, unknown>; id: number };
 
@@ -50,17 +51,21 @@ export async function runChecks() {
       await notify([p.managerId ?? admins[0]?.id], { companyId: c.id, type: "PROJECT_AT_RISK", title: `${p.name} is ${s.health === "DELAYED" ? "delayed" : "at risk"}`, body: s.reasons.slice(0, 3).join(" · "), link: `/projects/${p.id}`, dedupeKey: `risk:${p.id}:${s.health}:${weekStartOf(t0)}` });
     }
 
-    // Timesheet reminder: on the last working day, and on the first day of the next week for last week.
+    // Days that reached the submission cutoff are submitted; failures notify the employee.
+    await autoSubmitDue(c);
+
+    // Reminder: the previous working day has no time logged.
     const workDays = c.workWeek.split(",").map(Number);
-    const lastWorkday = Math.max(...workDays);
-    const wd = weekday(t0);
     const reminderRule = auto.find((r) => r.trigger === "TIMESHEET_REMINDER");
-    if (reminderRule && (wd === lastWorkday || wd === c.weekStartsOn)) {
-      const week = wd === lastWorkday ? weekStartOf(t0, c.weekStartsOn) : weekStartOf(addDays(t0, -1), c.weekStartsOn);
+    const localToday = zonedNow(c.timezone).date;
+    let prev = addDays(localToday, -1);
+    while (!workDays.includes(weekday(prev))) prev = addDays(prev, -1);
+    if (reminderRule && workDays.includes(weekday(localToday))) {
       const members = await prisma.membership.findMany({ where: { companyId: c.id, user: { status: "ACTIVE" } }, select: { userId: true } });
-      const submitted = new Set((await prisma.timesheetPeriod.findMany({ where: { companyId: c.id, weekStart: week, status: { in: ["SUBMITTED", "APPROVED"] } } })).map((p) => p.userId));
-      const pending = members.map((m) => m.userId).filter((u) => !submitted.has(u));
-      await notify(pending, { companyId: c.id, type: "TIMESHEET_REMINDER", title: `Submit your timesheet for the week of ${week}`, link: `/timesheet?week=${week}`, dedupeKey: `ts:${week}:${t0}` });
+      const logged = new Set((await prisma.timeEntry.groupBy({ by: ["userId"], where: { companyId: c.id, date: prev } })).map((g) => g.userId));
+      const onLeave = new Set((await prisma.leaveRequest.findMany({ where: { companyId: c.id, status: "APPROVED", from: { lte: prev }, to: { gte: prev } }, select: { userId: true } })).map((l) => l.userId));
+      const pending = members.map((m) => m.userId).filter((u) => !logged.has(u) && !onLeave.has(u));
+      await notify(pending, { companyId: c.id, type: "TIMESHEET_REMINDER", title: `You haven't logged any time for ${prev}`, link: `/timesheet?from=${prev}&to=${prev}`, dedupeKey: `ts:${prev}` });
       await bump(reminderRule.id);
     }
   }

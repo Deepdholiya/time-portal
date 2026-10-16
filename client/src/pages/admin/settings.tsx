@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Settings as SettingsIcon } from "lucide-react";
 import { Page } from "@/components/app/page";
-import { Button, ErrorState, Field, Input, Select, SkeletonRows, Switch, Tabs, Textarea, toast } from "@/components/arc";
+import { Button, ErrorState, Field, Input, Select, SkeletonRows, Switch, Tabs, Textarea, TimePicker, toast } from "@/components/ui";
 import { put } from "@/lib/api";
 import { invalidate, useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
+import { applyBrand } from "@/lib/brand";
 import type { Company, CompanySettings } from "@/lib/types";
 import { ColorPicker, CURRENCIES, DAYS, TIMEZONES, WorkWeekPicker } from "./shared";
 import { CustomFields, Holidays, Section, Templates } from "./settings-lists";
@@ -21,7 +22,7 @@ const TABS = [
 ];
 
 export default function Settings() {
-  const { can, refresh } = useMe();
+  const { me, can, refresh } = useMe();
   const { data, error, loading, reload } = useApi<Resp>("/settings/company");
   const [tab, setTab] = useState("general");
   const [f, setF] = useState<Form | null>(null);
@@ -32,6 +33,10 @@ export default function Settings() {
     weekStartsOn: String(data.weekStartsOn), hoursPerDay: String(data.hoursPerDay), billingNotes: data.billingNotes ?? "", settings: { ...data.settings },
   } : null, [data]);
   useEffect(() => { setF(initial); }, [initial]);
+  // Preview the colour across the portal while picking it; leaving without saving puts the saved colour back.
+  const saved = me.company.color;
+  useEffect(() => { if (f?.color) applyBrand(f.color); }, [f?.color]);
+  useEffect(() => () => applyBrand(saved), [saved]);
   const dirty = !!f && !!initial && JSON.stringify(f) !== JSON.stringify(initial);
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => (x ? { ...x, [k]: v } : x));
@@ -71,12 +76,13 @@ export default function Settings() {
           {tab === "general" && (
             <Section title="General" desc="How this company appears and how its working week is counted.">
               <Row label="Name" hint={can("companies", "yes") ? undefined : "Only people who manage companies can rename it."}><Input value={f.name} disabled={!can("companies", "yes")} onChange={(e) => set("name", e.target.value)} /></Row>
-              <Row label="Colour"><ColorPicker value={f.color} onChange={(v) => set("color", v)} /></Row>
+              <Row label="Colour" hint="Used for buttons, highlights and the logo across the portal." wide><ColorPicker value={f.color} onChange={(v) => set("color", v)} /></Row>
               <Row label="Country"><Input value={f.country} onChange={(e) => set("country", e.target.value)} /></Row>
               <Row label="Timezone"><Select value={f.timezone} onChange={(v) => set("timezone", v)} options={[...new Set([f.timezone, ...TIMEZONES])].map((t) => ({ value: t, label: t }))} /></Row>
               <Row label="Currency"><Select value={f.currency} onChange={(v) => set("currency", v)} options={[...new Set([f.currency, ...CURRENCIES])].map((c) => ({ value: c, label: c }))} /></Row>
               <Row label="Working days"><WorkWeekPicker value={f.workWeek} onChange={(v) => set("workWeek", v)} /></Row>
               <Row label="Week starts on"><Select value={f.weekStartsOn} onChange={(v) => set("weekStartsOn", v)} options={DAYS.map((d) => ({ value: String(d.value), label: d.label }))} /></Row>
+              <Row label="Work starts at" hint="The default start time for the first entry of a day in Timesheet, Time tracker and Log time."><TimePicker aria-label="Work starts at" value={f.settings.workdayStart} onChange={(v) => setS("workdayStart", v)} /></Row>
               <Row label="Hours per day" hint="Used for capacity and utilization."><Input type="number" min={1} max={24} step="0.5" value={f.hoursPerDay} onChange={(e) => set("hoursPerDay", e.target.value)} suffix="h" /></Row>
               <Row label="Task key" hint="Prefix for task ids (2 to 5 capital letters)."><Input value={f.settings.taskKey} maxLength={5} onChange={(e) => setS("taskKey", e.target.value.toUpperCase())} /></Row>
               <Row label="Billing notes"><Textarea rows={3} value={f.billingNotes} onChange={(e) => set("billingNotes", e.target.value)} placeholder="Invoice terms, tax ids…" /></Row>
@@ -106,8 +112,11 @@ export default function Settings() {
           )}
           {tab === "time" && (
             <Section title="Time & AI" desc="Rules for logging time, and the AI assistant.">
-              <Row label="Lock approved weeks" hint="Approved timesheets can't be edited until a manager unlocks them."><Switch checked={f.settings.lockApprovedWeeks} onChange={(v) => setS("lockApprovedWeeks", v)} aria-label="Lock approved weeks" /></Row>
-              <Row label="Allow overlapping timers" hint="Let entries with start/end times overlap for the same person."><Switch checked={f.settings.allowOverlappingTimers} onChange={(v) => setS("allowOverlappingTimers", v)} aria-label="Allow overlapping timers" /></Row>
+              <Row label="Automatic submission time" hint={`Each day's entries are submitted at this time (${f.timezone}). Days changed after it wait for a manual submit.`}><TimePicker aria-label="Automatic submission time" value={f.settings.autoSubmitTime} onChange={(v) => setS("autoSubmitTime", v)} /></Row>
+              <Row label="Lock approved days" hint="When on, a day a manager approved can only be changed after an admin turns this off. Otherwise time can be edited any time and changes go back for review."><Switch checked={f.settings.lockApprovedWeeks} onChange={(v) => setS("lockApprovedWeeks", v)} aria-label="Lock approved days" /></Row>
+              <Row label="Allow overlapping entries" hint="Let entries with start and end times overlap for the same person."><Switch checked={f.settings.allowOverlappingTimers} onChange={(v) => setS("allowOverlappingTimers", v)} aria-label="Allow overlapping entries" /></Row>
+              <Row label="Require a description" hint="Checked when a day is submitted, so entries can be saved first and described later."><Switch checked={f.settings.requireDescription} onChange={(v) => setS("requireDescription", v)} aria-label="Require a description" /></Row>
+              <Row label="Track billable time" hint="Show the billable switch on time entries."><Switch checked={f.settings.billableEnabled} onChange={(v) => setS("billableEnabled", v)} aria-label="Track billable time" /></Row>
               <Row label="AI assistant" hint={data.aiConfigured ? "Uses Claude for task summaries and client email drafts." : "No ANTHROPIC_API_KEY on the server; drafts use a built-in template."}><Switch checked={f.settings.aiEnabled} onChange={(v) => setS("aiEnabled", v)} aria-label="AI enabled" /></Row>
             </Section>
           )}
@@ -120,14 +129,14 @@ export default function Settings() {
   );
 }
 
-function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Row({ label, hint, children, wide }: { label: string; hint?: string; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className={s.row}>
+    <div className={`${s.row} ${wide ? s.wide : ""}`}>
       <div className={s.label}>
         <div className="medium">{label}</div>
         {hint && <div className="small faint">{hint}</div>}
       </div>
-      <div className={s.control}><Field>{children}</Field></div>
+      <div className={s.control}><Field label={label} labelHidden>{children}</Field></div>
     </div>
   );
 }

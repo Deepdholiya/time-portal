@@ -1,14 +1,27 @@
 // Small pieces shared by the people, teams, clients and admin pages.
 import { useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
-import { Badge, IconButton, toast, type BadgeTone } from "@/components/arc";
+import { Badge, IconButton, toast, type BadgeTone } from "@/components/ui";
 import { titleCase } from "@/lib/format";
+import { useSession } from "@/lib/session";
 import s from "./shared.module.css";
 
 export const ROLE_TONE: Record<string, BadgeTone> = { ADMIN: "purple", MANAGER: "blue", EMPLOYEE: "gray" };
+/** Display name for a role key, including the company's custom roles. */
+export function useRoleName() {
+  const { me } = useSession();
+  return (role: string) => me?.roles?.find((r) => r.key === role)?.name ?? (role.startsWith("CUSTOM_") ? "Custom role" : titleCase(role));
+}
+/** Role choices for pickers: Employee and Manager, the company's custom roles, then Admin when allowed. */
+export function useRoleOptions(withAdmin: boolean) {
+  const { me } = useSession();
+  const custom = (me?.roles ?? []).filter((r) => r.key.startsWith("CUSTOM_")).map((r) => ({ value: r.key, label: r.name }));
+  return [{ value: "EMPLOYEE", label: "Employee" }, { value: "MANAGER", label: "Manager" }, ...custom, ...(withAdmin ? [{ value: "ADMIN", label: "Admin" }] : [])];
+}
 export function RoleBadge({ role }: { role?: string | null }) {
+  const name = useRoleName();
   if (!role) return null;
-  return <Badge tone={ROLE_TONE[role] ?? "gray"} size="sm">{titleCase(role)}</Badge>;
+  return <Badge tone={ROLE_TONE[role] ?? (role.startsWith("CUSTOM_") ? "accent" : "gray")} size="sm">{name(role)}</Badge>;
 }
 
 const STATUS_TONE: Record<string, BadgeTone> = {
@@ -51,10 +64,10 @@ export function SecretOnce({ label = "Temporary password", value, children }: { 
 }
 
 /** Colour picker limited to a quiet palette plus a custom value. */
-export const PALETTE = ["#5e6ad2", "#26b5ce", "#4cb782", "#e0b400", "#f2994a", "#eb5757", "#bb87fc", "#d96ba4", "#4ea7fc", "#95a2b3"];
+export const PALETTE = ["#ff4c00", "#5e6ad2", "#26b5ce", "#4cb782", "#e0b400", "#f2994a", "#eb5757", "#bb87fc", "#d96ba4", "#4ea7fc", "#95a2b3"];
 export function ColorPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div className="row wrap gap-4">
+    <div className={s.colors}>
       {PALETTE.map((c) => (
         <button
           key={c} type="button" aria-label={`Colour ${c}`} className={s.colorBtn} data-active={c.toLowerCase() === value.toLowerCase() || undefined}

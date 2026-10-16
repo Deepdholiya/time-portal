@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { Search, SquarePen, ChevronDown, LogOut, Moon, Sun, Settings, Check, Plus, UserRound, Keyboard } from "lucide-react";
-import { Avatar, IconButton, Kbd, Menu, Tooltip } from "@/components/arc";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { ChevronRight, ChevronsUpDown, Plus, Settings, Send } from "lucide-react";
+import { Menu, Tooltip } from "@/components/ui";
 import { get } from "@/lib/api";
+import { useLocal } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
-import { toggleTheme } from "@/lib/theme";
-import { visibleNav } from "./nav";
-import { TimerWidget } from "./timer-widget";
+import { ProductMark } from "@/pages/auth/auth-layout";
+import { sectionFor, visibleNav, type NavItem, type NavSection } from "./nav";
 import { useShell } from "./shell-context";
 import s from "./sidebar.module.css";
 
@@ -16,12 +16,12 @@ function useCounts() {
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      const [n, ts, lv] = await Promise.all([
+      const [n, lv, rb] = await Promise.all([
         get<{ unread: number }>("/notifications/count").catch(() => ({ unread: 0 })),
-        can("approveTimesheets", "yes") ? get<unknown[]>("/timesheets/approvals").catch(() => []) : Promise.resolve([]),
         can("leaveApprove", "yes") ? get<unknown[]>("/leave/approvals").catch(() => []) : Promise.resolve([]),
+        can("expenseApprove", "yes") ? get<unknown[]>("/reimbursements", { scope: "approvals", status: "PENDING" }).catch(() => []) : Promise.resolve([]),
       ]);
-      if (alive) setCounts({ inbox: n.unread, approvals: ts.length + lv.length });
+      if (alive) setCounts({ inbox: n.unread, approvals: lv.length + rb.length });
     };
     load();
     const i = setInterval(load, 45_000);
@@ -33,81 +33,112 @@ function useCounts() {
 /** Ask the sidebar to refresh the inbox and approval counters. */
 export const refreshCounts = () => window.dispatchEvent(new Event("tp:counts"));
 
-export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const { me, can, logout, switchCompany } = useSession();
+/**
+ * One-column navigation in the style of ElevenLabs: the product name, a workspace switcher, then every area's pages under a
+ * small heading. Areas fold away (Admin starts folded unless you are on one of its pages). An invite card sits at the bottom
+ * for people who can invite. Collapsed, it becomes an icon rail: every page keeps its icon and names itself in a tooltip.
+ */
+export function Sidebar({ onNavigate, collapsed = false }: { onNavigate?: () => void; collapsed?: boolean }) {
+  const { me, can, navHidden, switchCompany } = useSession();
   const shell = useShell();
   const nav = useNavigate();
+  const loc = useLocation();
   const counts = useCounts();
+  const all = visibleNav(can, navHidden);
+  const current = sectionFor(all, loc.pathname);
+  const sections = all.filter((x) => !x.menu);
+  const [folded, setFolded] = useLocal<Record<string, boolean>>("nav:folded", { admin: true, logs: true });
+  const [hideInvite, setHideInvite] = useLocal("nav:invite-hidden", false);
   if (!me) return null;
   const c = me.company;
-  return (
-    <aside className={s.sidebar} aria-label="Main navigation">
-      <div className={s.top}>
-        <div className="row gap-4">
-          <Menu
-            width={240}
-            trigger={
-              <button className={s.workspace} aria-label="Workspace menu">
-                <span className={s.logo} style={{ background: c.color }}>{c.name[0]}</span>
-                <span className={s.wsName}>{c.name}</span>
-                <ChevronDown size={13} className="faint" />
-              </button>
-            }
-            items={[
-              { type: "heading", label: me.user.email },
-              ...me.companies.map((co) => ({
-                label: co.name, checked: co.id === c.id,
-                icon: <span className={s.logo} style={{ background: co.color, width: 16, height: 16, fontSize: 9 }}>{co.name[0]}</span>,
-                onSelect: () => { if (co.id !== c.id) switchCompany(co.id).then(() => nav("/")); },
-              })),
-              can("companies", "yes") && { label: "Create company", icon: <Plus size={14} />, onSelect: () => nav("/admin/companies?new=1") },
-              { type: "separator" },
-              { label: "Account settings", icon: <UserRound size={14} />, onSelect: () => nav("/settings/account") },
-              can("settings", "yes") && { label: "Company settings", icon: <Settings size={14} />, onSelect: () => nav("/admin/settings") },
-              { label: "Toggle dark mode", icon: document.documentElement.dataset.theme === "dark" ? <Sun size={14} /> : <Moon size={14} />, onSelect: toggleTheme, shortcut: "⇧D" },
-              { label: "Keyboard shortcuts", icon: <Keyboard size={14} />, onSelect: shell.openCommand },
-              { type: "separator" },
-              { label: "Log out", icon: <LogOut size={14} />, onSelect: logout },
-            ]}
-          />
-          <Tooltip content="New task" shortcut="C">
-            <IconButton label="New task" icon={<SquarePen size={15} />} onClick={() => shell.newTask()} variant="secondary" />
+
+  // Quick "+" actions on the rows where people most often create something.
+  const quick: Record<string, { label: string; run: () => void }> = {
+    "/tasks": { label: "New task", run: () => shell.newTask() },
+    "/time": { label: "Log time", run: () => shell.logTime() },
+  };
+
+  const item = (it: NavItem) => {
+    const n = it.badge ? counts[it.badge] : 0;
+    const q = quick[it.to];
+    const link = (
+      <NavLink to={it.to} end={it.to === "/"} onClick={onNavigate} aria-label={collapsed ? it.label : undefined} className={({ isActive }) => `${s.item} ${isActive ? s.active : ""}`}>
+        <it.icon size={18} strokeWidth={1.7} />
+        {!collapsed && <span className="ellipsis">{it.label}</span>}
+        {n > 0 && <span className={`${s.count} ${it.badge === "inbox" ? s.brandCount : ""}`}>{n}</span>}
+      </NavLink>
+    );
+    if (collapsed) return <div key={it.to} className={s.itemWrap}><Tooltip content={n > 0 ? `${it.label} (${n})` : it.label} side="right"><span className={s.tipWrap}>{link}</span></Tooltip></div>;
+    return (
+      <div key={it.to} className={s.itemWrap}>
+        {link}
+        {q && (
+          <Tooltip content={q.label} side="right">
+            <button type="button" className={s.quick} aria-label={q.label} onClick={q.run}><Plus size={13} /></button>
           </Tooltip>
+        )}
+      </div>
+    );
+  };
+
+  const section = (sec: NavSection) => {
+    const items = sec.groups.flatMap((g) => g.items);
+    if (sec.id === "home") return <div key={sec.id} className={s.section}>{items.map(item)}</div>;
+    if (collapsed) return <div key={sec.id} className={s.section}><span className={s.railRule} aria-hidden />{items.map(item)}</div>;
+    const closed = !!folded[sec.id] && sec.id !== current;
+    return (
+      <div key={sec.id} className={s.section}>
+        <button type="button" className={s.sectionTitle} aria-expanded={!closed} onClick={() => setFolded({ ...folded, [sec.id]: !closed })}>
+          {sec.label}
+          <ChevronRight size={13} className={closed ? undefined : s.chevOpen} />
+        </button>
+        {!closed && items.map(item)}
+      </div>
+    );
+  };
+
+  return (
+    <aside className={`${s.sidebar} ${collapsed ? s.collapsed : ""}`} aria-label="Main navigation">
+      <div className={s.brandRow}>
+        <ProductMark size={24} />
+        {!collapsed && <span className={s.wordmark}>Time Portal</span>}
+      </div>
+      <div className={s.workspaceRow}>
+        <Menu
+          width={240}
+          trigger={
+            <button type="button" className={s.workspace} aria-label={`${c.name}: switch workspace`}>
+              <span className={s.logo} style={{ background: c.color }}>{c.name[0]}</span>
+              {!collapsed && <span className="ellipsis grow">{c.name}</span>}
+              {!collapsed && <ChevronsUpDown size={14} className="faint" />}
+            </button>
+          }
+          items={[
+            { type: "heading", label: "Workspaces" },
+            ...me.companies.map((co) => ({
+              label: co.name, checked: co.id === c.id,
+              icon: <span className={s.logo} style={{ background: co.color, width: 16, height: 16, fontSize: 9 }}>{co.name[0]}</span>,
+              onSelect: () => { if (co.id !== c.id) switchCompany(co.id).then(() => nav("/")); },
+            })),
+            can("companies", "yes") && { label: "Create company", icon: <Plus size={14} />, onSelect: () => nav("/admin/companies?new=1") },
+            can("settings", "yes") && { type: "separator" as const },
+            can("settings", "yes") && { label: "Company settings", icon: <Settings size={14} />, onSelect: () => nav("/admin/settings") },
+          ]}
+        />
+      </div>
+      <nav className={s.scroll} aria-label="Pages">
+        {sections.map(section)}
+      {can("people", "invite") && !hideInvite && !collapsed && (
+        <div className={s.invite}>
+          <button type="button" className={s.inviteClose} aria-label="Hide" onClick={() => setHideInvite(true)}>×</button>
+          <span className={s.inviteIcon}><Send size={14} /></span>
+          <button type="button" className={s.inviteBody} onClick={() => { nav("/admin/users?invite=1"); onNavigate?.(); }}>
+            <span className="medium">Invite team members</span>
+            <span className="small muted">Bring your team in to log time and plan work together.</span>
+          </button>
         </div>
-        <button className={s.search} onClick={shell.openCommand}>
-          <Search size={14} />
-          <span style={{ flex: 1, textAlign: "left" }}>Search or jump to…</span>
-          <Kbd>⌘K</Kbd>
-        </button>
-      </div>
-      <nav className={s.scroll}>
-        {visibleNav(can).map((sec, i) => (
-          <div key={i} className={sec.title ? s.section : undefined}>
-            {sec.title && <div className={s.sectionTitle}>{sec.title}</div>}
-            {sec.items.map((it) => {
-              const n = it.badge ? counts[it.badge] : 0;
-              return (
-                <NavLink key={it.to} to={it.to} end={it.to === "/"} onClick={onNavigate} className={({ isActive }) => `${s.item} ${isActive ? s.active : ""}`}>
-                  <it.icon size={15} strokeWidth={1.8} />
-                  <span className="ellipsis">{it.label}</span>
-                  {n > 0 && <span className={`${s.count} ${it.badge === "inbox" ? s.accentCount : ""}`}>{n}</span>}
-                </NavLink>
-              );
-            })}
-          </div>
-        ))}
+      )}
       </nav>
-      <div className={s.bottom}>
-        <TimerWidget />
-        <button className={s.user} onClick={() => nav("/settings/account")}>
-          <Avatar name={me.user.name} size={22} />
-          <span className="grow">
-            <span className="ellipsis medium" style={{ display: "block" }}>{me.user.name}</span>
-            <span className="ellipsis faint tiny" style={{ display: "block" }}>{me.user.role === "ADMIN" ? "Admin" : me.user.role === "MANAGER" ? "Manager" : "Employee"}{me.user.title ? ` · ${me.user.title}` : ""}</span>
-          </span>
-          {me.user.mfaEnabled && <Check size={13} className="success" aria-label="Two-factor on" />}
-        </button>
-      </div>
     </aside>
   );
 }

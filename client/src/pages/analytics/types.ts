@@ -17,5 +17,7 @@ export interface AnalyticsData {
   };
   byEmployee: EmployeeGroup[]; byProject: Group[]; bySubProject: Group[]; byTask: Group[]; byClient: Group[]; byTeam: Group[]; byDay: Group[]; byWeek: Group[];
   matrix: { projectId: number; project: string; color: string; userId: number; user: string; minutes: number }[];
+  byDayProject: { day: string; projectId: number; minutes: number }[];
+  activities: { key: string; name: string; project: string; projectId: number; color: string; taskId: number | null; minutes: number; entries: number }[];
   health: HealthRow[];
 }

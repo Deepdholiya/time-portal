@@ -1,26 +1,32 @@
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CheckSquare } from "lucide-react";
-import { Tabs } from "@/components/arc";
+import { SegmentedControl, Tabs } from "@/components/ui";
 import { Page } from "@/components/app/page";
 import { useSession } from "@/lib/session";
-import { TimesheetApprovals } from "./timesheet-approvals";
-import { LeaveApprovals } from "./leave-approvals";
+import { LeaveApprovals, STATUS_OPTIONS, type ApprovalStatus } from "./leave-approvals";
+import { ReimbursementApprovals } from "./reimbursement-approvals";
 
+type Tab = "leave" | "reimbursements";
+
+/** Leave and reimbursement requests waiting for a decision. Time needs no approval: it's submitted automatically every day. */
 export default function Approvals() {
   const { can } = useSession();
+  const leave = can("leaveApprove", "yes");
+  const expenses = can("expenseApprove", "yes");
   const [params, setParams] = useSearchParams();
-  const canTs = can("approveTimesheets", "yes");
-  const canLeave = can("leaveApprove", "yes");
-  const tab = params.get("tab") === "leave" && canLeave ? "leave" : canTs ? "timesheets" : "leave";
+  const [status, setStatus] = useState<ApprovalStatus>("PENDING");
+  const asked = params.get("tab") as Tab | null;
+  const tab: Tab = asked === "reimbursements" && expenses ? "reimbursements" : asked === "leave" && leave ? "leave" : leave ? "leave" : "reimbursements";
+  const setTab = (t: string) => setParams((p) => { p.set("tab", t); return p; }, { replace: true });
+
   return (
     <Page
       title="Approvals" icon={<CheckSquare size={15} />}
-      toolbar={
-        <Tabs variant="pill" value={tab} onChange={(t) => setParams({ tab: t }, { replace: true })}
-          items={[{ value: "timesheets", label: "Timesheets", hidden: !canTs }, { value: "leave", label: "Leave", hidden: !canLeave }]} />
-      }
+      tabs={<Tabs value={tab} onChange={setTab} items={[{ value: "leave", label: "Leave", hidden: !leave }, { value: "reimbursements", label: "Reimbursements", hidden: !expenses }]} />}
+      toolbar={<SegmentedControl aria-label="Status" value={status} onChange={setStatus} options={STATUS_OPTIONS} />}
     >
-      {tab === "leave" ? <LeaveApprovals /> : <TimesheetApprovals />}
+      {tab === "leave" ? <LeaveApprovals status={status} /> : <ReimbursementApprovals status={status} />}
     </Page>
   );
 }

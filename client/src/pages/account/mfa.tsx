@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { Badge, Button, Dialog, Field, Input, toast } from "@/components/arc";
+import { Badge, Button, Dialog, Field, Input, toast } from "@/components/ui";
 import { post } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { Block } from "./block";
@@ -56,7 +56,7 @@ export function MfaSection({ bare }: { bare?: boolean }) {
         <form className="row" onSubmit={(e) => { e.preventDefault(); enable(); }}>
           <Field><Input autoFocus inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="123456" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} style={{ width: 140 }} aria-label="Verification code" /></Field>
           <Button type="submit" variant="primary" loading={busy}>Verify and turn on</Button>
-          <Button variant="ghost" onClick={() => setSetup(null)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setSetup(null)}>Cancel</Button>
         </form>
       </div>
     </div>
@@ -75,7 +75,7 @@ export function MfaSection({ bare }: { bare?: boolean }) {
 
   const dialog = (
     <Dialog open={disable} onClose={() => setDisable(false)} size="sm" title="Turn off two-factor?" description="Confirm with your password." onSubmit={turnOff}
-      footer={<><Button variant="ghost" onClick={() => setDisable(false)}>Cancel</Button><Button type="submit" variant="danger" loading={busy}>Turn off</Button></>}>
+      footer={<><Button variant="secondary" onClick={() => setDisable(false)}>Cancel</Button><Button type="submit" variant="danger" loading={busy}>Turn off</Button></>}>
       <Field label="Password"><Input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
     </Dialog>
   );

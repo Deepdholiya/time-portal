@@ -37,9 +37,18 @@ export type CompanySettings = {
   tempPasswordHours: number; sessionTimeoutMinutes: number; enforceAdminMfa: boolean;
   aiEnabled: boolean; allowOverlappingTimers: boolean; lockApprovedWeeks: boolean;
   invitationDays: number; taskKey: string;
+  /** Local time (company timezone) after which a day's entries are submitted automatically. */
+  autoSubmitTime: string;
+  /** Where a new entry starts when the day has no earlier entry. */
+  workdayStart: string;
+  requireDescription: boolean; requireTags: boolean; billableEnabled: boolean;
+  /** Sidebar pages hidden per role key ("MANAGER", "CUSTOM_3"…), by path. Visibility only: permissions still decide access. */
+  navHidden: Record<string, string[]>;
 };
 export const DEFAULT_SETTINGS: CompanySettings = {
   overloadPct: 100, healthyPct: 80, underPct: 60, tempPasswordHours: 72, sessionTimeoutMinutes: 480, enforceAdminMfa: false,
-  aiEnabled: true, allowOverlappingTimers: false, lockApprovedWeeks: true, invitationDays: 7, taskKey: "TP",
+  aiEnabled: true, allowOverlappingTimers: false, lockApprovedWeeks: false, invitationDays: 7, taskKey: "TP",
+  autoSubmitTime: "23:59", workdayStart: "09:30", requireDescription: true, requireTags: false, billableEnabled: true,
+  navHidden: {},
 };
 export const companySettings = (c: { settings: string }): CompanySettings => ({ ...DEFAULT_SETTINGS, ...parseJson<Partial<CompanySettings>>(c.settings, {}) });

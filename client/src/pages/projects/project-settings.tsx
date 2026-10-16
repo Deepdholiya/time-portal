@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Archive, Copy, FileStack, Link2, Pencil, Trash2 } from "lucide-react";
-import { Button, ConfirmDialog, Dialog, Input, toast } from "@/components/arc";
+import { Button, ConfirmDialog, Dialog, Input, toast } from "@/components/ui";
 import { del, post } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
@@ -11,7 +11,7 @@ import s from "./projects.module.css";
 
 /** Edit, archive, client share link, save as template, delete (admin). */
 export function ProjectSettings({ p, onChanged }: { p: ProjectDetail; onChanged: () => void }) {
-  const { can, isAdmin } = useMe();
+  const { can } = useMe();
   const nav = useNavigate();
   const manage = can("projects", "manage");
   const canShare = manage || can("clientEmail", "yes");
@@ -64,7 +64,7 @@ export function ProjectSettings({ p, onChanged }: { p: ProjectDetail; onChanged:
           <Button variant="secondary" icon={<Archive size={14} />} onClick={() => setConfirm("archive")}>{p.archived ? "Restore" : "Archive"}</Button>
         </div>
       )}
-      {isAdmin && (
+      {manage && (
         <div className={s.settingRow}>
           <div className="grow"><div className="medium danger">Delete project</div><div className="small muted">Only possible when no time has been logged. Otherwise archive it.</div></div>
           <Button variant="danger" icon={<Trash2 size={14} />} onClick={() => setConfirm("delete")}>Delete</Button>
@@ -74,7 +74,7 @@ export function ProjectSettings({ p, onChanged }: { p: ProjectDetail; onChanged:
 
       {editing && <ProjectFormDialog project={p} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); refresh(); }} />}
       <Dialog open={tpl !== null} onClose={() => setTpl(null)} title="Save as template" size="sm" onSubmit={() => run(async () => { await post(`/projects/${p.id}/template`, { name: tpl!.trim() }); toast.success("Template saved"); invalidate("/options"); setTpl(null); })}
-        footer={<><Button variant="ghost" onClick={() => setTpl(null)}>Cancel</Button><Button type="submit" variant="primary" loading={busy} disabled={!tpl?.trim()}>Save template</Button></>}>
+        footer={<><Button variant="secondary" onClick={() => setTpl(null)}>Cancel</Button><Button type="submit" variant="primary" loading={busy} disabled={!tpl?.trim()}>Save template</Button></>}>
         <Input autoFocus value={tpl ?? ""} onChange={(e) => setTpl(e.target.value)} maxLength={100} aria-label="Template name" />
       </Dialog>
       <ConfirmDialog

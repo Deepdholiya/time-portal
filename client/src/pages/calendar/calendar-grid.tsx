@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Diamond, PartyPopper, Palmtree } from "lucide-react";
+import { ClockPlus, Diamond, PartyPopper, Palmtree } from "lucide-react";
 import { StatusIcon } from "@/components/app/icons";
 import { useShell } from "@/components/app/shell-context";
 import { dayName, hm, today, weekday } from "@/lib/format";
@@ -18,9 +18,12 @@ interface Props {
   showUser: boolean;
   onOpenDay: (d: string) => void;
   onMoveTask: (taskId: number, date: string) => void;
+  /** Opens the log time dialog for a day; absent when the viewer can't log time here. */
+  onLog?: (date: string) => void;
+  onEditEntry?: (id: number) => void;
 }
 
-export function CalendarGrid({ days, view, month, buckets, layers, workDays, canReschedule, showUser, onOpenDay, onMoveTask }: Props) {
+export function CalendarGrid({ days, view, month, buckets, layers, workDays, canReschedule, showUser, onOpenDay, onMoveTask, onLog, onEditEntry }: Props) {
   const shell = useShell();
   const [over, setOver] = useState<string | null>(null);
   const t0 = today();
@@ -61,7 +64,8 @@ export function CalendarGrid({ days, view, month, buckets, layers, workDays, can
               </div>,
             );
             else for (const e of b.entries) chips.push(
-              <div key={`e${e.id}`} className={`${s.chip} ${s.chipEntry}`} style={{ "--chip": e.project?.color ?? "var(--text-3)", height: "auto", minHeight: 20, padding: "3px 5px", alignItems: "flex-start" } as React.CSSProperties}
+              <div key={`e${e.id}`} className={`${s.chip} ${s.chipEntry}`}
+                onClick={onEditEntry ? (ev) => { ev.stopPropagation(); onEditEntry(e.id); } : undefined} style={{ "--chip": e.project?.color ?? "var(--text-3)", height: "auto", minHeight: 20, padding: "3px 5px", alignItems: "flex-start" } as React.CSSProperties}
                 title={`${e.description} · ${e.project?.name ?? ""}`}>
                 <span className="label" style={{ whiteSpace: "normal", lineHeight: 1.3 }}>
                   <span className="meta" style={{ display: "block" }}>{e.startTime && e.endTime ? `${e.startTime}–${e.endTime}` : hm(e.minutes)}{showUser && e.user ? ` · ${e.user.name.split(" ")[0]}` : ""}</span>
@@ -71,12 +75,15 @@ export function CalendarGrid({ days, view, month, buckets, layers, workDays, can
             );
           }
           const off = !workDays.has(weekday(d));
+          // Clicking a day opens Log time for it; days that can't take time (future, or no permission) open their details.
+          const canLogDay = !!onLog && d <= t0;
+          const open = () => (canLogDay ? onLog!(d) : onOpenDay(d));
           const outside = month ? d.slice(0, 7) !== month : false;
           return (
             <div
               key={d}
               className={`${s.cell} ${view === "week" ? s.weekCell : ""} ${outside ? s.outside : off ? s.off : ""} ${b.holiday && layers.leave ? s.holiday : ""} ${over === d ? s.dropTarget : ""}`}
-              onClick={() => onOpenDay(d)}
+              onClick={open}
               onDragOver={canReschedule ? (e) => { if (e.dataTransfer.types.includes("text/task")) { e.preventDefault(); setOver(d); } } : undefined}
               onDragLeave={() => setOver((o) => (o === d ? null : o))}
               onDrop={canReschedule ? (e) => { e.preventDefault(); setOver(null); const id = Number(e.dataTransfer.getData("text/task")); if (id) onMoveTask(id, d); } : undefined}
@@ -86,6 +93,11 @@ export function CalendarGrid({ days, view, month, buckets, layers, workDays, can
               <div className={s.cellHead}>
                 <span className={`${s.num} ${d === t0 ? s.today : ""}`}>{Number(d.slice(8))}</span>
                 {layers.time && <span className={`${s.hours} ${b.minutes ? s.has : ""}`}>{b.minutes ? hm(b.minutes) : ""}</span>}
+                {canLogDay && (
+                  <button type="button" className={s.logBtn} aria-label={`Log time on ${d}`} title="Log time" onClick={(e) => { e.stopPropagation(); onLog!(d); }}>
+                    <ClockPlus size={14} />
+                  </button>
+                )}
               </div>
               {chips.slice(0, max)}
               {chips.length > max && <span className={s.more}>+{chips.length - max} more</span>}

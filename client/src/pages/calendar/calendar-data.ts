@@ -32,4 +32,4 @@ export function entriesByProject(entries: TimeEntry[]) {
   return [...m.values()].sort((a, b) => b.minutes - a.minutes);
 }
 
-export const LEAVE_LABEL: Record<string, string> = { VACATION: "Vacation", SICK: "Sick leave", PERSONAL: "Personal", OTHER: "Leave" };
+export const LEAVE_LABEL: Record<string, string> = { VACATION: "Vacation", SICK: "Sick leave", PERSONAL: "Personal", HOLIDAY: "Holiday", OTHER: "Leave" };
