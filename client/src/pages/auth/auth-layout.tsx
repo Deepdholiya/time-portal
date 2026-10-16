@@ -2,13 +2,13 @@ import type { ReactNode } from "react";
 import { AlertCircle, Check, Circle, Info } from "lucide-react";
 import s from "./auth.module.css";
 
-/** The product mark: an orange rounded square with a clock hand, matching the favicon. */
+/** The Orbit0 mark (an orange square with a planet and a dashed orbit), the same logo as the home page and favicon. */
 export function ProductMark({ size = 36 }: { size?: number }) {
   return (
     <span className={s.mark} style={{ width: size, height: size, borderRadius: size / 4 }} aria-hidden>
-      <svg width={size * 0.55} height={size * 0.55} viewBox="0 0 16 16" fill="none">
-        <circle cx="8" cy="8" r="6.2" stroke="currentColor" strokeWidth="1.5" opacity="0.55" />
-        <path d="M8 4.2V8l2.6 1.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <svg width={size * 0.75} height={size * 0.75} viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="3.4" fill="#fff" />
+        <circle cx="10" cy="10" r="6.6" stroke="#fff" strokeWidth="1.5" strokeDasharray="2.2 2.4" />
       </svg>
     </span>
   );
@@ -18,7 +18,7 @@ export function ProductMark({ size = 36 }: { size?: number }) {
 export function AuthLayout({ title, subtitle, children, footer }: { title: ReactNode; subtitle?: ReactNode; children: ReactNode; footer?: ReactNode }) {
   return (
     <div className={s.screen}>
-      <div className={s.brand}><ProductMark size={26} /><span>Time Portal</span></div>
+      <a href="/home/" className={s.brand} aria-label="Orbit0 home"><ProductMark size={26} /><span>orbit0</span></a>
       <div className={s.card}>
         <div className={s.head}>
           <div className="col" style={{ gap: 8, alignItems: "center" }}>

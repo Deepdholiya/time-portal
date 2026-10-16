@@ -1,4 +1,4 @@
-# Time Portal
+# Orbit0
 
 Work management and time intelligence portal: manual time logging with daily auto-submission, Linear/Asana-style tasks and projects, a date- and week-wise roadmap, workload, analytics with drill-down, Excel/CSV/PDF reports, approvals, leave, AI client emails, multi-company tenancy and role-based access that admins can tune.
 
@@ -49,6 +49,14 @@ Import the repository at vercel.com/new and keep the defaults; `vercel.json` bui
 | `APP_URL` | Links in emails point here | `http://localhost:5173` |
 
 Google and Microsoft sign-in are configured per company under **Admin → Integrations** and need real OAuth client credentials.
+
+## Home page
+
+Signed-out visitors who open `/` go to the public home page at `/home/`. It is plain HTML, CSS and JavaScript in `client/public/home/` (no build step; Vite copies it into `client/dist/home/`). Its layout, type and motion follow humblytics.com; all copy, widgets and code are Orbit0's own, and the numbers in its widgets are sample data.
+
+- **Sign in** goes to `/login`. The live-demo buttons go to `/login?demo=admin|manager|employee`, which fills in that demo account.
+- **Request access** forms: set `accessEndpoint` at the top of `client/public/home/main.js` to a URL that accepts `POST { "email": "..." }`. While it is empty the form only shows a thank-you message, so requests are **not stored anywhere yet**.
+- Motion is turned off for visitors who set "reduce motion", and dark mode follows the system setting.
 
 ## Structure
 

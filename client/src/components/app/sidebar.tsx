@@ -101,7 +101,7 @@ export function Sidebar({ onNavigate, collapsed = false }: { onNavigate?: () => 
     <aside className={`${s.sidebar} ${collapsed ? s.collapsed : ""}`} aria-label="Main navigation">
       <div className={s.brandRow}>
         <ProductMark size={24} />
-        {!collapsed && <span className={s.wordmark}>Time Portal</span>}
+        {!collapsed && <span className={s.wordmark}>orbit0</span>}
       </div>
       <div className={s.workspaceRow}>
         <Menu

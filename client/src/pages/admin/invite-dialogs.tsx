@@ -44,7 +44,7 @@ export function InviteDialog({ onClose }: { onClose: () => void }) {
         footer={<><Button variant="ghost" onClick={again}>Invite another</Button><Button variant="primary" onClick={onClose}>Done</Button></>}>
         <div className="col gap-12">
           {result.existing ? (
-            <p>{result.invitation.name} already has a Time Portal account, so they can sign in with their existing password and switch to {me.company.name}.</p>
+            <p>{result.invitation.name} already has a Orbit0 account, so they can sign in with their existing password and switch to {me.company.name}.</p>
           ) : (
             <>
               <p>

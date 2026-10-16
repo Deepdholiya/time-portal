@@ -146,7 +146,7 @@ async function exportFile(req: Request, res: Response, format: "xlsx" | "csv" | 
 
   if (format === "xlsx") {
     const wb = new ExcelJS.Workbook();
-    wb.creator = "Time Portal";
+    wb.creator = "Orbit0";
     if (dims.length) {
       const sw = wb.addWorksheet(`By ${summaryTitle}`.replace(/[*?:\\/[\]]/g, " ").slice(0, 31), { views: [{ state: "frozen", ySplit: 1 }] });
       sw.addRow([...dims.map((d) => DIM_LABEL[d]), "Hours", "Billable hours", "Entries"]).font = { bold: true };

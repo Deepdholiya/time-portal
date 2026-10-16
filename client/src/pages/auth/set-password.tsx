@@ -27,7 +27,7 @@ export default function SetPassword() {
       await post("/auth/set-password", { password });
       nav("/", { replace: true });
       await refresh();
-      toast.success(invited ? `Welcome to ${me?.company?.name ?? "Time Portal"}, ${firstName}` : "Password updated", { description: invited ? "Your account is active. Start by logging time or checking your tasks." : undefined });
+      toast.success(invited ? `Welcome to ${me?.company?.name ?? "Orbit0"}, ${firstName}` : "Password updated", { description: invited ? "Your account is active. Start by logging time or checking your tasks." : undefined });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't set the password.");
       setBusy(false);

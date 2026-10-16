@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Loading } from "./components/ui";
 import { AppLayout } from "./components/app/app-layout";
@@ -50,10 +50,16 @@ const Account = p<{ mfaSetupRequired?: boolean }>(() => import("./pages/account/
 
 const g = (perm: [string, string?], el: ReactNode) => <Guard perm={perm}>{el}</Guard>;
 
+/** Signed-out visitors to "/" see the public home page, a static page served from client/public/home. */
+function ToHomePage() {
+  useEffect(() => { window.location.replace("/home/"); }, []);
+  return <Loading />;
+}
+
 export function App() {
   const { status, me } = useSession();
   const loc = useLocation();
-  if (status === "loading") return <Loading label="Loading Time Portal…" />;
+  if (status === "loading") return <Loading label="Loading Orbit0…" />;
 
   const publicRoutes = (
     <>
@@ -71,6 +77,7 @@ export function App() {
           {publicRoutes}
           <Route path="/login" element={<Login />} />
           <Route path="/mfa" element={status === "mfa" ? <Mfa /> : <Navigate to="/login" replace />} />
+          {status === "anon" && <Route path="/" element={<ToHomePage />} />}
           <Route path="*" element={<Navigate to={status === "mfa" ? "/mfa" : `/login${next}`} replace />} />
         </Routes>
       </Suspense>

@@ -14,7 +14,7 @@ export async function sendMail(m: { companyId?: number | null; kind: string; to:
   });
   if (transport) {
     try {
-      await transport.sendMail({ from: process.env.SMTP_FROM || "Time Portal <no-reply@example.com>", to: m.to, subject: m.subject, text: m.body });
+      await transport.sendMail({ from: process.env.SMTP_FROM || "Orbit0 <no-reply@example.com>", to: m.to, subject: m.subject, text: m.body });
     } catch (e) {
       console.error("SMTP delivery failed", e);
     }
