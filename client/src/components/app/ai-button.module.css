@@ -1,27 +1,38 @@
+/* Neutral outline for every AI action; the only gradient in the app is the top bar's Ask AI. */
 .btn {
-  --ai-gradient: linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #ff4c00 100%);
   position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px;
-  background: var(--ai-gradient); color: #fff; cursor: pointer;
-  box-shadow: 0 1px 2px rgb(124 58 237 / 0.25), inset 0 0 0 1px rgb(255 255 255 / 0.14);
-  transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+  background: var(--bg); color: var(--text-2); cursor: pointer; box-shadow: inset 0 0 0 1px var(--border);
+  transition: transform .12s ease, background .12s ease, color .12s ease, box-shadow .12s ease;
 }
 .sm { width: 28px; height: 28px; border-radius: 8px; }
-.btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08) saturate(1.05); box-shadow: 0 4px 12px rgb(236 72 153 / 0.28), inset 0 0 0 1px rgb(255 255 255 / 0.18); }
-.btn:active:not(:disabled) { transform: translateY(0); filter: brightness(.97); }
-.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--sh-background, #fff), 0 0 0 4px #a855f7; }
-.btn:disabled { cursor: not-allowed; filter: grayscale(.55) opacity(.55); }
-.btn[aria-busy="true"] { cursor: progress; filter: none; opacity: 1; }
-.plain { background: var(--bg); color: var(--text-2); box-shadow: inset 0 0 0 1px var(--border); }
-.plain:hover:not(:disabled) { filter: none; color: var(--text); background: var(--bg-hover); box-shadow: inset 0 0 0 1px var(--border-strong); }
-.plain .spin { border-color: var(--border-strong); border-top-color: var(--text-2); }
-.spin { width: 14px; height: 14px; border-radius: 50%; border: 1.75px solid rgb(255 255 255 / 0.4); border-top-color: #fff; animation: ai-spin .7s linear infinite; }
-.sm .plain { background: var(--bg); color: var(--text-2); box-shadow: inset 0 0 0 1px var(--border); }
-.plain:hover:not(:disabled) { filter: none; color: var(--text); background: var(--bg-hover); box-shadow: inset 0 0 0 1px var(--border-strong); }
-.plain .spin { border-color: var(--border-strong); border-top-color: var(--text-2); }
-.spin { width: 12px; height: 12px; }
+.btn:hover:not(:disabled) { color: var(--text); background: var(--bg-hover); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.btn:hover:not(:disabled) svg { animation: ai-twinkle .5s ease; }
+.btn:active:not(:disabled) { transform: scale(.96); }
+.btn:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--border-strong), 0 0 0 3px var(--focus-ring, rgb(0 0 0 / .12)); }
+.btn:disabled { cursor: not-allowed; opacity: .5; }
+.btn[aria-busy="true"] { cursor: progress; opacity: 1; }
+.btn[aria-expanded="true"] { color: var(--text); background: var(--bg-hover); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.spin { width: 14px; height: 14px; border-radius: 50%; border: 1.75px solid var(--border-strong); border-top-color: var(--text-2); animation: ai-spin .7s linear infinite; }
+.sm .spin { width: 12px; height: 12px; }
 @keyframes ai-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .btn, .btn:hover:not(:disabled) { transition: none; transform: none; } }
+@keyframes ai-twinkle { 50% { transform: rotate(12deg) scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .btn, .btn:hover:not(:disabled) { transition: none; transform: none; } .btn:hover:not(:disabled) svg { animation: none; } }
+
+/* Prompt popover: say what you want, then generate. */
+.prompt { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+.promptHead { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; color: var(--text); }
+.promptHead svg { color: var(--text-2); }
+.promptBox {
+  width: 100%; resize: none; field-sizing: content; min-height: 60px; max-height: 160px; font: inherit; font-size: 13px; line-height: 1.45;
+  padding: 8px 10px; border: 1px solid var(--sh-input, var(--border)); border-radius: 8px; background: var(--bg); color: var(--text); outline: none;
+}
+.promptBox:focus { border-color: var(--sh-ring, var(--border-strong)); box-shadow: 0 0 0 3px var(--focus-ring, transparent); }
+.promptChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.promptChip { font: inherit; font-size: 12px; color: var(--text-2); background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; cursor: pointer; transition: background .12s, color .12s, border-color .12s; }
+.promptChip:hover { color: var(--text); background: var(--bg-hover); border-color: var(--border-strong); }
+.promptFoot { display: flex; align-items: center; gap: 8px; }
+.promptHint { flex: 1; font-size: 11.5px; color: var(--text-3); }
 
 .panel { border: 1px solid var(--border); background: var(--bg-subtle); border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.55; }
 .panelHead { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
@@ -37,3 +48,9 @@
 .insightFoot { display: flex; justify-content: flex-end; padding: 0 4px 2px; }
 .thinking { display: inline-flex; align-items: center; gap: 8px; color: var(--text-3); }
 .spinDark { width: 13px; height: 13px; border-radius: 50%; border: 1.75px solid var(--border-strong); border-top-color: var(--text-2); animation: ai-spin .7s linear infinite; }
+
+.bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.barRow { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 10px; border: 1px solid var(--sh-input, var(--border)); border-radius: 10px; background: var(--bg); transition: border-color .12s, box-shadow .12s; }
+.barRow:focus-within { border-color: var(--sh-ring, var(--border-strong)); box-shadow: 0 0 0 3px var(--focus-ring, transparent); }
+.barIcon { color: var(--text-3); flex-shrink: 0; }
+.barInput { flex: 1; min-width: 0; border: 0; outline: none; background: none; font: inherit; font-size: 13px; color: var(--text); padding: 5px 0; }

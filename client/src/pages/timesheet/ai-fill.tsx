@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button, Checkbox, Dialog, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
+import { AiPromptBar } from "@/components/app/ai-button";
 import { post } from "@/lib/api";
 import { dayName, fmtDate, hm } from "@/lib/format";
 import s from "@/components/app/ai-plan.module.css";
@@ -17,13 +18,20 @@ export function AiFillDialog({ open, range, onClose, onAdded }: { open: boolean;
   const [data, setData] = useState<Fill | null>(null);
   const [keep, setKeep] = useState<boolean[]>([]);
   const [saving, setSaving] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const [busy, setBusy] = useState(false);
 
+  const run = (instructions?: string) => {
+    setBusy(true);
+    post<Fill>("/ai/timesheet-fill", { ...range, instructions: instructions?.trim() || undefined })
+      .then((r) => { setData(r); setKeep(r.suggestions.map(() => true)); })
+      .catch((e) => { toast.error(e); if (!data) onClose(); })
+      .finally(() => setBusy(false));
+  };
   useEffect(() => {
     if (!open) return;
-    setData(null);
-    post<Fill>("/ai/timesheet-fill", range)
-      .then((r) => { setData(r); setKeep(r.suggestions.map(() => true)); })
-      .catch((e) => { toast.error(e); onClose(); });
+    setData(null); setPrompt("");
+    run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, range.from, range.to]);
 
@@ -61,7 +69,12 @@ export function AiFillDialog({ open, range, onClose, onAdded }: { open: boolean;
         </>
       ) : <Button variant="secondary" onClick={onClose}>Close</Button>}
     >
-      {!data ? (
+      <AiPromptBar
+        value={prompt} onChange={setPrompt} onRun={() => run(prompt)} busy={busy}
+        placeholder="e.g. Only Bridge UX, 6 hours a day, skip Friday"
+        suggestions={["Only billable work", "6 hours a day", "Mostly my tasks in progress", "Skip Friday"]}
+      />
+      {!data || busy ? (
         <>
           <div className={s.thinking}><Sparkles size={14} /> Looking at your recent work…</div>
           <div className={s.loading}>{[0, 1, 2, 3].map((i) => <div key={i} className={s.shimmer} style={{ animationDelay: `${i * 0.1}s` }} />)}</div>
