@@ -280,6 +280,26 @@
     counters.forEach(function (c) { cio.observe(c); });
   } else counters.forEach(function (c) { c.textContent = c.dataset.count; });
 
+  /* ---------- setup checklist (solution pages): the percentage follows the progress bar ---------- */
+  var suPcts = $$("[data-su-pct]");
+  if (suPcts.length && "IntersectionObserver" in window && !reduce) {
+    suPcts.forEach(function (el) { el.textContent = "0%"; });
+    var sio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var card = e.target, el = $("[data-su-pct]", card), n = +getComputedStyle(card).getPropertyValue("--n") || 5;
+        var delay = 500, dur = n * 450, t0 = performance.now() + delay;
+        (function tick(ts) {
+          var p = Math.max(0, Math.min(1, (ts - t0) / dur));
+          el.textContent = Math.round(p * 100) + "%";
+          if (p < 1) requestAnimationFrame(tick);
+        })(performance.now());
+        sio.unobserve(card);
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
+    suPcts.forEach(function (el) { sio.observe(el.closest(".su-card")); });
+  }
+
   /* ---------- request access ---------- */
   var form = $("#accessForm"), msg = $("#accessMsg");
   if (form) {

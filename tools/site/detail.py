@@ -14,6 +14,36 @@ def related(items, base, current):
                     for s, i, t, d in items if s != current)
     return f'<div class="rel-grid">{cards}</div>'
 
+def xlinks(label, items, base, current):
+    """A slim row of pills to the sibling pages. It wraps on wide screens and scrolls sideways on phones."""
+    pills = "".join(f'<a class="xl-pill" href="{{p}}{base}{s}/"><span class="xl-ico">{icon(i, "ico-s")}</span>{t}{ARROW}</a>'
+                    for s, i, t, _ in items if s != current)
+    return f'<nav class="xlinks reveal" aria-label="{label}"><span class="xl-label">{label}</span><div class="xl-row">{pills}</div></nav>'
+
+def numbers(name, facts, slug):
+    """Four product facts with count-up numbers and a bar that draws in under each one."""
+    cells = ""
+    for i, (v, unit, label) in enumerate(facts):
+        val = f'<span data-count="{v}">0</span>' if isinstance(v, int) else v
+        cells += (f'<div class="nf reveal" style="--i:{i}"><b class="nf-v">{val}<small>{unit}</small></b><span class="nf-l">{label}</span>'
+                  f'<i class="nf-bar" aria-hidden="true"></i></div>')
+    return (sec_head(name + " at a glance.", "A few facts about how it works, straight from the product.", eyebrow="In numbers")
+            + f'<div class="nfacts">{cells}</div>' + xlinks("More of Orbit0", PRODUCTS, "product/", slug))
+
+def setup(name, steps, slug):
+    """A setup checklist for the team that ticks itself off, with a progress bar that fills as it goes."""
+    pmap = {s: (i, t) for s, i, t, _ in PRODUCTS}
+    lis = "".join(f'<li style="--i:{n}"><span class="su-box" aria-hidden="true">{icon("check", "ico-s")}</span><span class="su-t">{t}</span>'
+                  f'<a class="su-chip" href="{{p}}product/{ps}/">{icon(pmap[ps][0], "ico-s")}{pmap[ps][1]}</a></li>' for n, (t, ps) in enumerate(steps))
+    card = (f'<div class="su-card reveal" style="--n:{len(steps)}"><div class="su-top"><b>Getting started</b><span class="muted xs">{len(steps)} steps</span>'
+            f'<span class="su-pct" data-su-pct>100%</span></div>'
+            f'<div class="su-prog" aria-hidden="true"><i></i></div><ol class="su-list">{lis}</ol></div>')
+    others = [x for x in ROLES + TEAMS if x[0] != slug]
+    left = (f'<div class="su-l reveal"><span class="eyebrow">Getting started</span><h2>What {name.lower()}<br><span class="soft">set up first.</span></h2>'
+            f'<p>The order most {name.lower()} follow on their first day in Orbit0. Each step links to the part of the product it uses.</p>'
+            + xlinks("Orbit0 for other teams", others, "solutions/", slug) + '</div>')
+    return f'<div class="su">{left}{card}</div>'
+
 def faq_block(title, items):
     return ('<div class="faq"><div class="faq-l reveal"><h2>' + title + '</h2><p class="muted">Anything else, ask us when you request access.</p>'
             '<a class="link" href="{p}contact/">Contact us ' + ARROW + '</a></div>' + faq(items) + "</div>")
@@ -29,7 +59,7 @@ def product_page(slug, d):
     body += sec(frow(slug + "-more", d["more"][0], d["more"][1], d["more"][2], d["more"][3], d["more"][4], flip=True,
                      link=d["more"][5] if len(d["more"]) > 5 else None)) + "\n"
     body += sec(faq_block(name + " questions.", d["faq"])) + "\n"
-    body += sec(sec_head("Works together with.", "Every part of Orbit0 shares the same people, projects and permissions.", eyebrow="More of Orbit0") + related(PRODUCTS, "product/", slug))
+    body += sec(numbers(name, PRODUCT_FACTS[slug], slug), "sec-nums")
     return (f"{name} · Orbit0", d["desc"], body)
 
 def solution_page(slug, d):
@@ -48,8 +78,7 @@ def solution_page(slug, d):
     body += sec(sec_head("How Orbit0 helps.", "Scroll through a week of work. The screen follows along.", eyebrow="For " + name.lower()) + rows) + "\n"
     body += sec(sec_head(d["week_h"], eyebrow="A typical week", center=True) + hsteps(d["week"])) + "\n"
     body += sec(faq_block("Questions from " + name.lower() + ".", d["faq"])) + "\n"
-    others = [x for x in ROLES + TEAMS if x[0] != slug]
-    body += sec(sec_head("Orbit0 for other teams.", eyebrow="More solutions") + related(others, "solutions/", slug))
+    body += sec(setup(name, SOLUTION_SETUP[slug], slug), "sec-setup")
     return (f"Orbit0 for {name.lower()}", d["desc"], body)
 
 # ---------------- PRODUCTS ----------------
@@ -314,4 +343,40 @@ SOLUTION_DATA = {
   faq=[("Can we separate billable time?", "Yes. Projects are marked billable with a rate."),
        ("Can we hide rates from some people?", "Yes. Rates and financials are permissions per role or per person."),
        ("Can approved time be changed later?", "Approved days can be locked against edits.")]),
+}
+
+# ---------------- PRODUCT FACTS (the "at a glance" strip) ----------------
+# (number or text, unit, label). Whole numbers count up when they scroll into view.
+PRODUCT_FACTS = {
+"time-tracking": [(1, " min", "to log a full day by typing durations"), ("23:59", "", "default daily cutoff, when the day submits itself"),
+                  (0, "", "overlapping entries allowed on the same minutes"), (2, " ways", "to log: the tracker or any timesheet cell")],
+"timesheets": [(2, " views", "of the same week: table and calendar"), (4, " ways", "to group team time: project, person, client or task"),
+               (3, " formats", "for exports with totals: Excel, PDF and CSV"), (0, "", "reminders sent to people on approved leave")],
+"leave": [(5, " types", "of leave, from vacation to sick days"), ("½", " day", "requests supported for every leave type"),
+          (1, " queue", "for leave and reimbursements together"), (0, "", "hours loggable on a day of approved leave")],
+"projects": [(4, " levels", "projects, sub-projects, tasks and milestones"), (2, " views", "for tasks: a list or a board"),
+             (1, " timeline", "shared by every project, task and milestone"), (1, " link", "read-only status page to share per project")],
+"analytics": [(8, " ways", "to group a report"), (3, " formats", "for exports: Excel, PDF and CSV"),
+              (4, " scopes", "project, client, team or the whole company"), (1, " click", "from a bar on a chart to the entries behind it")],
+"ai": [(0, "", "emails sent until a person presses send"), ("⌘K", "", "opens the search bar to ask a question"),
+       (3, " drafts", "tasks, project summaries and client updates"), (1, " table", "of numbers behind every answer")],
+"admin": [(3, " roles", "built in: Admin, Manager and Employee"), (1, " login", "for every company you run"),
+          (4, " automations", "reminders, overdue, due-soon and status alerts"), (2, " logs", "an audit log and an email log")],
+}
+
+# ---------------- SOLUTION SETUP (the "set up first" checklist) ----------------
+# (step, product slug it uses)
+SOLUTION_SETUP = {
+"leaders": [("Add each company with its currency and timezone", "admin"), ("Decide which roles see financials", "admin"),
+            ("Set budgets on the projects that matter", "projects"), ("Watch the at-risk alerts", "analytics"), ("Open workload to see who has room", "analytics")],
+"project-managers": [("Create the project and its sub-projects", "projects"), ("Add milestones and link dependent tasks", "projects"),
+                     ("Check workload before you assign", "analytics"), ("Turn on overdue and due-soon alerts", "admin"), ("Share a status link with the client", "projects")],
+"employees": [("Accept the invite and set your password", "admin"), ("Type your first duration", "time-tracking"),
+              ("Switch your week to the calendar view", "timesheets"), ("Request a day off", "leave"), ("Let the day submit itself at the cutoff", "time-tracking")],
+"agencies": [("Add your clients and their projects", "projects"), ("Mark client work billable, with a rate", "projects"),
+             ("Set a budget on each retainer", "projects"), ("Group the month's report by client", "analytics"), ("Draft the first client update", "ai")],
+"design-studios": [("Add a sub-project for each phase", "projects"), ("Give every phase its own budget", "projects"),
+                   ("Invite the designers, no timer to run", "time-tracking"), ("Plan milestones on the roadmap", "projects"), ("Compare each phase against its budget", "analytics")],
+"consultancies": [("Mark client projects billable, with rates", "projects"), ("Create a role that hides rates", "admin"),
+                  ("Override access for one person", "admin"), ("Check utilisation per team", "analytics"), ("Export billable hours per client", "timesheets")],
 }

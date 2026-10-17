@@ -1692,3 +1692,84 @@ input.valid { padding-right: 38px; background-image: url("data:image/svg+xml,%3C
   .mini-list { left: 20px; top: 24px; }
   .mini-card { left: 36px; right: 20px; bottom: 24px; top: auto; }
 }
+
+/* =========================================================
+   Detail pages: "at a glance" numbers (products), the setup checklist (solutions),
+   and the slim row of links to the sibling pages that replaced the card grids
+   ========================================================= */
+.nfacts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+.nf { position: relative; display: grid; align-content: start; gap: 10px; padding: 36px 24px 40px; border-left: 1px solid var(--line); min-width: 0; }
+.nf:first-child { border-left: 0; padding-left: 0; }
+.nfacts > .reveal { transition-delay: calc(var(--i, 0) * 90ms); }
+.nf-v { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px; font-size: clamp(40px, 5vw, 56px); font-weight: 400; letter-spacing: -.045em; line-height: 1; font-variant-numeric: tabular-nums; }
+.nf-v small { font-size: 17px; font-weight: 500; letter-spacing: -.01em; color: var(--ink-3); margin-left: 4px; }
+.nf-l { color: var(--ink-2); font-size: 15px; line-height: 1.45; max-width: 220px; }
+.nf-bar { position: absolute; left: 24px; bottom: 0; height: 2px; width: 40px; background: var(--brand); transform: scaleX(0); transform-origin: left; transition: transform .8s var(--ease) calc(.25s + var(--i, 0) * 120ms); }
+.nf:first-child .nf-bar { left: 0; }
+.nf.in .nf-bar { transform: scaleX(1); }
+.nf:hover .nf-v { color: var(--brand); }
+.nf-v { transition: color .2s; }
+
+.xlinks { display: flex; align-items: flex-start; gap: 12px 16px; margin-top: 40px; min-width: 0; }
+.xl-label { flex: none; line-height: 38px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
+.xl-row { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.xl-pill { display: inline-flex; align-items: center; gap: 8px; flex: none; height: 38px; padding: 0 12px 0 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: 14px; font-weight: 500; color: var(--ink); white-space: nowrap; transition: border-color .2s, background-color .2s, transform .2s var(--ease); }
+.xl-pill > .ico-s:last-child { width: 14px; height: 14px; color: var(--ink-3); transition: transform .2s var(--ease), color .2s; }
+.xl-ico { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-2); color: var(--ink-2); transition: background-color .2s, color .2s; }
+.xl-ico .ico-s { width: 14px; height: 14px; }
+.xl-pill:hover { border-color: var(--brand-line); background: var(--brand-soft); }
+.xl-pill:hover .xl-ico { background: var(--brand); color: #fff; }
+.xl-pill:hover > .ico-s:last-child { color: var(--brand); transform: translateX(3px); }
+
+.su { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center; }
+.su-l { display: grid; gap: 18px; justify-items: start; min-width: 0; }
+.su-l h2 { font-weight: 500; font-size: clamp(32px, 4.2vw, 46px); line-height: 1.08; letter-spacing: -.04em; }
+.su-l p { color: var(--ink-2); font-size: 17px; line-height: 1.55; max-width: 440px; }
+.su-l .xlinks { flex-direction: column; gap: 10px; margin-top: 14px; width: 100%; }
+.su-l .xl-label { line-height: 1.4; }
+.su-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-frame); box-shadow: var(--shadow); padding: 22px 22px 10px; min-width: 0; }
+.su-top { display: flex; align-items: baseline; gap: 10px; }
+.su-top b { font-size: 15px; font-weight: 600; }
+.su-pct { margin-left: auto; font-size: 15px; font-weight: 600; color: var(--brand); font-variant-numeric: tabular-nums; }
+.su-prog { margin: 14px 0 6px; height: 4px; border-radius: 4px; background: var(--bg-2); overflow: hidden; }
+.su-prog i { display: block; height: 100%; width: 100%; background: var(--brand); border-radius: 4px; transform: scaleX(0); transform-origin: left; transition: transform calc(var(--n, 5) * .45s) linear .5s; }
+.su-card.in .su-prog i { transform: scaleX(1); }
+.su-list { list-style: none; margin: 0; padding: 0; }
+.su-list li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+.su-list li:first-child { border-top: 0; }
+.su-box { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--line-2); display: grid; place-items: center; color: #fff; transition: background-color .25s, border-color .25s, transform .35s var(--ease); transition-delay: calc(.5s + (var(--i, 0) + 1) * .45s); }
+.su-box .ico-s { width: 13px; height: 13px; opacity: 0; transform: scale(.4); transition: opacity .2s, transform .35s var(--ease); transition-delay: inherit; }
+.su-t { font-size: 15px; color: var(--ink-3); transition: color .3s; transition-delay: calc(.5s + (var(--i, 0) + 1) * .45s); }
+.su-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-3); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.su-chip .ico-s { width: 12px; height: 12px; }
+a.su-chip { transition: border-color .2s, color .2s, background-color .2s; }
+a.su-chip:hover { border-color: var(--brand-line); background: var(--brand-soft); color: var(--brand-text); }
+.su-card.in .su-box { background: var(--brand); border-color: var(--brand); }
+.su-card.in .su-box .ico-s { opacity: 1; transform: none; }
+.su-card.in .su-t { color: var(--ink); }
+
+@media (max-width: 960px) {
+  .nfacts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nf:nth-child(3) { border-left: 0; padding-left: 0; }
+  .nf:nth-child(3) .nf-bar { left: 0; }
+  .nf:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .su { grid-template-columns: 1fr; gap: 40px; }
+}
+@media (max-width: 760px) {
+  .nf { padding: 28px 16px 32px; }
+  .nf-bar { left: 16px; }
+  .nf-l { font-size: 14px; }
+  .xlinks { flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 32px; }
+  .xl-label { line-height: 1.4; }
+  /* on phones the pills scroll sideways inside their row, never the page */
+  .xl-row { flex-wrap: nowrap; overflow-x: auto; width: calc(100% + 32px); margin: 0 -16px; padding: 2px 16px 6px; scrollbar-width: none; scroll-padding-inline: 16px; scroll-snap-type: x proximity; }
+  .xl-row::-webkit-scrollbar { display: none; }
+  .xl-pill { scroll-snap-align: start; }
+  .su-l .xlinks { margin-top: 6px; }
+  .su-card { padding: 18px 16px 6px; }
+  .su-list li { grid-template-columns: 22px minmax(0, 1fr); row-gap: 6px; }
+  .su-chip { grid-column: 2; justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nf-bar, .su-box, .su-box .ico-s, .su-t, .su-prog i, .nfacts > .reveal { transition-delay: 0s !important; }
+}
