@@ -126,7 +126,7 @@ export function UtilBar({ value, thresholds, width = 120 }: { value: number | nu
   const w = Math.min(100, (value ?? 0) * 100 / 1.25);
   return (
     <Tooltip content={`${pct(value)} · ${t.label}`}>
-      <div className="row gap-4" style={{ width }}>
+      <div className="row gap-4" style={{ width, maxWidth: "100%", minWidth: 0 }}>
         <div className={s.utilTrack}>
           <span className={s.barFill} style={{ width: `${w}%`, background: t.color }} />
           <span className={s.utilMark} style={{ left: `${100 / 1.25}%` }} />

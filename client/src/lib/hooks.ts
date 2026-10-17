@@ -98,3 +98,15 @@ export function useHotkey(combo: string, fn: (e: KeyboardEvent) => void, opts: {
     return () => window.removeEventListener("keydown", h);
   }, [combo, opts.allowInInputs, opts.enabled]);
 }
+
+/** Whether a media query matches, kept in sync as the window resizes (e.g. "(max-width: 760px)"). */
+export function useMedia(query: string) {
+  const [match, setMatch] = useState(() => typeof window !== "undefined" && window.matchMedia(query).matches);
+  useEffect(() => {
+    const m = window.matchMedia(query);
+    const on = () => setMatch(m.matches);
+    on(); m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, [query]);
+  return match;
+}

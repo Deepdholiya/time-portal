@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button, Checkbox, Dialog, Field, Select, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
+import { AiPromptBar } from "@/components/app/ai-button";
 import { patch, post } from "@/lib/api";
 import { invalidate } from "@/lib/hooks";
 import { fmtDate } from "@/lib/format";
@@ -21,18 +22,22 @@ export function AiPlanDialog({ open, projects, initialProjectId, onClose, onAppl
   const [busy, setBusy] = useState(false);
   const [keep, setKeep] = useState<boolean[]>([]);
   const [saving, setSaving] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const [round, setRound] = useState(0);
 
-  useEffect(() => { if (open) { setPlan(null); setProjectId(initialProjectId ?? projects[0]?.id ?? null); } }, [open, initialProjectId, projects]);
+  useEffect(() => { if (open) { setPlan(null); setPrompt(""); setProjectId(initialProjectId ?? projects[0]?.id ?? null); } }, [open, initialProjectId, projects]);
   useEffect(() => {
     if (!open || !projectId) return;
     let alive = true;
     setBusy(true); setPlan(null);
-    post<Plan>("/ai/roadmap-plan", { projectId })
+    post<Plan>("/ai/roadmap-plan", { projectId, instructions: round ? prompt.trim() || undefined : undefined })
       .then((r) => { if (alive) { setPlan(r); setKeep(r.proposals.map(() => true)); } })
       .catch((e) => toast.error(e))
       .finally(() => alive && setBusy(false));
     return () => { alive = false; };
-  }, [open, projectId]);
+    // The prompt is read when "Generate" bumps the round, not on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, projectId, round]);
 
   const picked = plan?.proposals.filter((_, i) => keep[i]) ?? [];
   const apply = async () => {
@@ -63,7 +68,12 @@ export function AiPlanDialog({ open, projects, initialProjectId, onClose, onAppl
       <Field label="Project">
         <Select value={projectId ?? ""} onChange={(v) => setProjectId(Number(v))} options={projects.map((p) => ({ value: p.id, label: p.name }))} />
       </Field>
-      <div style={{ height: 14 }} />
+      <div style={{ height: 12 }} />
+      <AiPromptBar
+        value={prompt} onChange={setPrompt} onRun={() => setRound((r) => r + 1)} busy={busy}
+        placeholder="e.g. Start next Monday, urgent and high first"
+        suggestions={["Start next Monday", "Only urgent and high", "Finish by the target date", "Only assigned tasks"]}
+      />
       {busy || !plan ? (
         <>
           <div className={s.thinking}><Sparkles size={14} /> Working out an order and dates…</div>

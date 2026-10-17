@@ -43,6 +43,11 @@
 .projTrack { height: 4px; border-radius: var(--radius-pill); background: var(--bg-active); overflow: hidden; }
 .projTrack > span { display: block; height: 100%; border-radius: var(--radius-pill); }
 @media (max-width: 900px) { .summary { grid-template-columns: 1fr 1fr 1fr; } .summary > div:last-child { grid-column: 1 / -1; border-top: 1px solid var(--border); } }
+@media (max-width: 600px) {
+  .summary { grid-template-columns: 1fr 1fr; }
+  .summary > div:nth-child(2) { border-right: 0; }
+  .summary > div:nth-child(3) { grid-column: 1 / -1; border-right: 0; border-top: 1px solid var(--border); }
+}
 
 /* Entry list */
 .list { margin: 16px var(--gutter) 32px; border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); overflow: hidden; }

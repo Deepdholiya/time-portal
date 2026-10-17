@@ -47,10 +47,10 @@ export default function TeamTime() {
     <Page
       title="Team timesheets" icon={<Users size={15} />}
       toolbar={
-        <div style={{ width: "100%" }}>
+        <div className="tp-bar">
           <FilterBar value={filters} onChange={setStored} showRange={false} hide={["status"]}
             leading={<TimeRangeControl value={rangeSel} onChange={setRange} rangeOnly />}
-            trailing={<Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>}
+            trailing={<Button size="sm" variant="secondary" collapse icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>}
             extra={{ sections: [{ key: "rows", label: "Rows", icon: <Rows3 size={13} />, single: true, required: true, defaultValue: "employee", options: GROUPS }], value: { rows: [groupBy] }, onChange: (v) => setGroupBy((v.rows?.[0] as GroupBy) ?? "employee") }} />
         </div>
       }
@@ -62,7 +62,7 @@ export default function TeamTime() {
           <table className={`table ${s.grid}`}>
             <thead>
               <tr>
-                <th className={s.sticky}>{GROUPS.find((g) => g.value === groupBy)?.label}</th>
+                <th className={`${s.sticky} pin-col`}>{GROUPS.find((g) => g.value === groupBy)?.label}</th>
                 {days.map((d) => <th key={d} className={`num ${d === today() ? s.today : ""} ${isWeekend(d) ? s.weekend : ""}`}>{compact ? d.slice(8) : <>{dayName(d)} <span className="faint">{d.slice(8)}</span></>}</th>)}
                 <th className="num">Total</th>
                 <th className="num">Billable</th>
@@ -72,11 +72,13 @@ export default function TeamTime() {
               {data.rows.map((r) => {
                 return (
                   <tr key={r.key} className="clickable" onClick={() => setDrill({ title: `${r.label} · ${label}`, query: { ...q, ...rowFilter(groupBy, r.key) } })}>
-                    <td className={s.sticky}>
-                      <div className="row" style={{ maxWidth: 280 }}>
+                    <td className={`${s.sticky} pin-col`}>
+                      <div className={`row ${s.label}`} title={r.sub ? `${r.label} · ${r.sub}` : r.label}>
                         {r.color && <ProjectDot color={r.color} />}
-                        <span className="medium ellipsis">{r.label}</span>
-                        {r.sub && <span className="faint small ellipsis">{r.sub}</span>}
+                        <div className={s.labelText}>
+                          <span className="medium ellipsis">{r.label}</span>
+                          {r.sub && <span className="faint small ellipsis">{r.sub}</span>}
+                        </div>
                       </div>
                     </td>
                     {days.map((d) => {
@@ -96,7 +98,7 @@ export default function TeamTime() {
             </tbody>
             <tfoot>
               <tr>
-                <td className={s.sticky}>Total <span className="faint small">{data.rows.length} rows</span></td>
+                <td className={`${s.sticky} pin-col`}>Total <span className="faint small">{data.rows.length} rows</span></td>
                 {dayTotals.map((m, i) => <td key={days[i]} className="num">{m ? hm(m, true) : "–"}</td>)}
                 <td className="num">{hm(data.total, true)}</td>
                 <td className="num"><Tooltip content={`${data.total ? Math.round((billable / data.total) * 100) : 0}% billable`}><span>{hm(billable, true)}</span></Tooltip></td>

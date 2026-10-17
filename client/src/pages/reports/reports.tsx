@@ -134,7 +134,7 @@ export default function Reports() {
               onChange={(v) => setStored({ ...filters, projectId: v, subProjectId: [], taskId: [] })}
               trigger={<Button size="sm" variant="secondary" icon={<Briefcase size={14} />} iconRight={<ChevronDown size={13} className="faint" />} aria-label="Project filter"><span className="faint">Project</span>&nbsp;{projLabel}</Button>} />
           </>}
-          trailing={canExport && <Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>} />
+          trailing={canExport && <Button size="sm" variant="secondary" collapse icon={<Download size={14} />} onClick={() => setExporting(true)}>Export</Button>} />
       }
     >
       <div className="page-pad">

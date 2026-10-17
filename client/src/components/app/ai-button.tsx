@@ -1,4 +1,4 @@
-import { forwardRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Sparkles, X } from "lucide-react";
 import { Button, Popover, Tooltip, toast } from "@/components/ui";
 import { useSession } from "@/lib/session";
@@ -19,22 +19,20 @@ export interface AiButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEleme
   loading?: boolean;
   /** Render even when AI isn't available (for example inside a component that already checked). */
   force?: boolean;
-  /** Neutral outline style instead of the gradient, for read-only summaries. */
-  plain?: boolean;
 }
 
-const Inner = forwardRef<HTMLButtonElement, AiButtonProps>(function Inner({ label, size = "md", loading, disabled, className, force: _f, plain, ...rest }, ref) {
+const Inner = forwardRef<HTMLButtonElement, AiButtonProps>(function Inner({ label, size = "md", loading, disabled, className, force: _f, ...rest }, ref) {
   return (
     <button
       ref={ref} type="button" aria-label={label} aria-busy={loading || undefined} disabled={disabled || loading}
-      className={[s.btn, size === "sm" && s.sm, plain && s.plain, className].filter(Boolean).join(" ")} {...rest}
+      className={[s.btn, size === "sm" && s.sm, className].filter(Boolean).join(" ")} {...rest}
     >
       {loading ? <span className={s.spin} aria-hidden /> : <Sparkles size={size === "sm" ? 14 : 16} strokeWidth={2} aria-hidden />}
     </button>
   );
 });
 
-/** Square, icon-only button for AI actions: gradient when AI does work for you, `plain` when it only summarizes. Hidden when the person can't use AI. Forwards its ref so it can be a popover trigger. */
+/** Square, icon-only button for AI actions, in the same neutral outline everywhere. Hidden when the person can't use AI. Forwards its ref so it can be a popover trigger. */
 export const AiButton = forwardRef<HTMLButtonElement, AiButtonProps>(function AiButton(props, ref) {
   const available = useAiAvailable();
   if (!available && !props.force) return null;
@@ -82,7 +80,7 @@ export function AiInsight({ label, title = "AI summary", load, size, placement =
     <Popover
       open={open} placement={placement} width={width} padded={false}
       onOpenChange={(v) => { setOpen(v); if (v) { setResult(null); run(); } }}
-      trigger={<AiButton plain label={label} size={size} loading={busy && !open} />}
+      trigger={<AiButton label={label} size={size} loading={busy && !open} />}
     >
       <div className={s.insight}>
         <AiPanel title={title} source={result?.source} onClose={() => setOpen(false)}>
@@ -91,5 +89,68 @@ export function AiInsight({ label, title = "AI summary", load, size, placement =
         {result && !busy && <div className={s.insightFoot}><Button size="sm" variant="ghost" onClick={run}>Regenerate</Button></div>}
       </div>
     </Popover>
+  );
+}
+
+/**
+ * AI button that first asks what you want: a short prompt box (optional, with a few example chips), then "Generate".
+ * Used wherever AI fills in data for you (task description, sub-tasks, time entry, expense), so you can steer the result.
+ */
+export function AiPromptButton({ label, title, placeholder, suggestions = [], loading, size, disabled, placement = "bottom-end", onRun }: {
+  label: string; title?: string; placeholder?: string; suggestions?: string[]; loading?: boolean; size?: "md" | "sm"; disabled?: boolean;
+  placement?: "bottom-start" | "bottom-end"; onRun: (prompt: string) => void;
+}) {
+  const available = useAiAvailable();
+  const [open, setOpen] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const box = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => { if (open) setTimeout(() => box.current?.focus(), 30); }, [open]);
+  if (!available) return null;
+  const go = () => { setOpen(false); onRun(prompt.trim()); };
+  return (
+    <Popover
+      open={open} onOpenChange={setOpen} placement={placement} width={340} padded={false}
+      trigger={<AiButton label={label} size={size} loading={loading} disabled={disabled} />}
+    >
+      <form className={s.prompt} onSubmit={(e) => { e.preventDefault(); go(); }}>
+        <div className={s.promptHead}><Sparkles size={13} />{title ?? label}</div>
+        <textarea
+          ref={box} className={s.promptBox} rows={2} value={prompt} maxLength={500} aria-label="What should AI do?"
+          placeholder={placeholder ?? "Tell AI what you want (optional)"}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(); } }}
+        />
+        {!!suggestions.length && (
+          <div className={s.promptChips}>
+            {suggestions.map((x) => <button key={x} type="button" className={s.promptChip} onClick={() => { setPrompt(x); box.current?.focus(); }}>{x}</button>)}
+          </div>
+        )}
+        <div className={s.promptFoot}>
+          <span className={s.promptHint}>Leave empty for a standard draft.</span>
+          <Button size="sm" variant="primary" type="submit" icon={<Sparkles size={13} />}>Generate</Button>
+        </div>
+      </form>
+    </Popover>
+  );
+}
+
+/** Prompt bar at the top of an AI review dialog: type what to change and run it again. */
+export function AiPromptBar({ value, onChange, onRun, busy, placeholder, suggestions = [] }: {
+  value: string; onChange: (v: string) => void; onRun: () => void; busy?: boolean; placeholder?: string; suggestions?: string[];
+}) {
+  const field = useRef<HTMLInputElement>(null);
+  return (
+    <form className={s.bar} onSubmit={(e) => { e.preventDefault(); onRun(); }}>
+      <div className={s.barRow}>
+        <Sparkles size={14} className={s.barIcon} />
+        <input ref={field} className={s.barInput} value={value} maxLength={500} placeholder={placeholder ?? "Tell AI what you want…"} aria-label="Instructions for AI" onChange={(e) => onChange(e.target.value)} />
+        <Button size="sm" variant="primary" type="submit" loading={busy} disabled={busy}>{value.trim() ? "Generate" : "Regenerate"}</Button>
+      </div>
+      {!!suggestions.length && (
+        <div className={s.promptChips}>
+          {suggestions.map((x) => <button key={x} type="button" className={s.promptChip} onClick={() => { onChange(x); field.current?.focus(); }}>{x}</button>)}
+        </div>
+      )}
+    </form>
   );
 }

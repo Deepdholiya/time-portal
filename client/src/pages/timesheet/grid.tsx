@@ -44,7 +44,7 @@ export function TimesheetGrid({ rows, ctx }: { rows: Row[]; ctx: GridCtx }) {
   const dayTotals = ctx.days.map((d) => rows.reduce((a, r) => a + r.entries.filter((e) => e.date === d).reduce((x, e) => x + e.minutes, 0), 0));
   const total = dayTotals.reduce((a, b) => a + b, 0);
   return (
-    <table className={s.grid} style={{ minWidth: 300 + ctx.days.length * 84 + 150 }}>
+    <table className={s.grid} style={{ ["--days" as string]: ctx.days.length }}>
       <colgroup>
         <col className={s.colProject} />
         {ctx.days.map((d) => <col key={d} className={s.colDay} />)}
@@ -52,7 +52,7 @@ export function TimesheetGrid({ rows, ctx }: { rows: Row[]; ctx: GridCtx }) {
       </colgroup>
       <thead>
         <tr>
-          <th className={s.sticky}>Project / task</th>
+          <th className={`${s.sticky} pin-col`}>Project / task</th>
           {ctx.days.map((d) => <DayHead key={d} date={d} ctx={ctx} />)}
           <th className={s.colTotal}>Total</th>
           <th aria-label="Row actions" />
@@ -67,7 +67,7 @@ export function TimesheetGrid({ rows, ctx }: { rows: Row[]; ctx: GridCtx }) {
       </tbody>
       <tfoot>
         <tr>
-          <td className={s.sticky}>Daily total</td>
+          <td className={`${s.sticky} pin-col`}>Daily total</td>
           {dayTotals.map((m, i) => <td key={i} className={`${s.footNum} ${m > 12 * 60 ? s.over : ""}`}>{m ? hm(m, true) : <span className="faint">0:00</span>}</td>)}
           <td className={s.rowTotal}>{hm(total, true)}</td>
           <td />
@@ -119,7 +119,7 @@ function GridRow({ row, ctx }: { row: Row; ctx: GridCtx }) {
 
   return (
     <tr>
-      <td className={s.sticky}>
+      <td className={`${s.sticky} pin-col`}>
         <div className={s.projectCell} title={`${row.projectLabel}${row.taskLabel ? ` · ${row.taskLabel}` : ""}`}>
           <ProjectDot color={row.color} />
           <div className={s.projectText}>
@@ -336,7 +336,7 @@ function EntryForm({ entry, row, date, ctx, editable, head, onBack, close }: {
 function AddRow({ ctx }: { ctx: GridCtx }) {
   return (
     <tr className={s.addRow}>
-      <td className={s.sticky} style={{ paddingLeft: 4 }}>
+      <td className={`${s.sticky} pin-col`} style={{ paddingLeft: 4 }}>
         <ProjectTaskPicker
           options={ctx.options}
           value={{ projectId: null, taskId: null }}

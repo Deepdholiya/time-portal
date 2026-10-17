@@ -70,7 +70,7 @@ export default function Workload() {
     <Page
       title="Workload" icon={<Gauge size={15} />}
       toolbar={
-        <div className="row wrap" style={{ width: "100%" }}>
+        <div className="tp-bar">
           <PeriodNav
             unit="period"
             label={`${fmtDate(from)} – ${fmtDate(to, true)}`}
@@ -112,7 +112,7 @@ export default function Workload() {
           <table className={`table ${s.table}`}>
             <thead>
               <tr>
-                <th className={s.sticky}>Person</th>
+                <th className={`${s.sticky} pin-col`}>Person</th>
                 <th className="num">Capacity</th>
                 <th className="num">Planned</th>
                 <th className="num">Logged</th>
@@ -128,7 +128,7 @@ export default function Workload() {
                 const st = STATUS[(toneFor(u, t) ?? "UNDERUTILIZED") as WRow["status"]];
                 return (
                   <tr key={r.user.id} className="clickable" onClick={() => setPerson(r)}>
-                    <td className={s.sticky}>
+                    <td className={`${s.sticky} pin-col`}>
                       <div className="row"><Avatar name={r.user.name} size={20} /><div className={s.who}><span className="medium ellipsis">{r.user.name}</span><span className="faint tiny ellipsis">{r.team ?? r.user.title ?? ""}</span></div></div>
                     </td>
                     <td className="num">{h1(r.capacityHours)}h{r.leaveDays > 0 && <Tooltip content={`${r.leaveDays} day(s) of approved leave`}><span className={s.leave}><Plane size={11} />{r.leaveDays}d</span></Tooltip>}</td>

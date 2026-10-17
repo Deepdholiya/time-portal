@@ -280,6 +280,26 @@
     counters.forEach(function (c) { cio.observe(c); });
   } else counters.forEach(function (c) { c.textContent = c.dataset.count; });
 
+  /* ---------- setup checklist (solution pages): the percentage follows the progress bar ---------- */
+  var suPcts = $$("[data-su-pct]");
+  if (suPcts.length && "IntersectionObserver" in window && !reduce) {
+    suPcts.forEach(function (el) { el.textContent = "0%"; });
+    var sio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var card = e.target, el = $("[data-su-pct]", card), n = +getComputedStyle(card).getPropertyValue("--n") || 5;
+        var delay = 500, dur = n * 450, t0 = performance.now() + delay;
+        (function tick(ts) {
+          var p = Math.max(0, Math.min(1, (ts - t0) / dur));
+          el.textContent = Math.round(p * 100) + "%";
+          if (p < 1) requestAnimationFrame(tick);
+        })(performance.now());
+        sio.unobserve(card);
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
+    suPcts.forEach(function (el) { sio.observe(el.closest(".su-card")); });
+  }
+
   /* ---------- request access ---------- */
   var form = $("#accessForm"), msg = $("#accessMsg");
   if (form) {
@@ -319,7 +339,7 @@
   }
 
   /* ---------- cards: a soft light follows the pointer ---------- */
-  $$(".tile, .rel-card, .c-link, .demo-card, .plan, .dd-card, .try, .hero-shot").forEach(function (c) {
+  $$(".tile, .rel-card, .c-link, .demo-card, .plan, .dd-card, .try, .hero-shot, .uc, .frame > .card, .jcard, .co").forEach(function (c) {
     c.classList.add("spot");
     c.addEventListener("pointermove", function (e) {
       var r = c.getBoundingClientRect();
@@ -365,7 +385,7 @@
   });
   /* ---------- headings: words rise in one by one as each heading scrolls into view ---------- */
   if (!reduce && "IntersectionObserver" in window && Element.prototype.animate) {
-    var heads = $$(".sec-head h2, .frow-t h2, .faq-l h2, .story h2, .final h2, .page-hero h1, .c-form h2");
+    var heads = $$(".sec-head h2, .uc-head h2, .frow-t h2, .faq-l h2, .story h2, .final h2, .page-hero h1, .c-form h2");
     var splitWords = function (el) {
       var words = [];
       (function walk(node) {
@@ -399,35 +419,6 @@
       });
     }, { threshold: 0.4 });
     heads.forEach(function (h) { h._words = splitWords(h); hio.observe(h); });
-  }
-
-  /* ---------- characters: pop in when seen, then drift a little with the scroll ---------- */
-  var chars = $$(".char");
-  if (chars.length && !reduce) {
-    if ("IntersectionObserver" in window && Element.prototype.animate) {
-      var chio = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (!e.isIntersecting) return;
-          chio.unobserve(e.target);
-          e.target.querySelector("svg").animate([
-            { opacity: 0, transform: "translateY(16px) scale(.6) rotate(-8deg)" },
-            { opacity: 1, transform: "translateY(-4px) scale(1.06) rotate(2deg)", offset: .7 },
-            { opacity: 1, transform: "none" }
-          ], { duration: 800, easing: "cubic-bezier(.22,1,.36,1)", fill: "both" });
-        });
-      }, { threshold: 0.3 });
-      chars.forEach(function (c) { chio.observe(c); });
-    }
-    var drift = function () {
-      chars.forEach(function (c) {
-        if (c.classList.contains("hs-walker") || c.classList.contains("faq-ch")) return;
-        var r = c.getBoundingClientRect(); if (r.bottom < -200 || r.top > innerHeight + 200) return;
-        c.style.setProperty("--py", ((r.top + r.height / 2 - innerHeight / 2) * -0.08).toFixed(1) + "px");
-      });
-    };
-    var dtick = false;
-    addEventListener("scroll", function () { if (!dtick) { dtick = true; requestAnimationFrame(function () { drift(); dtick = false; }); } }, { passive: true });
-    drift();
   }
 
   /* ======================================================================
@@ -705,6 +696,36 @@
       rows.forEach(function (r) { r.classList.toggle("cur", r.contains(next)); });
     }
   };
+  var APP_FEED = [
+    ["#6366f1", "KS", "Brand sprint", "Type system review · Karan S.", "1:15"],
+    ["#f97316", "AR", "Website redesign", "Client call notes · Ana R.", "0:45"],
+    ["#0ea5e9", "VT", "Mobile app · v2", "Onboarding flow · Vikram T.", "2:30"],
+    ["#10b981", "MP", "Internal tools", "Timesheet export fix · Meera P.", "1:00"],
+    ["#f97316", "AR", "Website redesign", "Pricing page QA · Ana R.", "1:45"]
+  ];
+  WX.app = {
+    every: 3600, first: 2400,
+    enter: function (w) { if (!w._feed0) { w._feed0 = $(".hf-list", w).innerHTML; w._k = 0; w._h = 186; } },
+    settle: function (w) {
+      if (!w._feed0) return;
+      $(".hf-list", w).innerHTML = w._feed0; w._h = 186; w._k = 0;
+      var lg = $(".kpi .cu", w); if (lg) { lg._cuText = "186h"; lg.textContent = "186h"; }
+      $$(".hc-col", w).forEach(function (c) { c.classList.remove("bump"); c.style.removeProperty("--a"); });
+    },
+    loop: function (w) {
+      var list = $(".hf-list", w), d = APP_FEED[w._k++ % APP_FEED.length];
+      var row = document.createElement("div"); row.className = "hf new";
+      row.innerHTML = '<span class="av" style="--c:' + d[0] + '">' + d[1] + '</span><div><b>' + d[2] + '</b><span>' + d[3] + '</span></div><em class="num">' + d[4] + "</em>";
+      list.insertBefore(row, list.firstChild);
+      var rows = $$(".hf", list);
+      rows.slice(3).forEach(function (r) { r.classList.add("gone"); setTimeout(function () { r.remove(); }, 340); });
+      var hm = d[4].split(":"), add = +hm[0] + hm[1] / 60, from = Math.round(w._h) + "h";
+      w._h += add;
+      var lg = $(".kpi .cu", w); if (lg) { lg._cuText = Math.round(w._h) + "h"; countUp(lg, 700, from); }
+      var fri = $$(".hc-col", w)[4];
+      if (fri) { var a = Math.min(86, parseFloat(getComputedStyle(fri).getPropertyValue("--a")) + 4); if (a >= 86) a = 52; fri.style.setProperty("--a", a + "%"); fri.classList.add("bump"); later(w, 700, function () { fri.classList.remove("bump"); }); }
+    }
+  };
   WX.editor = { every: 6000, enter: function () { typeCell(); }, loop: function () { typeCell(); } };
   WX.who = { every: 2400, loop: function (w) {
     var items = $$(".who-item", w), k = ((w._k == null ? -1 : w._k) + 1) % items.length; w._k = k;
@@ -791,4 +812,97 @@
     addEventListener("resize", update);
     update();
   });
+
+  /* ======================================================================
+     Round 4: pointer grid, hero parallax, magnetic CTAs, nav indicator,
+     use-case carousel, copy buttons and form feedback.
+     ====================================================================== */
+  var fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  // hero grids light up under the pointer; the hero window and its notes lean towards it
+  if (fine && !reduce) {
+    $$(".hero, .page-hero").forEach(function (h) {
+      var stage = $(".hero-stage", h), app = stage && $(".happ", stage), chips = stage ? $$(".hchip", stage) : [], raf = 0, ev = null;
+      h.addEventListener("pointermove", function (e) {
+        ev = e; if (raf) return;
+        raf = requestAnimationFrame(function () {
+          raf = 0;
+          var r = h.getBoundingClientRect();
+          h.style.setProperty("--gx", (ev.clientX - r.left) + "px"); h.style.setProperty("--gy", (ev.clientY - r.top) + "px");
+          h.classList.add("ptr");
+          if (app) {
+            var x = (ev.clientX / innerWidth - .5) * 2, y = (ev.clientY / innerHeight - .5) * 2;
+            app.style.setProperty("--ry", (x * 2.2).toFixed(2) + "deg"); app.style.setProperty("--rx", (-y * 1.6).toFixed(2) + "deg");
+            chips.forEach(function (c, i) { var k = i ? -1 : 1; c.style.setProperty("--px", (x * 12 * k).toFixed(1) + "px"); c.style.setProperty("--py", (y * 8 * k).toFixed(1) + "px"); });
+          }
+        });
+      });
+      h.addEventListener("pointerleave", function () {
+        h.classList.remove("ptr");
+        if (app) { app.style.setProperty("--rx", "0deg"); app.style.setProperty("--ry", "0deg"); chips.forEach(function (c) { c.style.setProperty("--px", "0px"); c.style.setProperty("--py", "0px"); }); }
+      });
+    });
+
+    // primary calls to action drift a little towards the pointer
+    $$(".hero-ctas .btn-brand, .final .btn-brand, .rq-foot .btn-brand, .c-form .btn-brand").forEach(function (b) {
+      b.classList.add("magnetic");
+      b.addEventListener("pointermove", function (e) {
+        var r = b.getBoundingClientRect(), x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+        b.style.setProperty("--mgx", Math.max(-6, Math.min(6, x * .18)).toFixed(1) + "px");
+        b.style.setProperty("--mgy", Math.max(-4, Math.min(4, y * .25)).toFixed(1) + "px");
+      });
+      b.addEventListener("pointerleave", function () { b.style.setProperty("--mgx", "0px"); b.style.setProperty("--mgy", "0px"); });
+    });
+  }
+
+  // nav: an underline slides to the item under the pointer and rests on the current page
+  var navLinks = $(".nav-links");
+  if (navLinks) {
+    var ind = document.createElement("span"); ind.className = "nav-ind"; ind.setAttribute("aria-hidden", "true"); navLinks.appendChild(ind);
+    var items = $$(":scope > a, :scope > .dd > .dd-btn", navLinks);
+    var place = function (el) {
+      if (!el) { ind.classList.remove("on"); return; }
+      var nr = navLinks.getBoundingClientRect(), r = el.getBoundingClientRect(), tw = el.querySelector(".ico-s") ? r.width - 18 : r.width;
+      ind.style.setProperty("--nx", (r.left - nr.left) + "px"); ind.style.setProperty("--nw", tw + "px"); ind.classList.add("on");
+    };
+    var home = items.filter(function (a) { return a.getAttribute("aria-current") === "page"; })[0] || null;
+    items.forEach(function (a) { a.addEventListener("pointerenter", function () { place(a); }); a.addEventListener("focus", function () { place(a); }); });
+    navLinks.addEventListener("pointerleave", function () { place(home); });
+    if (home) { if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { place(home); }); else place(home); }
+  }
+
+  // use-case carousel: buttons page through, the bar shows where you are
+  $$("[data-carousel]").forEach(function (tr) {
+    var sec = tr.closest(".wrap"), btns = $$(".uc-btn", sec), bar = $(".uc-prog i", sec);
+    var step = function () { var c = tr.firstElementChild; return c ? c.getBoundingClientRect().width + parseFloat(getComputedStyle(tr).columnGap || 16) : tr.clientWidth; };
+    var upd = function () {
+      var max = tr.scrollWidth - tr.clientWidth, p = max > 0 ? tr.scrollLeft / max : 0, vis = tr.clientWidth / tr.scrollWidth;
+      if (bar) { bar.style.setProperty("--w", (vis * 100).toFixed(1) + "%"); bar.style.setProperty("--x", (p * (1 / vis - 1) * 100).toFixed(1) + "%"); }
+      if (btns[0]) btns[0].disabled = tr.scrollLeft < 4;
+      if (btns[1]) btns[1].disabled = tr.scrollLeft > max - 4;
+    };
+    btns.forEach(function (b) { b.addEventListener("click", function () { tr.scrollBy({ left: +b.dataset.uc * step(), behavior: reduce ? "auto" : "smooth" }); }); });
+    tr.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); tr.scrollBy({ left: (e.key === "ArrowRight" ? 1 : -1) * step(), behavior: reduce ? "auto" : "smooth" }); }
+    });
+    tr.addEventListener("scroll", upd, { passive: true }); addEventListener("resize", upd); upd();
+  });
+
+  // copy buttons
+  $$("[data-copy]").forEach(function (b) {
+    var l = $(".copy-l", b);
+    b.addEventListener("click", function () {
+      var ok = function () { b.classList.add("copied"); if (l) l.textContent = "Copied"; clearTimeout(b._t); b._t = setTimeout(function () { b.classList.remove("copied"); if (l) l.textContent = "Copy"; }, 1800); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(b.dataset.copy).then(ok, ok); else ok();
+    });
+  });
+
+  // email fields: a tick once the address looks right, a shake if a form is sent without one
+  var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  $$('input[type="email"]').forEach(function (inp) {
+    var chk = function () { inp.classList.toggle("valid", EMAIL.test(inp.value.trim())); };
+    inp.addEventListener("input", chk); chk();
+    inp.addEventListener("invalid", function () { if (reduce) return; inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake"); });
+  });
+  if (form && !reduce) form.addEventListener("submit", function () { var e = form.email; if (e.getAttribute("aria-invalid") === "true") { e.classList.remove("shake"); void e.offsetWidth; e.classList.add("shake"); } });
 })();

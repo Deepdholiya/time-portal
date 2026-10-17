@@ -18,3 +18,11 @@
 .control :global(.field) > div:has(> input) { width: 100%; }
 .wide { grid-template-columns: minmax(0, 1fr) auto; }
 .wide .control > * { width: auto; }
+@media (max-width: 760px) {
+  .wide { grid-template-columns: 1fr; gap: 10px; }
+  .control, .wide .control { justify-content: flex-start; }
+  .control :global(.field) { align-items: stretch; }
+  .addRow { flex-wrap: wrap; }
+  .addRow > * { flex: 1 1 140px; }
+  .bands { margin-inline: 12px; }
+}

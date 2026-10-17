@@ -45,4 +45,14 @@ a.crumbArea:hover { color: var(--text); text-decoration: underline; text-underli
   .hideSm { display: none !important; }
   .showSm { display: inline-flex !important; }
 }
-.askBtn { gap: 6px; }
+/* The one gradient in the app: Ask AI in the top bar. */
+.askBtn {
+  gap: 6px; color: #fff !important; border: 0 !important; background: linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #ff4c00 100%) !important;
+  background-size: 140% 140% !important; background-position: 0% 50% !important;
+  box-shadow: 0 1px 2px rgb(124 58 237 / .25), inset 0 0 0 1px rgb(255 255 255 / .14) !important;
+  transition: background-position .4s ease, box-shadow .15s ease, transform .12s ease !important;
+}
+.askBtn svg { color: #fff; }
+.askBtn:hover { background-position: 100% 50% !important; box-shadow: 0 4px 14px rgb(236 72 153 / .3), inset 0 0 0 1px rgb(255 255 255 / .2) !important; }
+.askBtn:active { transform: scale(.98); }
+.askBtn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--sh-background, #fff), 0 0 0 4px #a855f7 !important; }

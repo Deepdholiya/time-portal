@@ -4,11 +4,13 @@ import { AlertTriangle, ChevronDown, ChevronRight, Diamond, Plus } from "lucide-
 import { Avatar, Badge, Tooltip } from "@/components/ui";
 import { HEALTH_META, ProjectDot, StatusIcon } from "@/components/app/icons";
 import { addDays, daysBetween, fmtDate, today } from "@/lib/format";
+import { useMedia } from "@/lib/hooks";
 import { headerTicks, PX_PER_DAY, type Zoom } from "./scale";
 import type { RTask, Row } from "./types";
 import s from "./roadmap.module.css";
 
-export const LEFT = 320;
+/** Width of the pinned name column: narrower on phones so the timeline stays visible. */
+export const LEFT_WIDE = 320, LEFT_NARROW = 148;
 export const ROW_H = 34;
 
 export type Target = { kind: "project" | "sub"; id: number; start: string | null; end: string | null } | { kind: "task"; id: number; start: string | null; end: string | null };
@@ -24,6 +26,7 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
   onToggle: (key: string) => void; onCommit: (t: Target, start: string | null, end: string | null) => void; onOpenTask: (id: number) => void; onAdd: (r: Extract<Row, { kind: "add" }>) => void; scrollToToday: number;
 }) {
   const nav = useNavigate();
+  const LEFT = useMedia("(max-width: 760px)") ? LEFT_NARROW : LEFT_WIDE;
   const ppd = PX_PER_DAY[zoom];
   const total = daysBetween(start, end) + 1;
   const W = Math.ceil(total * ppd);
@@ -37,7 +40,7 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
     const el = scroller.current;
     if (el) el.scrollTo({ left: Math.max(0, x(t0) - (el.clientWidth - LEFT) / 3), behavior: scrollToToday ? "smooth" : "auto" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoom, start, scrollToToday]);
+  }, [zoom, start, scrollToToday, LEFT]);
   const centerToday = () => { const el = scroller.current; el?.scrollTo({ left: Math.max(0, x(t0) - (el.clientWidth - LEFT) / 2), behavior: "smooth" }); };
 
   // Live extent while dragging.
@@ -130,10 +133,10 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
   });
 
   return (
-    <div className={s.scroller} ref={scroller}>
+    <div className={`${s.scroller} hscroll`} ref={scroller} style={{ ["--lw" as string]: `${LEFT}px` }}>
       <div className={s.canvas} style={{ width: LEFT + W }}>
         <div className={s.head}>
-          <div className={s.corner}>Name</div>
+          <div className={`${s.corner} pin-col`}>Name</div>
           <div className={s.ticks} style={{ width: W }}>
             <div className={s.tierTop}>{ticks.top.map((t) => <div key={t.x} className={s.tickTop} style={{ left: t.x, width: t.w }}><span>{t.label}</span></div>)}</div>
             <div className={s.tierBottom}>{ticks.bottom.map((t) => <div key={t.x} className={`${s.tick} ${t.weekend ? s.weekend : ""} ${t.strong ? s.tickStrong : ""}`} style={{ left: t.x, width: t.w }}>{t.w >= 18 ? t.label : ""}</div>)}</div>
@@ -153,8 +156,8 @@ export function Gantt({ rows, zoom, start, end, canEdit, deps, onToggle, onCommi
           </svg>
           {rows.map((r) => (
             <div key={r.key} className={`${s.row} ${r.kind === "initiative" ? s.rowInit : ""} ${r.kind === "project" ? s.rowProject : ""} ${r.kind === "add" ? s.rowAdd : ""}`} style={{ height: ROW_H }}>
-              <div className={s.left} style={{ width: LEFT }}>{r.kind === "add"
-                ? <button type="button" className={s.addRow} style={{ paddingLeft: r.what === "task" ? 52 : 20 }} onClick={() => onAdd(r)}><Plus size={13} />{r.what === "task" ? "Add task" : "Add project"}</button>
+              <div className={`${s.left} pin-col`} style={{ width: LEFT }}>{r.kind === "add"
+                ? <button type="button" className={s.addRow} style={{ paddingLeft: `calc(${r.what === "task" ? 52 : 20}px * var(--indent, 1))` }} onClick={() => onAdd(r)}><Plus size={13} />{r.what === "task" ? "Add task" : "Add project"}</button>
                 : leftCell(r, onToggle, nav, onOpenTask)}</div>
               <div className={s.lane} style={{ width: W }}>
                 {r.kind === "initiative" && r.start && r.end && (
@@ -227,29 +230,29 @@ function leftCell(r: Row, onToggle: (k: string) => void, nav: (p: string) => voi
     case "project": {
       const p = r.project, h = HEALTH_META[p.health] ?? HEALTH_META.NONE;
       return (
-        <div className={s.cell} style={{ paddingLeft: 14 }}>
+        <div className={s.cell} style={{ paddingLeft: "calc(14px * var(--indent, 1))" }}>
           {chev(r.open, r.key)}<ProjectDot color={p.color} />
           <span className={`medium ellipsis ${s.linky}`} onClick={() => nav(`/projects/${p.id}`)}>{p.name}</span>
           <div className="grow" />
           {p.reasons.some((x) => x.includes("dependency")) && <Tooltip content={p.reasons.join(" · ")}><AlertTriangle size={13} className="danger" /></Tooltip>}
-          <Tooltip content={p.reasons.length ? p.reasons.join(" · ") : "No issues"}><span><Badge size="sm" tone={h.tone} dot>{h.label}</Badge></span></Tooltip>
+          <Tooltip content={p.reasons.length ? p.reasons.join(" · ") : "No issues"}><span className={s.health}><Badge size="sm" tone={h.tone} dot>{h.label}</Badge></span></Tooltip>
         </div>
       );
     }
     case "sub":
-      return <div className={s.cell} style={{ paddingLeft: 32 }}>{chev(r.open, r.key)}<span className={s.subDot} style={{ borderColor: r.parent.color }} /><span className="ellipsis">{r.sub.name}</span><span className="faint small">{r.count}</span></div>;
+      return <div className={s.cell} style={{ paddingLeft: "calc(32px * var(--indent, 1))" }}>{chev(r.open, r.key)}<span className={s.subDot} style={{ borderColor: r.parent.color }} /><span className="ellipsis">{r.sub.name}</span><span className="faint small">{r.count}</span></div>;
     case "milestones":
-      return <div className={s.cell} style={{ paddingLeft: 52 }}><Diamond size={12} className="faint" /><span className="muted small">Milestones</span><span className="faint small">{r.project.milestones.filter((m) => m.done).length}/{r.project.milestones.length} reached</span></div>;
+      return <div className={s.cell} style={{ paddingLeft: "calc(52px * var(--indent, 1))" }}><Diamond size={12} className="faint" /><span className="muted small">Milestones</span><span className="faint small">{r.project.milestones.filter((m) => m.done).length}/{r.project.milestones.length} reached</span></div>;
     case "task": {
       const t = r.task;
       return (
-        <div className={`${s.cell} ${s.taskCell}`} style={{ paddingLeft: 30 + r.depth * 18 }} onClick={() => openTask(t.id)}>
+        <div className={`${s.cell} ${s.taskCell}`} style={{ paddingLeft: `calc(${30 + r.depth * 18}px * var(--indent, 1))` }} onClick={() => openTask(t.id)}>
           <StatusIcon status={t.status} size={13} />
-          <span className="faint tiny num" style={{ width: 52, flexShrink: 0 }}>{t.key}</span>
+          <span className={`faint tiny num ${s.taskKey}`}>{t.key}</span>
           <span className={`ellipsis ${t.status === "DONE" ? "faint" : ""}`}>{t.title}</span>
           <div className="grow" />
           {t.conflict && <Tooltip content="Starts before a blocking task is due"><AlertTriangle size={12} className="danger" /></Tooltip>}
-          {t.assignee && <Avatar name={t.assignee.name} size={16} title={t.assignee.name} />}
+          {t.assignee && <span className={s.assignee}><Avatar name={t.assignee.name} size={16} title={t.assignee.name} /></span>}
         </div>
       );
     }

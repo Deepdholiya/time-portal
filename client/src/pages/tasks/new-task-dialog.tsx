@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Clock, FileStack, FolderKanban, Milestone, X } from "lucide-react";
 import { Button, Combobox, Dialog, DatePicker, Input, Menu, Popover, Switch, Textarea, toast } from "@/components/ui";
 import { ProjectDot } from "@/components/app/icons";
-import { AiButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
+import { AiPromptButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
 import { AssigneePicker, PriorityPicker, StatusPicker } from "@/components/app/properties";
 import type { NewTaskDefaults } from "@/components/app/shell-context";
 import { post } from "@/lib/api";
@@ -47,12 +47,12 @@ export default function NewTaskDialog({ defaults, onClose, onCreated }: { defaul
   // Pick the only project automatically for people who can only log on one.
   useEffect(() => { if (!d.projectId && projects.length === 1) set("projectId", projects[0].id); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [projects.length]);
 
-  const draftWithAi = async () => {
+  const draftWithAi = async (prompt: string) => {
     if (d.title.trim().length < 3) { setError("Write a task title first, then AI can draft the description"); titleRef.current?.focus(); return; }
     setError(null);
     setAiBusy(true);
     try {
-      const r = await post<{ description: string; source: AiSource }>("/ai/task-draft", { title: d.title.trim(), projectId: d.projectId });
+      const r = await post<{ description: string; source: AiSource }>("/ai/task-draft", { title: d.title.trim(), projectId: d.projectId, instructions: prompt || undefined });
       set("description", d.description.trim() ? `${d.description.trim()}\n\n${r.description}` : r.description);
       setAiSource(r.source);
     } catch (e) { toast.error(e); } finally { setAiBusy(false); }
@@ -127,7 +127,7 @@ export default function NewTaskDialog({ defaults, onClose, onCreated }: { defaul
                 onChange={(e) => set("description", e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submit(); } }}
               />
-              <AiButton size="sm" label="Draft description with AI" loading={aiBusy} onClick={draftWithAi} />
+              <AiPromptButton size="sm" label="Draft description with AI" loading={aiBusy} onRun={draftWithAi} placeholder="e.g. Focus on the API work, keep it to 4 steps" suggestions={["Keep it short", "Add acceptance criteria", "Include a testing step"]} />
             </div>
             {aiSource && <div className={s.aiNote}>{aiSourceNote(aiSource)}</div>}
           </>

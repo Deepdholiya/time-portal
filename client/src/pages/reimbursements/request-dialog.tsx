@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Combobox, DatePicker, Dialog, Field, Input, Select, Textarea, toast, type BadgeTone } from "@/components/ui";
-import { AiButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
+import { AiPromptButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
 import { patch, post } from "@/lib/api";
 import { useMe } from "@/lib/session";
 import { today } from "@/lib/format";
@@ -50,13 +50,13 @@ export function ReimbursementDialog({ open, onClose, onSaved, editing }: { open:
     setAiSource(null);
   }, [open, editing]);
 
-  const tidyWithAi = async () => {
-    if (description.trim().length < 3) return setError("Write a few words about the expense first, then AI can tidy it.");
+  const tidyWithAi = async (prompt: string) => {
+    if (description.trim().length < 3 && prompt.length < 3) return setError("Write a few words about the expense first, then AI can tidy it.");
     setError(null);
     setAiBusy(true);
     try {
       const n = Number(amount);
-      const r = await post<{ description: string; category: string; source: AiSource }>("/ai/reimbursement-tidy", { description: description.trim(), amount: Number.isFinite(n) && n > 0 ? n : undefined, projectId: projectId ? Number(projectId) : null });
+      const r = await post<{ description: string; category: string; source: AiSource }>("/ai/reimbursement-tidy", { description: description.trim(), instructions: prompt || undefined, amount: Number.isFinite(n) && n > 0 ? n : undefined, projectId: projectId ? Number(projectId) : null });
       setDescription(r.description);
       setCategory(r.category);
       setAiSource(r.source);
@@ -107,7 +107,7 @@ export function ReimbursementDialog({ open, onClose, onSaved, editing }: { open:
         <Field label="Description" className="full" required hint={aiSource ? `${aiSourceNote(aiSource)} Category set to ${categoryLabel(category)}.` : undefined}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
             <div style={{ flex: 1, minWidth: 0 }}><Textarea rows={3} maxLength={500} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Cab to the client office for the design review" style={{ minHeight: 72 }} aria-label="Description" /></div>
-            <AiButton label="Tidy description and suggest a category" loading={aiBusy} onClick={tidyWithAi} />
+            <AiPromptButton label="Tidy description and suggest a category" loading={aiBusy} onRun={tidyWithAi} placeholder="e.g. Cab to the client office for the Acme workshop" suggestions={["Mention the client", "Make it more formal", "It was a team lunch"]} />
           </div>
         </Field>
         <Field label="Receipt link" className="full" hint="Optional. A link to the receipt in Drive, Dropbox or similar.">

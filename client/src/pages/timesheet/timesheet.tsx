@@ -107,7 +107,7 @@ function TableView({ tabs }: { tabs: ReactNode }) {
         <>
           <TimeRangeControl value={range} onChange={setRange} rangeOnly />
           {viewAll && (
-            <div style={{ width: 210, marginLeft: 4 }}>
+            <div className={s.person}>
               <Combobox size="sm" options={userOptions} value={userId} onChange={(v) => pickUser(v ? Number(v) : null)} searchPlaceholder="Search people…" aria-label="Employee" />
             </div>
           )}
@@ -130,7 +130,9 @@ function TableView({ tabs }: { tabs: ReactNode }) {
       )}
 
       <div className={s.wrap}>
-        {q.error ? <ErrorState error={q.error} onRetry={q.reload} /> : !q.data ? <SkeletonRows rows={6} /> : <TimesheetGrid rows={rows} ctx={ctx} />}
+        <div className="hscroll">
+          {q.error ? <ErrorState error={q.error} onRetry={q.reload} /> : !q.data ? <SkeletonRows rows={6} /> : <TimesheetGrid rows={rows} ctx={ctx} />}
+        </div>
       </div>
       <AiFillDialog open={filling} range={range} onClose={() => setFilling(false)} onAdded={reload} />
       <div className={s.foot}>

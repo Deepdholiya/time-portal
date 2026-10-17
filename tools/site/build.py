@@ -12,13 +12,11 @@ idx = open(idx_path).read()
 # The sprite: the home page's icons plus the extra ones the inner pages use.
 m = re.search(r'<svg width="0" height="0"[^>]*>\n(.*?)</svg>\n', idx, re.S)
 base_syms = m.group(1)
-base_syms = re.sub(r'  <symbol id="i-(shield|lock|users|key|log|mail|building|bolt|inbox|search|moon|leave|receipt)".*?</symbol>\n', "", base_syms)
+base_syms = re.sub(r'  <symbol id="i-(shield|lock|users|key|log|mail|building|bolt|inbox|search|moon|leave|receipt|copy)".*?</symbol>\n', "", base_syms)
 sprite = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">\n' + base_syms + EXTRA_ICONS + '</svg>\n'
 
 # ---- home page: shared nav, footer and closing card, plus the design refresh ----
 idx = idx[:m.start()] + sprite + idx[m.end():]
-# characters are re-placed on every run (see below), so strip the old ones first
-idx = re.sub(r'<span class="char [^"]*" aria-hidden="true"><svg class="ch .*?</svg></span>', "", idx, flags=re.S)
 idx = re.sub(r'<header class="nav" id="nav">.*?</header>', lambda _: nav().replace("{p}", ""), idx, flags=re.S)
 idx = re.sub(r'<footer class="foot">.*?</footer>', lambda _: footer().replace("{p}", ""), idx, flags=re.S)
 idx = re.sub(r'<!-- ============ FINAL CTA ============ -->\n<section class="sec sec-last" id="access">.*?</section>', lambda _: "<!-- ============ FINAL CTA ============ -->\n" + final_cta().replace("{p}", ""), idx, flags=re.S)
@@ -79,10 +77,17 @@ sub1('<p>Two demo companies with four months of sample data. Sign in with one cl
 sub1('<p>Every team is set up personally. Tell us about yours and we\'ll send a quote with your access.</p>', '<p>Every team is set up personally. Tell us about yours and we\'ll send a quote with your access.</p>\n      <a class="link" href="pricing/">Compare plans <svg class="ico-s"><use href="#i-arrow"/></svg></a>')
 sub1('<a class="faq-ask" href="mailto:hello@orbit0.app">', '<a class="faq-ask" href="contact/">')
 sub1('<a class="btn btn-outline btn-block" href="#access">Talk to us</a>', '<a class="btn btn-outline btn-block" href="contact/">Talk to us</a>')
-# characters: strip whatever is in the page, then place the current ones, so every run gives the same file
-from chars import char
-idx = re.sub(r'(<section class="hero">\n)\s*(<div class="wrap hero-inner">)', lambda m: m.group(1) + "  " + char("maya", "hero-ch hc-l") + char("dev", "hero-ch hc-r") + "\n  " + m.group(2), idx)
-idx = idx.replace('<div class="ai reveal">', '<div class="ai reveal">' + char("sam", "peek pk-r"), 1)
+# the hero's product window and the use-case carousel are generated, so they stay in step with the inner pages
+from home_parts import hero_app, usecases
+def block(start, end, html, anchor_re, before=False):
+    global idx
+    if start in idx:
+        idx = re.sub(re.escape(start) + r".*?" + re.escape(end), lambda _: html, idx, count=1, flags=re.S)
+    else:
+        idx, n = re.subn(anchor_re, lambda m: html + ("\n\n" + m.group(0) if before else ""), idx, count=1, flags=re.S)
+        assert n == 1, start
+block("<!-- HERO APP -->", "<!-- /HERO APP -->", hero_app(), r'  <div class="wrap">\n    <div class="strip rise".*?</div>\n  </div>')
+block("<!-- ============ USE CASES ============ -->", "<!-- /USE CASES -->", usecases(), r"<!-- ============ AI ============ -->", before=True)
 idx = idx.replace('<br><span class="soft">', '<br> <span class="soft">')
 # one voice: sentence case headings, brand orange for every Request access button
 for old, new in [('data-a="Time Tracking and" data-b="Know where every">Time Tracking and<', 'data-a="Time tracking and" data-b="Know where every">Time tracking and<'),

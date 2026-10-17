@@ -1,5 +1,6 @@
-.wrap { margin: 16px var(--gutter) 0; border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); overflow-x: auto; }
-.grid { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; table-layout: fixed; }
+.wrap { margin: 16px var(--gutter) 0; border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xs); background: var(--bg); overflow: hidden; }
+.person { width: 210px; margin-left: 4px; }
+.grid { --proj-w: 300px; --day-w: 84px; min-width: calc(var(--proj-w) + var(--days, 7) * var(--day-w) + 124px); width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; table-layout: fixed; }
 .grid th { height: 52px; font-weight: 500; font-size: 12px; color: var(--text-2); text-align: left; padding: 0 10px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); white-space: nowrap; }
 .grid td { height: 44px; padding: 0 10px; border-bottom: 1px solid var(--border); vertical-align: middle; background: var(--bg); }
 .grid tbody tr:hover td { background: var(--bg-hover); }
@@ -7,8 +8,8 @@
 /* The project column stays in view while long ranges scroll sideways. */
 .grid .sticky { position: sticky; left: 0; z-index: 1; border-right: 1px solid var(--border); }
 .grid th.sticky { background: var(--bg-subtle); z-index: 2; }
-.colProject { width: 300px; }
-.colDay { width: 84px; text-align: center !important; padding: 0 2px !important; }
+.colProject { width: var(--proj-w); }
+.colDay { width: var(--day-w); text-align: center !important; padding: 0 2px !important; }
 .colTotal { width: 80px; text-align: right !important; }
 .colAct { width: 44px; }
 .dayHeadBtn { width: 100%; border: 0; background: none; padding: 4px 0; border-radius: var(--radius); cursor: pointer; color: inherit; }
@@ -67,6 +68,18 @@ tr:hover .rowActions, tr:focus-within .rowActions { opacity: 1; }
 .capBar > span { display: block; height: 100%; background: var(--accent); }
 .foot { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 10px var(--gutter) 32px; }
 @media (max-width: 900px) {
-  .colProject { width: 190px; }
+  .grid { --proj-w: 200px; }
   .rowActions { opacity: 1; }
+}
+/* Phones: a narrow pinned project column (two lines, truncated) so several days show beside it. */
+@media (max-width: 760px) {
+  .wrap { margin-top: 12px; }
+  .person { flex: 1 1 160px; margin-left: 0; }
+  .capacity { flex: 1 1 100%; }
+  .capBar { flex: 1; max-width: 160px; }
+  .grid { --proj-w: 132px; --day-w: 64px; }
+  .grid .sticky { padding: 0 8px; }
+  .projectCell { gap: 6px; }
+  .cellBtn { font-size: 12px; }
+  .dayTag { max-width: 58px; }
 }

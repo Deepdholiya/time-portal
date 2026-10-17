@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { AlertTriangle, Clock3, Download, FileText, Image as ImageIcon, Link2, Plus, Trash2, Upload, X } from "lucide-react";
 import { Avatar, Button, Checkbox, Combobox, ConfirmDialog, IconButton, Spinner, toast } from "@/components/ui";
-import { AiButton } from "@/components/app/ai-button";
+import { AiPromptButton } from "@/components/app/ai-button";
 import { StatusIcon } from "@/components/app/icons";
 import { StatusPicker } from "@/components/app/properties";
 import { useShell } from "@/components/app/shell-context";
@@ -27,10 +27,10 @@ export function SubTasks({ task, onOpenTask, reload }: { task: TaskDetail; onOpe
   const [ideas, setIdeas] = useState<{ title: string; keep: boolean }[] | null>(null);
   const [drafting, setDrafting] = useState(false);
 
-  const draft = async () => {
+  const draft = async (prompt: string) => {
     setDrafting(true);
     try {
-      const r = await post<{ subtasks: string[] }>("/ai/subtasks-draft", { taskId: task.id });
+      const r = await post<{ subtasks: string[] }>("/ai/subtasks-draft", { taskId: task.id, instructions: prompt || undefined });
       if (!r.subtasks.length) toast.success("No new sub-tasks to suggest");
       setIdeas(r.subtasks.length ? r.subtasks.map((title) => ({ title, keep: true })) : null);
     } catch (e) { toast.error(e); } finally { setDrafting(false); }
@@ -67,7 +67,7 @@ export function SubTasks({ task, onOpenTask, reload }: { task: TaskDetail; onOpe
         title="Sub-tasks"
         action={<>
           {task.subtasks.length > 0 && <span className="small faint num">{done}/{task.subtasks.length} done</span>}
-          {canAdd && <AiButton size="sm" label="Break into sub-tasks with AI" loading={drafting} onClick={draft} />}
+          {canAdd && <AiPromptButton size="sm" label="Break into sub-tasks with AI" loading={drafting} onRun={draft} placeholder="e.g. 5 steps, include design review and QA" suggestions={["Only 3 steps", "Include testing", "Split by frontend and backend"]} />}
           {canAdd && task.subtasks.length > 0 && <IconButton size="sm" label="Add sub-task" icon={<Plus size={14} />} onClick={() => setAdding(true)} />}
         </>}
       />

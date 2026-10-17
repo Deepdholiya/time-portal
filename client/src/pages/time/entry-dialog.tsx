@@ -4,7 +4,7 @@ import { Avatar, Button, Combobox, ConfirmDialog, DatePicker, Dialog, Field, Inp
 import type { EntryFocus, NewEntryDefaults } from "@/components/app/shell-context";
 import { useCompanyDay } from "@/components/app/time-range";
 import { ProjectDot } from "@/components/app/icons";
-import { AiButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
+import { AiPromptButton, aiSourceNote, type AiSource } from "@/components/app/ai-button";
 import { del, get, post, put } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { useMe } from "@/lib/session";
@@ -208,11 +208,11 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
     }
   };
 
-  const describeWithAi = async () => {
+  const describeWithAi = async (prompt: string) => {
     if (!projectId) { setError("Pick a project or task first, then AI can write the description."); return; }
     setAiBusy(true);
     try {
-      const r = await post<{ description: string; source: AiSource }>("/ai/time-description", { projectId, taskId, minutes: minutes && minutes > 0 && minutes <= 1440 ? minutes : undefined, draft: description.trim() || undefined });
+      const r = await post<{ description: string; source: AiSource }>("/ai/time-description", { projectId, taskId, minutes: minutes && minutes > 0 && minutes <= 1440 ? minutes : undefined, draft: description.trim() || undefined, instructions: prompt || undefined });
       setDescription(r.description);
       setAiSource(r.source);
     } catch (e) { toast.error(e); } finally { setAiBusy(false); }
@@ -292,7 +292,7 @@ export default function EntryDialog({ id, defaults, focus, onClose, onSaved }: {
                   aria-label="Description" placeholder="What did you work on?" rows={Math.min(6, Math.max(2, Math.ceil(description.length / 60)))} value={description} onChange={(e) => setDescription(e.target.value)} style={{ minHeight: 56 }}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); save(); } }}
                 /></div>
-                <AiButton label={description.trim() ? "Tidy description with AI" : "Write description with AI"} loading={aiBusy} onClick={describeWithAi} />
+                <AiPromptButton label={description.trim() ? "Tidy description with AI" : "Write description with AI"} loading={aiBusy} onRun={describeWithAi} placeholder="e.g. Fixed the login bug and paired with Neha" suggestions={["Mention the client call", "More detail", "Shorter"]} />
               </div>
             </Field>
           </div>

@@ -67,7 +67,7 @@ export default function Leave() {
   return (
     <Page title="Leave" icon={<Plane size={15} className="faint" />} actions={
       <>
-        {approver && <Button size="sm" variant="secondary" icon={<CalendarPlus size={14} />} onClick={() => setAddOpen(true)}>Add leave or holiday</Button>}
+        {approver && <Button size="sm" variant="secondary" collapse icon={<CalendarPlus size={14} />} onClick={() => setAddOpen(true)}>Add leave or holiday</Button>}
         <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setOpen(true)}>Request leave</Button>
       </>
     }>
@@ -99,7 +99,7 @@ export default function Leave() {
                   </span>
                   <span className={s.days}>{r.days} {r.days === 1 ? "day" : "days"}</span>
                   <Badge tone={st.tone} dot>{st.label}</Badge>
-                  <span style={{ width: 64, display: "flex", justifyContent: "flex-end" }}>
+                  <span className={s.act}>
                     {canCancel && <Button size="sm" variant="ghost" onClick={() => setCancel(r)}>Cancel</Button>}
                   </span>
                 </div>
@@ -135,7 +135,7 @@ export default function Leave() {
                 </span>
                 <span className={s.days}>{r.days} {r.days === 1 ? "day" : "days"}</span>
                 <Badge tone={STATUS[r.status].tone} dot>{STATUS[r.status].label}</Badge>
-                <span style={{ width: 64, display: "flex", justifyContent: "flex-end" }}>
+                <span className={s.act}>
                   <Button size="sm" variant="ghost" onClick={() => setCancel(r)}>Remove</Button>
                 </span>
               </div>

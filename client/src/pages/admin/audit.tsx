@@ -48,7 +48,7 @@ export default function Audit() {
         value={{ action: action ? [action] : [], entity: entity ? [entity] : [], actor: userId ? [String(userId)] : [] }}
         onApply={(v) => { setAction(v.action?.[0] ?? ""); setEntity(v.entity?.[0] ?? ""); setUserId((v.actor?.[0] ?? null) as never); setOffset(0); }} />
       <div className="grow" />
-      <Button size="sm" variant="secondary" icon={<Download size={14} />} onClick={() => download("/settings/audit/export.csv", query)}>Export</Button>
+      <Button size="sm" variant="secondary" collapse icon={<Download size={14} />} onClick={() => download("/settings/audit/export.csv", query)}>Export</Button>
     </>
   );
 

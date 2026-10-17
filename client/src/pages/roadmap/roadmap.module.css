@@ -5,12 +5,12 @@
 
 /* Header: sticky to the top; the left corner also sticks to the left. */
 .head { position: sticky; top: 0; z-index: 6; display: flex; height: 52px; background: var(--bg); border-bottom: 1px solid var(--border); }
-.corner { position: sticky; left: 0; z-index: 7; width: 320px; flex-shrink: 0; background: var(--bg); border-right: 1px solid var(--border); display: flex; align-items: flex-end; gap: 6px; padding: 0 12px 8px var(--gutter); color: var(--text-2); font-size: 13px; font-weight: 500; }
+.corner { position: sticky; left: 0; z-index: 7 !important; width: var(--lw, 320px); flex-shrink: 0; background: var(--bg); border-right: 1px solid var(--border); display: flex; align-items: flex-end; gap: 6px; padding: 0 12px 8px var(--gutter); color: var(--text-2); font-size: 13px; font-weight: 500; }
 .ticks { position: relative; flex-shrink: 0; }
 .tierTop, .tierBottom { position: relative; height: 26px; }
 .tierBottom { border-top: 1px solid var(--border); }
 .tickTop { position: absolute; top: 0; height: 26px; border-left: 1px solid var(--border); font-size: 12px; font-weight: 500; color: var(--text-2); white-space: nowrap; overflow: hidden; }
-.tickTop > span { position: sticky; left: 328px; padding: 0 8px; line-height: 26px; }
+.tickTop > span { position: sticky; left: calc(var(--lw, 320px) + 8px); padding: 0 8px; line-height: 26px; }
 .tick { position: absolute; top: 0; height: 25px; line-height: 25px; padding-left: 5px; border-left: 1px solid var(--border); font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .tickStrong { color: var(--text-2); }
 .weekend { background: var(--bg-subtle); }
@@ -29,7 +29,7 @@
 .row:hover .left, .row:hover .lane { background-color: color-mix(in srgb, var(--bg-hover) 70%, transparent); }
 .rowInit .left { background: var(--bg-subtle); }
 .rowInit { background: color-mix(in srgb, var(--bg-subtle) 60%, transparent); }
-.left { position: sticky; left: 0; z-index: 4; flex-shrink: 0; background: var(--bg); border-right: 1px solid var(--border); display: flex; align-items: center; min-width: 0; }
+.left { position: sticky; left: 0; z-index: 4 !important; flex-shrink: 0; background: var(--bg); border-right: 1px solid var(--border); display: flex; align-items: center; min-width: 0; }
 .lane { position: relative; flex-shrink: 0; }
 .cell { display: flex; align-items: center; gap: 6px; width: 100%; padding: 0 12px 0 6px; min-width: 0; height: 100%; }
 .taskCell { cursor: pointer; }
@@ -46,7 +46,7 @@
 .projectBar { height: 26px; border: 1px solid color-mix(in srgb, var(--c) 55%, var(--bg)); background: color-mix(in srgb, var(--c) 14%, var(--bg)); }
 .progress { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--c) 30%, var(--bg)); }
 .subBar { height: 22px; border: 1px solid color-mix(in srgb, var(--c) 45%, var(--bg)); background: color-mix(in srgb, var(--c) 9%, var(--bg)); }
-.barText { position: sticky; left: 320px; padding: 0 8px; font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.barText { position: sticky; left: var(--lw, 320px); padding: 0 8px; font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .subBar .barText { font-size: 12px; font-weight: 500; color: var(--text-2); }
 .taskBar { height: 22px; background: color-mix(in srgb, var(--c) 20%, var(--bg)); border: 1px solid color-mix(in srgb, var(--c) 55%, var(--bg)); }
 .taskBar .barText { font-weight: 400; font-size: 12px; }
@@ -76,3 +76,15 @@
 .rowAdd .left { background: var(--bg); }
 .addRow { display: flex; align-items: center; gap: 6px; width: 100%; height: 100%; border: 0; background: none; color: var(--text-3); font-size: 13px; cursor: pointer; text-align: left; transition: color .15s, background-color .15s; }
 .addRow:hover { color: var(--text); background: var(--bg-hover); }
+
+.taskKey { width: 52px; flex-shrink: 0; }
+.health, .assignee { display: inline-flex; flex-shrink: 0; }
+/* Phones: a narrow name column with less indent; keys, health badges and avatars hide (they're in the task and project). */
+@media (max-width: 760px) {
+  .scroller { --indent: 0.45; }
+  .corner { padding-left: var(--gutter); }
+  .cell { padding-right: 6px; gap: 4px; }
+  .taskKey, .health, .assignee { display: none; }
+  .cell > span { white-space: nowrap; }
+  .cell > span:not(.subDot):not(:global(.swatch)) { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+}

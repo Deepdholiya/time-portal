@@ -33,6 +33,43 @@ async function visibleProject(req: Request, projectId: number) {
   return p;
 }
 
+// ---------- Instructions typed in an AI prompt box ----------
+// Every AI helper that fills in data takes optional free-text instructions. Claude gets them as-is; the built-in path reads the
+// common asks out of them (a number of steps, hours a day, days to skip, "only" a project, priority or person, a start date).
+const INSTR = z.string().trim().max(500).optional();
+const FOLLOW = " If the facts include instructions from the person, follow them where they fit the facts; they take priority over the defaults above.";
+const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+const STOP = new Set(["only", "just", "mostly", "with", "from", "that", "this", "work", "tasks", "task", "hours", "hour", "days", "week", "include", "skip", "make", "keep", "more", "less", "some", "into", "about", "next", "start", "their", "them", "first"]);
+const words = (t: string) => t.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !STOP.has(w));
+const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+const isOnly = (t: string) => /\b(only|just|exclusively)\b/i.test(t);
+
+/** Weekdays (0 = Sunday) the instructions name, split into the ones to skip ("skip Friday", "not Monday") and the rest. */
+function namedDays(t: string) {
+  const skip = new Set<number>(), keep = new Set<number>();
+  const low = t.toLowerCase();
+  DAYS.forEach((d, i) => {
+    const m = new RegExp(`(\\b(?:skip|except|not|no|without|exclude|excluding)\\b[^.;]*?)?\\b(${d}|${d.slice(0, 3)})s?\\b`).exec(low);
+    if (m) (m[1] ? skip : keep).add(i);
+  });
+  return { skip, keep };
+}
+
+/** Steps for the built-in drafts, adjusted to "3 steps", "short", "include testing" and the like. */
+function shapeSteps(steps: string[], instructions?: string) {
+  if (!instructions) return steps;
+  let out = [...steps];
+  const t = instructions.toLowerCase();
+  for (const m of t.replace(/acceptance criteria|definition of done/g, "").matchAll(/\b(?:include|add|with)\s+(?:a |an |the )?([a-z][a-z \-/]{2,40}?)(?:\s+step)?(?=[,.;]|\s+and\s|$)/g)) {
+    const what = m[1].trim();
+    if (!out.some((x) => x.toLowerCase().includes(what.split(" ")[0]))) out.splice(Math.max(out.length - 1, 0), 0, /^(test|qa|testing)/.test(what) ? "Test it and fix what turns up" : /review/.test(what) ? `Get a ${what}` : cap(what));
+  }
+  if (/frontend|front-end/.test(t) && /backend|back-end/.test(t)) out = ["Agree the API between frontend and backend", "Build the backend part", "Build the frontend part", "Connect them and test end to end", ...out.slice(-1)];
+  const n = Number(t.match(/\b(\d{1,2})\s*(?:steps?|items?|sub-?tasks?|points?|things)\b/)?.[1] ?? t.match(/\bonly\s+(\d{1,2})\b/)?.[1] ?? (/\b(short|brief|few)\b/.test(t) ? 3 : 0));
+  if (n > 0) out = out.slice(0, n);
+  return out;
+}
+
 // ---------- New task: description and checklist from the title ----------
 const TASK_KINDS: [RegExp, string[]][] = [
   [/\b(bug|fix|error|crash|broken|issue|regression)\b/i, ["Reproduce the problem and note the steps", "Find the root cause", "Make the fix", "Add or update a test that covers it", "Check it in staging and close the loop with whoever reported it"]],
@@ -46,15 +83,20 @@ const TASK_KINDS: [RegExp, string[]][] = [
 
 aiToolsRouter.post("/task-draft", async (req, res) => {
   guard(req);
-  const d = z.object({ title: z.string().trim().min(3, "Write a task title first").max(200), projectId: z.number().int().nullable().optional() }).parse(req.body);
+  const d = z.object({ title: z.string().trim().min(3, "Write a task title first").max(200), projectId: z.number().int().nullable().optional(), instructions: INSTR }).parse(req.body);
   const project = d.projectId ? await visibleProject(req, d.projectId) : null;
-  const facts = { title: d.title, project: project ? (project.parent ? `${project.parent.name} › ${project.name}` : project.name) : null, projectDescription: project?.description?.slice(0, 1200) ?? null };
+  const facts = { title: d.title, project: project ? (project.parent ? `${project.parent.name} › ${project.name}` : project.name) : null, projectDescription: project?.description?.slice(0, 1200) ?? null, instructions: d.instructions || null };
   const ai = await claude(
-    "You draft the description for a new task in a project management tool. Write one or two plain sentences on the goal, then a blank line, then 'Checklist:' and 3 to 6 short steps, each on its own line starting with '- '. No markdown headings, no bold. Use only the given facts; don't invent names, dates or numbers.",
+    "You draft the description for a new task in a project management tool. Write one or two plain sentences on the goal, then a blank line, then 'Checklist:' and 3 to 6 short steps, each on its own line starting with '- '. No markdown headings, no bold. Use only the given facts; don't invent names, dates or numbers." + FOLLOW,
     JSON.stringify(facts),
   );
-  const steps = TASK_KINDS.find(([re]) => re.test(d.title))?.[1] ?? ["Confirm the scope and what done looks like", "Do the work", "Get it reviewed", "Wrap up and update the team"];
-  const fallback = `Goal: ${d.title.replace(/[.\s]+$/, "")}${facts.project ? ` for ${facts.project}` : ""}.\n\nChecklist:\n${steps.map((x) => `- ${x}`).join("\n")}`;
+  let steps = TASK_KINDS.find(([re]) => re.test(d.title))?.[1] ?? TASK_KINDS.find(([re]) => re.test(d.instructions ?? ""))?.[1] ?? ["Confirm the scope and what done looks like", "Do the work", "Get it reviewed", "Wrap up and update the team"];
+  steps = shapeSteps(steps, d.instructions);
+  // An instruction that reads like content ("focus on the API work") becomes part of the goal; style asks ("keep it short") only shape the steps.
+  const content = (d.instructions ?? "").split(/[,;.]+/).map((x) => x.trim()).filter((x) => x && !/^(make|keep|be|use|write|add|include|only|just|shorter|longer|more|less|short|brief|split)\b/i.test(x) && !/\b(acceptance criteria|definition of done|\d+\s*steps?)\b/i.test(x));
+  const note = content.length ? ` ${content.map(cap).join(". ")}.` : "";
+  const criteria = /acceptance criteria|definition of done/i.test(d.instructions ?? "") ? "\n\nAcceptance criteria:\n- The result is reviewed and signed off\n- Anyone on the team can find and use it\n- No open questions left in the comments" : "";
+  const fallback = `Goal: ${d.title.replace(/[.\s]+$/, "")}${facts.project ? ` for ${facts.project}` : ""}.${note}\n\nChecklist:\n${steps.map((x) => `- ${x}`).join("\n")}${criteria}`;
   await audit(req, "ai_task_drafted", "project", project?.id ?? null, { new: { title: d.title, source: src(ai) } });
   res.json({ description: ai ?? fallback, source: src(ai), aiGenerated: true });
 });
@@ -62,7 +104,7 @@ aiToolsRouter.post("/task-draft", async (req, res) => {
 // ---------- Time entry: description from the project, task and duration ----------
 aiToolsRouter.post("/time-description", async (req, res) => {
   guard(req);
-  const d = z.object({ projectId: z.number().int(), taskId: z.number().int().nullable().optional(), minutes: z.number().int().min(0).max(24 * 60).optional(), draft: z.string().max(500).optional() }).parse(req.body);
+  const d = z.object({ projectId: z.number().int(), taskId: z.number().int().nullable().optional(), minutes: z.number().int().min(0).max(24 * 60).optional(), draft: z.string().max(500).optional(), instructions: INSTR }).parse(req.body);
   const project = await visibleProject(req, d.projectId);
   const task = d.taskId ? await prisma.task.findFirst({ where: { id: d.taskId, companyId: cid(req) }, select: { title: true, status: true, description: true, subtasks: { select: { title: true, status: true } } } }) : null;
   // A draft that's just the task's title (the editor pre-fills it) is no draft at all.
@@ -74,10 +116,10 @@ aiToolsRouter.post("/time-description", async (req, res) => {
   const facts = {
     project: project.parent ? `${project.parent.name} › ${project.name}` : project.name, task: task?.title ?? null, taskStatus: task?.status ?? null,
     taskDescription: task?.description?.slice(0, 800) ?? null, subtasks: task?.subtasks.slice(0, 12) ?? [], duration: d.minutes ? hrs(d.minutes) : null,
-    myRecentDescriptions: recent.map((r) => r.description), currentDraft: d.draft?.trim() || null,
+    myRecentDescriptions: recent.map((r) => r.description), currentDraft: d.draft?.trim() || null, instructions: d.instructions || null,
   };
   const ai = await claude(
-    "Write a one-line description for a time entry in a timesheet: what the person worked on, in past tense, under 120 characters, no trailing period, no quotes. If there is a current draft, tidy it up instead of replacing its meaning. Match the style of their recent descriptions. Use only the facts given.",
+    "Write a one-line description for a time entry in a timesheet: what the person worked on, in past tense, under 120 characters, no trailing period, no quotes. If there is a current draft, tidy it up instead of replacing its meaning. Match the style of their recent descriptions. Use only the facts given." + FOLLOW,
     JSON.stringify(facts),
   );
   let fallback: string;
@@ -89,6 +131,14 @@ aiToolsRouter.post("/time-description", async (req, res) => {
     fallback = `${verb} ${task.title}`;
   } else {
     fallback = recent[0]?.description ?? `Worked on ${project.name}`;
+  }
+  // Built-in reading of the prompt: "mention X" / "include X" adds X; anything that isn't a style ask is what they did.
+  if (d.instructions) {
+    const t = d.instructions.trim().replace(/[.\s]+$/, "");
+    const mention = t.match(/^(?:mention|include|add|with)\s+(.+)/i)?.[1];
+    if (mention) fallback = `${fallback}, including ${mention}`;
+    else if (/^(shorter|short|brief)\b/i.test(t)) fallback = fallback.split(/,| and /)[0];
+    else if (!/^(make|keep|be|use|write|more|less|longer|formal|casual)\b/i.test(t)) fallback = d.draft?.trim() ? `${fallback}; ${t.charAt(0).toLowerCase()}${t.slice(1)}` : cap(t);
   }
   await audit(req, "ai_time_description", "project", project.id, { new: { taskId: d.taskId ?? null, source: src(ai) } });
   res.json({ description: (ai ?? fallback).slice(0, 500), source: src(ai), aiGenerated: true });
@@ -104,11 +154,12 @@ const CATEGORY_WORDS: [(typeof CATEGORIES)[number], RegExp][] = [
 
 aiToolsRouter.post("/reimbursement-tidy", async (req, res) => {
   guard(req);
-  const d = z.object({ description: z.string().trim().min(3, "Describe the expense first").max(500), amount: z.number().nonnegative().optional(), category: z.string().optional(), projectId: z.number().int().nullable().optional() }).parse(req.body);
+  const d = z.object({ description: z.string().trim().max(500), amount: z.number().nonnegative().optional(), category: z.string().optional(), projectId: z.number().int().nullable().optional(), instructions: INSTR }).parse(req.body);
+  if (d.description.length < 3 && (d.instructions?.length ?? 0) < 3) throw new HttpError(400, "Describe the expense first");
   const project = d.projectId ? await visibleProject(req, d.projectId).catch(() => null) : null;
   const ai = await claude(
-    `You tidy an expense reimbursement description so an approver understands it at a glance: what was bought, why, and for which client or project if given. One sentence, under 160 characters, no trailing period. Then on a new line write 'Category: ' and exactly one of ${CATEGORIES.join(", ")}. Use only the facts given.`,
-    JSON.stringify({ description: d.description, amount: d.amount ?? null, currency: req.company!.currency, project: project?.name ?? null }),
+    `You tidy an expense reimbursement description so an approver understands it at a glance: what was bought, why, and for which client or project if given. One sentence, under 160 characters, no trailing period. Then on a new line write 'Category: ' and exactly one of ${CATEGORIES.join(", ")}. Use only the facts given.${FOLLOW}`,
+    JSON.stringify({ description: d.description || null, amount: d.amount ?? null, currency: req.company!.currency, project: project?.name ?? null, instructions: d.instructions || null }),
   );
   let description: string, category: string;
   const fromAi = ai?.match(/^([\s\S]*?)\n+\s*Category:\s*([A-Z]+)/i);
@@ -116,9 +167,14 @@ aiToolsRouter.post("/reimbursement-tidy", async (req, res) => {
     description = fromAi[1].trim().replace(/^"|"$/g, "");
     category = fromAi[2].toUpperCase();
   } else {
-    const t = d.description.replace(/\s+/g, " ").trim().replace(/[.\s]+$/, "");
+    const ask = d.instructions?.replace(/\s+/g, " ").trim().replace(/[.\s]+$/, "") ?? "";
+    const styleAsk = /^(make|keep|be|use|write|more|less|shorter|longer|formal|mention|include|add)\b/i.test(ask);
+    let t = (d.description.length >= 3 ? d.description : ask).replace(/\s+/g, " ").trim().replace(/[.\s]+$/, "");
+    const mention = ask.match(/^(?:mention|include|add)\s+(?:the\s+)?(.+)/i)?.[1];
+    if (mention && !t.toLowerCase().includes(mention.toLowerCase())) t = `${t}, ${mention}`;
+    else if (ask && !styleAsk && d.description.length >= 3 && !t.toLowerCase().includes(ask.toLowerCase())) t = `${t} (${ask.charAt(0).toLowerCase()}${ask.slice(1)})`;
     description = t.charAt(0).toUpperCase() + t.slice(1) + (project && !t.toLowerCase().includes(project.name.toLowerCase()) ? ` (${project.name})` : "");
-    category = CATEGORY_WORDS.find(([, re]) => re.test(d.description))?.[0] ?? "OTHER";
+    category = CATEGORY_WORDS.find(([, re]) => re.test(ask))?.[0] ?? CATEGORY_WORDS.find(([, re]) => re.test(d.description))?.[0] ?? "OTHER";
   }
   const source: Source = ai && fromAi ? "claude" : "template";
   await audit(req, "ai_reimbursement_tidied", "reimbursement", null, { new: { category, source } });
@@ -252,7 +308,8 @@ function parseJsonArray<T>(text: string | null): T[] | null {
 
 aiToolsRouter.post("/timesheet-fill", async (req, res) => {
   guard(req);
-  const d = z.object({ from: DATE, to: DATE }).parse(req.body);
+  const d = z.object({ from: DATE, to: DATE, instructions: INSTR }).parse(req.body);
+  const ask = d.instructions ?? "";
   const company = req.company!;
   const t0 = companyToday(req);
   const to = d.to < t0 ? d.to : t0;
@@ -296,14 +353,35 @@ aiToolsRouter.post("/timesheet-fill", async (req, res) => {
     c.weight += t.status === "IN_PROGRESS" ? 240 : 120;
     cands.set(key, c);
   }
-  const ranked = [...cands.values()].sort((a, b) => b.weight - a.weight).slice(0, 4);
+  // The prompt box: "only Bridge UX", "only billable", "mostly my tasks in progress", "6 hours a day", "skip Friday".
+  const followed: string[] = [];
+  let pool = [...cands.values()];
+  if (ask) {
+    const named = pool.filter((c) => words(`${c.project} ${c.task ?? ""}`).some((w) => ask.toLowerCase().includes(w)) || ask.toLowerCase().includes(c.project.toLowerCase()));
+    if (named.length) {
+      if (isOnly(ask)) { pool = named; followed.push(`only ${[...new Set(named.map((c) => c.task ?? c.project))].slice(0, 2).join(" and ")}`); }
+      else { named.forEach((c) => (c.weight = c.weight * 5 + 600)); followed.push(`more time on ${[...new Set(named.map((c) => c.task ?? c.project))].slice(0, 2).join(" and ")}`); }
+    }
+    if (/\bnon[- ]?billable\b/i.test(ask)) { pool = pool.filter((c) => !c.billable); followed.push("non-billable work only"); }
+    else if (/\bbillable\b/i.test(ask)) { pool = pool.filter((c) => c.billable); followed.push("billable work only"); }
+    if (/\b(in progress|my tasks|tasks? i'?m on|current tasks?)\b/i.test(ask)) {
+      const onTasks = pool.filter((c) => c.taskId);
+      if (onTasks.length) { if (isOnly(ask)) pool = onTasks; else onTasks.forEach((c) => (c.weight = c.weight * 3 + 400)); followed.push("your tasks in progress first"); }
+    }
+  }
+  const ranked = pool.sort((a, b) => b.weight - a.weight).slice(0, 4);
 
-  const target = Math.round(company.hoursPerDay * 60);
+  const asked = ask.match(/\b(\d{1,2}(?:\.\d+)?)\s*(?:h|hrs?|hours?)\b(?!\s*(?:on|for)\b)/i);
+  const target = asked && Number(asked[1]) >= 1 && Number(asked[1]) <= 16 ? Math.round(Number(asked[1]) * 60) : Math.round(company.hoursPerDay * 60);
+  if (asked && target !== Math.round(company.hoursPerDay * 60)) followed.push(`${hrs(target)} a day`);
+  const { skip: skipDays, keep: onlyDays } = namedDays(ask);
+  if (skipDays.size) followed.push(`skipping ${[...skipDays].map((x) => cap(DAYS[x])).join(", ")}`);
+  if (onlyDays.size && isOnly(ask)) followed.push(`only ${[...onlyDays].map((x) => cap(DAYS[x])).join(", ")}`);
   const suggestions: { date: string; projectId: number; taskId: number | null; project: string; color: string; task: string | null; minutes: number; billable: boolean; description: string }[] = [];
   const skipped: { date: string; reason: string }[] = [];
   let i = 0;
   for (let day = d.from; day <= to; day = addDays(day, 1)) {
-    if (!work.has(weekday(day)) || off.has(day)) continue;
+    if (!work.has(weekday(day)) || off.has(day) || skipDays.has(weekday(day)) || (onlyDays.size && isOnly(ask) && !onlyDays.has(weekday(day)))) continue;
     const logged = entries.filter((e) => e.date === day).reduce((a, e) => a + e.minutes, 0);
     const gap = Math.round((target - logged) / 15) * 15;
     if (gap < 30) continue;
@@ -328,16 +406,17 @@ aiToolsRouter.post("/timesheet-fill", async (req, res) => {
   let source: Source = "template";
   if (suggestions.length) {
     const ai = parseJsonArray<string>(await claude(
-      "You write one-line timesheet entry descriptions. For each item in the JSON array, write what the person most likely did, in past tense, under 100 characters, no trailing period. Base it on the task, project and their earlier description; vary wording across days. Reply with only a JSON array of strings, same length and order.",
-      JSON.stringify(suggestions.map((x) => ({ date: x.date, project: x.project, task: x.task, earlierDescription: x.description, duration: hrs(x.minutes) }))),
+      "You write one-line timesheet entry descriptions. For each item in the JSON array, write what the person most likely did, in past tense, under 100 characters, no trailing period. Base it on the task, project and their earlier description; vary wording across days. If the person's instructions say something about the descriptions, follow them. Reply with only a JSON array of strings, same length and order.",
+      JSON.stringify({ instructions: ask || null, items: suggestions.map((x) => ({ date: x.date, project: x.project, task: x.task, earlierDescription: x.description, duration: hrs(x.minutes) })) }),
     ));
     if (ai && ai.length === suggestions.length && ai.every((x) => typeof x === "string" && x.trim())) { ai.forEach((x, k) => (suggestions[k].description = x.trim().slice(0, 300))); source = "claude"; }
   }
   const total = suggestions.reduce((a, x) => a + x.minutes, 0);
   const days = new Set(suggestions.map((x) => x.date)).size;
-  const summary = !ranked.length ? "There's no recent work or task in progress to base suggestions on. Log a few entries first, or start a task."
+  const note = followed.length ? `Following your note: ${followed.join(", ")}. ` : ask ? "I couldn't match your note to a project, day or number of hours, so this is the standard fill. " : "";
+  const summary = note + (!ranked.length ? (ask ? "Nothing in your recent work matches that." : "There's no recent work or task in progress to base suggestions on. Log a few entries first, or start a task.")
     : !suggestions.length ? (skipped.length ? "The days that are short are locked, so there's nothing to fill." : "Every working day up to today already meets the daily target. Nothing to fill.")
-    : `${hrs(total)} across ${days} ${days === 1 ? "day" : "days"}, split between ${[...new Set(suggestions.map((x) => x.task ?? x.project))].slice(0, 3).join(", ")}. Untick anything you didn't do.`;
+    : `${hrs(total)} across ${days} ${days === 1 ? "day" : "days"}, split between ${[...new Set(suggestions.map((x) => x.task ?? x.project))].slice(0, 3).join(", ")}. Untick anything you didn't do.`);
   await audit(req, "ai_timesheet_fill", "user", uid(req), { new: { from: d.from, to, suggestions: suggestions.length, source } });
   res.json({ suggestions, summary, source, target });
 });
@@ -348,7 +427,8 @@ aiToolsRouter.post("/timesheet-fill", async (req, res) => {
 aiToolsRouter.post("/roadmap-plan", async (req, res) => {
   guard(req);
   if (!can(req, "roadmap", "edit")) throw new HttpError(403, "You can't change dates on the roadmap");
-  const { projectId } = z.object({ projectId: z.number().int() }).parse(req.body);
+  const { projectId, instructions } = z.object({ projectId: z.number().int(), instructions: INSTR }).parse(req.body);
+  const ask = instructions ?? "";
   const p = await visibleProject(req, projectId);
   const company = req.company!;
   const t0 = companyToday(req);
@@ -368,10 +448,28 @@ aiToolsRouter.post("/roadmap-plan", async (req, res) => {
   const addWork = (start: string, n: number) => { let y = start; for (let k = 1; k < n; k++) y = afterWork(y); return y; };
 
   const conflict = (t: (typeof tasks)[number]) => t.blockedBy.some((b) => b.blocker.status !== "DONE" && b.blocker.dueDate && (t.startDate ?? t.dueDate) && b.blocker.dueDate >= (t.startDate ?? t.dueDate)!);
-  const plan = new Map(tasks.filter((t) => !t.dueDate || t.dueDate < t0 || conflict(t)).map((t) => [t.id, t]));
+  // The prompt box: "reschedule everything", "only urgent and high", "only Priya's tasks", "only assigned tasks", "start next Monday".
+  const followed: string[] = [];
+  const all = /\b(all|every|everything|whole|reschedule)\b/i.test(ask) && !/\ball (?:urgent|high|medium|low)\b/i.test(ask);
+  let pick = tasks.filter((t) => all || !t.dueDate || t.dueDate < t0 || conflict(t));
+  if (all) followed.push("all open tasks");
+  const prios = (["URGENT", "HIGH", "MEDIUM", "LOW"] as const).filter((x) => new RegExp(`\\b${x.toLowerCase()}\\b`, "i").test(ask));
+  if (prios.length && isOnly(ask)) { pick = pick.filter((t) => (prios as readonly string[]).includes(t.priority)); followed.push(`only ${prios.map((x) => x.toLowerCase()).join(" and ")} priority`); }
+  const people = [...new Map(tasks.filter((t) => t.assignee).map((t) => [t.assignee!.id, t.assignee!])).values()].filter((u) => words(u.name).some((w) => ask.toLowerCase().includes(w)));
+  if (people.length && isOnly(ask)) { pick = pick.filter((t) => t.assignee && people.some((u) => u.id === t.assignee!.id)); followed.push(`only ${people.map((u) => u.name.split(" ")[0]).join(" and ")}'s tasks`); }
+  else if (/\bassigned\b/i.test(ask) && isOnly(ask)) { pick = pick.filter((t) => t.assignee); followed.push("only assigned tasks"); }
+  const plan = new Map(pick.map((t) => [t.id, t]));
   const due = new Map<number, string | null>(tasks.map((t) => [t.id, t.dueDate]));
   const byId = new Map(tasks.map((t) => [t.id, t]));
-  const base = nextWork(p.startDate && p.startDate > t0 ? p.startDate : t0);
+  // A start date from the prompt: an ISO date, "tomorrow", "next week", or "start Monday".
+  let asked: string | null = ask.match(/\b(\d{4}-\d{2}-\d{2})\b/)?.[1] ?? null;
+  if (!asked && /\btomorrow\b/i.test(ask)) asked = addDays(t0, 1);
+  if (!asked && /\bnext week\b/i.test(ask)) { let x = addDays(t0, 1); while (weekday(x) !== 1) x = addDays(x, 1); asked = x; }
+  const dayName = ask.toLowerCase().match(/\b(?:start|starting|from|begin)\b[^.;]*?\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/)?.[1];
+  if (!asked && dayName) { let x = addDays(t0, 1); while (weekday(x) !== DAYS.indexOf(dayName)) x = addDays(x, 1); asked = x; }
+  if (asked && asked < t0) asked = null;
+  if (asked) followed.push(`starting ${asked}`);
+  const base = nextWork(asked ?? (p.startDate && p.startDate > t0 ? p.startDate : t0));
 
   // Blockers first (depth-first), then priority, keeping work already in progress at the front.
   const order: number[] = [];
@@ -407,19 +505,22 @@ aiToolsRouter.post("/roadmap-plan", async (req, res) => {
   }
   const last = proposals.map((x) => x.dueDate).sort().at(-1) ?? null;
   const late = !!(last && p.endDate && last > p.endDate);
-  const facts = { project: p.name, targetDate: p.endDate, today: t0, planned: proposals.map(({ key: k, title, assignee, startDate, dueDate, reason }) => ({ key: k, title, assignee, startDate, dueDate, reason })), finishes: last, unassigned: proposals.filter((x) => !x.assignee).length };
+  const facts = { project: p.name, targetDate: p.endDate, today: t0, planned: proposals.map(({ key: k, title, assignee, startDate, dueDate, reason }) => ({ key: k, title, assignee, startDate, dueDate, reason })), finishes: last, unassigned: proposals.filter((x) => !x.assignee).length, instructions: ask || null, followed };
   const ai = proposals.length ? await claude(
-    "You review a proposed schedule for a project's open tasks. In 2 to 4 short plain sentences: when the work would finish against the target date, the critical path or busiest person, and one concrete suggestion (for example who to rebalance or what to cut). Use only the JSON facts. No markdown.",
+    "You review a proposed schedule for a project's open tasks. In 2 to 4 short plain sentences: when the work would finish against the target date, the critical path or busiest person, and one concrete suggestion (for example who to rebalance or what to cut). If the person gave instructions, say briefly how the plan follows them or what it couldn't do. Use only the JSON facts. No markdown.",
     JSON.stringify(facts),
   ) : null;
   const busiest = [...proposals.reduce((m, x) => (x.assignee ? m.set(x.assignee, (m.get(x.assignee) ?? 0) + x.days) : m), new Map<string, number>())].sort((a, b) => b[1] - a[1])[0];
-  const fallback = !proposals.length ? "Every open task already has dates that fit its blockers. Nothing to plan."
+  const note = followed.length ? `Following your note: ${followed.join(", ")}. ` : ask ? "I couldn't match your note to a start date, priority or person, so this is the standard plan. " : "";
+  const finishBy = /\b(finish|done|end|complete)\w*\b[^.;]*\b(by|before)\b|\btarget date\b|\bdeadline\b/i.test(ask);
+  const fallback = note + (!proposals.length ? (ask ? "No open task matches that, so there's nothing to plan." : "Every open task already has dates that fit its blockers. Nothing to plan.")
     : [
       `${proposals.length} ${proposals.length === 1 ? "task" : "tasks"} scheduled from ${proposals.map((x) => x.startDate).sort()[0]} to ${last}.`,
       p.endDate ? (late ? `That's after the target date (${p.endDate}); consider moving it or cutting scope.` : `That fits before the target date (${p.endDate}).`) : null,
       busiest && busiest[1] > 5 ? `${busiest[0]} carries the most (${busiest[1]} working days); spread some of it if you can.` : null,
       facts.unassigned ? `${facts.unassigned} ${facts.unassigned === 1 ? "task has" : "tasks have"} no assignee yet.` : null,
-    ].filter(Boolean).join(" ");
+      finishBy && late ? "To land by the target date, cut scope or add people: the plan keeps each person on one task at a time." : null,
+    ].filter(Boolean).join(" "));
   await audit(req, "ai_roadmap_plan", "project", p.id, { new: { proposals: proposals.length, source: src(ai) } });
   res.json({ project: { id: p.id, name: p.name, endDate: p.endDate }, proposals, summary: ai ?? fallback, source: src(ai), late });
 });
@@ -427,23 +528,23 @@ aiToolsRouter.post("/roadmap-plan", async (req, res) => {
 // ---------- Task: break it into subtasks ----------
 aiToolsRouter.post("/subtasks-draft", async (req, res) => {
   guard(req);
-  const { taskId } = z.object({ taskId: z.number().int() }).parse(req.body);
+  const { taskId, instructions } = z.object({ taskId: z.number().int(), instructions: INSTR }).parse(req.body);
   const t = await prisma.task.findFirst({ where: { id: taskId, companyId: cid(req) }, select: { title: true, description: true, projectId: true, subtasks: { select: { title: true } } } });
   if (!t) throw new HttpError(404, "Task not found");
   const project = await visibleProject(req, t.projectId);
   const ai = parseJsonArray<string>(await claude(
-    "Break a task into 3 to 6 concrete subtasks someone can finish in a day or less. Short imperative titles under 70 characters. Skip anything already in existingSubtasks. Reply with only a JSON array of strings.",
-    JSON.stringify({ title: t.title, description: t.description?.slice(0, 1500) ?? null, project: project.name, existingSubtasks: t.subtasks.map((x) => x.title) }),
+    "Break a task into 3 to 6 concrete subtasks someone can finish in a day or less. Short imperative titles under 70 characters. Skip anything already in existingSubtasks. If instructions are given, follow them (they can change how many subtasks and what they cover). Reply with only a JSON array of strings.",
+    JSON.stringify({ title: t.title, description: t.description?.slice(0, 1500) ?? null, project: project.name, existingSubtasks: t.subtasks.map((x) => x.title), instructions: instructions || null }),
   ));
   // Without Claude: the checklist in the description, else the steps for this kind of task.
   const desc = t.description ?? "";
   const checklist = desc.match(/(?:^|\n)\s*(?:checklist|steps|to ?do)\s*:?\s*\n([\s\S]*)/i)?.[1] ?? desc.split("\n").filter((l) => /^\s*[-*]\s*\[[ xX]?\]/.test(l)).join("\n");
   const fromChecklist = checklist.split("\n").map((l) => l.match(/^\s*(?:[-*•]|\d+[.)])\s+(?:\[[ xX]?\]\s*)?(.+)/)?.[1]?.trim()).filter((x): x is string => !!x);
   const name = t.title.replace(/[.\s]+$/, "");
-  const steps = fromChecklist.length >= 2 ? fromChecklist : TASK_KINDS.find(([re]) => re.test(t.title))?.[1]
-    ?? [`Agree the scope of ${name}`, `Gather what's needed for ${name}`, `First draft of ${name}`, `Review ${name} with the team`, `Finalize and share ${name}`];
+  const steps = shapeSteps(fromChecklist.length >= 2 ? fromChecklist : TASK_KINDS.find(([re]) => re.test(t.title))?.[1]
+    ?? [`Agree the scope of ${name}`, `Gather what's needed for ${name}`, `First draft of ${name}`, `Review ${name} with the team`, `Finalize and share ${name}`], instructions);
   const have = new Set(t.subtasks.map((x) => x.title.toLowerCase()));
-  const list = (ai?.filter((x) => typeof x === "string" && x.trim()) ?? steps).map((x) => x.trim().slice(0, 200)).filter((x) => !have.has(x.toLowerCase())).slice(0, 8);
+  const list = (ai?.filter((x) => typeof x === "string" && x.trim()) ?? steps).map((x) => x.trim().slice(0, 200)).filter((x) => !have.has(x.toLowerCase())).slice(0, 12);
   await audit(req, "ai_subtasks_drafted", "task", taskId, { new: { count: list.length, source: ai ? "claude" : "template" } });
   res.json({ subtasks: list, source: ai ? "claude" : "template" });
 });

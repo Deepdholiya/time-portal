@@ -33,7 +33,7 @@
 .groupHeader:hover .groupAdd { opacity: 1; }
 
 /* Toolbar */
-.toolbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1 1 100%; min-width: 0; }
 .search { width: 200px; }
 .filterChip {
   display: inline-flex; align-items: center; gap: 6px; height: var(--control-height-sm); padding: 0 10px; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); box-shadow: var(--shadow-xs);
